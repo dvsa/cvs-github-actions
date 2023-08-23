@@ -11,9 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: 🔑 Configuration of MGMT AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2.2.0
+      
+      - uses: aws-actions/configure-aws-credentials@v2.2.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.CVS_MGMT_AWS_ROLE }}:role/github-actions-role
           aws-region: eu-west-1
