@@ -9,6 +9,8 @@ on:
 jobs:
   node-ci:
     runs-on: ubuntu-latest
+    env:
+      CVS_MGMT_AWS_ROLE: ${{ secrets.CVS_MGMT_AWS_ROLE }}
     steps:
       - uses: actions/checkout@v3
 
@@ -20,7 +22,7 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@v2.2.0
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.CVS_MGMT_AWS_ROLE }}:role/github-actions-role
+          role-to-assume: arn:aws:iam::${{ env.CVS_MGMT_AWS_ROLE }}:role/github-actions-role
           aws-region: eu-west-1
           role-session-name: MGMTGHA
 
