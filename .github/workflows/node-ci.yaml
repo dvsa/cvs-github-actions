@@ -6,6 +6,11 @@ on:
     #     required: true
     #   CVS_SERVICES_S3:
     #     required: true
+
+permissions:
+  id-token: write
+  contents: read
+  
 jobs:
   node-ci:
     runs-on: ubuntu-latest
