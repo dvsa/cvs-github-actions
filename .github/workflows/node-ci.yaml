@@ -1,16 +1,12 @@
 name: Node JS CI
 on:
   workflow_call:
-    # secrets:
-    #   CVS_MGMT_AWS_ROLE:
-    #     required: true
-    #   CVS_SERVICES_S3:
-    #     required: true
+    secrets:
+      CVS_MGMT_AWS_ROLE:
+        required: true
+      CVS_SERVICES_S3:
+        required: true
 
-permissions:
-  id-token: write
-  contents: read
-  
 jobs:
   node-ci:
     runs-on: ubuntu-latest
