@@ -1,6 +1,11 @@
 name: Node JS CI
 on:
   workflow_call:
+    secrets:
+      CVS_MGMT_AWS_ROLE:
+        required: true
+      CVS_SERVICES_S3:
+        required: true
 jobs:
   node-ci:
     runs-on: ubuntu-latest
