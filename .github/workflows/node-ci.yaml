@@ -28,14 +28,38 @@ jobs:
       # - name: Create .npmrc
       #   run: echo "//npm.pkg.github.com/:_authToken=$CVS_ACCESS_TOKEN" >> ~/.npmrc
 
-      # - name: Install dependencies
-      #   run: npm ci
+      - name: Install dependencies
+        run: npm ci --prefer-offline
 
-      # - name: Check compilation
-      #   run: npm run compile-no-emit
+      - name: Security Check
+        run: echo 'Skipping for now'
 
-      # - name: Run unit tests
-      #   run: npm run test
+      - name: Configure Tools
+        run: npm run tools-setup
 
-      # - name: Run linting
-      #   run: npm run lint
+      - name: Run linting
+        run: npm run lint
+
+      - name: Build
+        run: npm run build      
+        
+      - name: Run Tests
+        run: npm run test
+
+      - name: Run Integration Tests
+        run: npm run test-i
+
+      - name: Sonar Scanner
+        run: echo 'Skipping this one'
+
+      - name: Coverage Check
+        run: echo 'Skipping this one'
+
+      - name: Push
+        run: npm run package
+
+      - name: S3 Upload
+        run: echo 's3 do something'
+
+      - name: Hash
+        run: echo 'Create S3 Hash file'
