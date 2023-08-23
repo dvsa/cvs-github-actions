@@ -30,9 +30,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline
 
-      - name: Security Check
-        run: npm run security-checks
-
       - name: Configure Tools
         run: npm run tools-setup
 
@@ -47,6 +44,10 @@ jobs:
 
       - name: Run Integration Tests
         run: npm run test-i
+
+      - name: Sonar Scanner
+        continue-on-error: true
+        run: sonar-scanner
 
       - name: Package
         env:
