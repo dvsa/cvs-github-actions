@@ -29,36 +29,33 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline
 
-      # - name: Security Check
-      #   run: echo 'Skipping for now'
+      - name: Security Check
+        run: npm run security-checks
 
-      # - name: Configure Tools
-      #   run: npm run tools-setup
+      - name: Configure Tools
+        run: npm run tools-setup
 
-      # - name: Run Linting
-      #   run: npm run lint
+      - name: Run Linting
+        run: npm run lint
 
       - name: Build
         run: npm run build
       
-      # - name: Run Tests
-      #   run: npm run test
+      - name: Run Tests
+        run: npm run test
 
-      # - name: Run Integration Tests
-      #   run: npm run test-i
+      - name: Run Integration Tests
+        run: npm run test-i
 
-      # - name: Sonar Scanner
-      #   run: echo 'Skipping this one'
-
-      # - name: Coverage Check
-      #   run: echo 'Skipping this one'
+      - name: Sonar Scanner
+        continue-on-error: true
+        run: sonar-scanner
 
       - name: Package
         env:
           ZIP_NAME: ${{ github.sha }}
         run: |
           npm run package
-          ls -la 
 
       - name: Upload
         run: |
