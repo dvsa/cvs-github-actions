@@ -48,10 +48,6 @@ jobs:
       - name: Run Integration Tests
         run: npm run test-i
 
-      - name: Sonar Scanner
-        continue-on-error: true
-        run: sonar-scanner
-
       - name: Package
         env:
           ZIP_NAME: ${{ github.sha }}
