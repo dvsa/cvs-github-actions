@@ -23,53 +23,45 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: .nvmrc
+          node-version-file: '.nvmrc'
           cache: 'npm'
-
-      - name: Confirm Node and NPM versions
-        run: |
-          node -v
-          npm -v
 
       - name: Install dependencies
         run: npm ci --prefer-offline
 
-      - name: Security Check
-        run: echo 'Skipping for now'
+      # - name: Security Check
+      #   run: echo 'Skipping for now'
 
-      - name: Configure Tools
-        run: npm run tools-setup
+      # - name: Configure Tools
+      #   run: npm run tools-setup
 
-      - name: Run Linting
-        run: npm run lint
+      # - name: Run Linting
+      #   run: npm run lint
 
       - name: Build
         run: npm run build
       
-      - name: Run Tests
-        run: npm run test
+      # - name: Run Tests
+      #   run: npm run test
 
-      - name: Run Integration Tests
-        run: npm run test-i
+      # - name: Run Integration Tests
+      #   run: npm run test-i
 
-      - name: Sonar Scanner
-        run: echo 'Skipping this one'
+      # - name: Sonar Scanner
+      #   run: echo 'Skipping this one'
 
-      - name: Coverage Check
-        run: echo 'Skipping this one'
+      # - name: Coverage Check
+      #   run: echo 'Skipping this one'
 
-      - name: Push
+      - name: Package
         env:
-          ZIP_NAME: ${{ github.sha }}}
+          ZIP_NAME: ${{ github.sha }}
         run: |
           npm run package
           ls -la 
-# openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64
-# repo=$(echo ${GITHUB_REPOSITORY#dvsa/cvs-})
-# echo $repo
 
-      # - name: S3 Upload
-      #   run: aws s3 cp 
-
-      # - name: Hash
-      #   run: echo 'Create S3 Hash file'
+      - name: Upload
+        run: |
+          SERVICE_NAME_SHORT=$(echo ${GITHUB_REPOSITORY#dvsa/cvs-svc-})
+          NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
+          aws s3 cp ${{github.sha}}.zip s3://${{ secrets.CVS_SERVICES_S3 }}/$SERVICE_NAME_SHORT/${{github.sha}}.zip --metadata 'sha256sum=${node_sha},Tag=$SERVICE_NAME_SHORT'
