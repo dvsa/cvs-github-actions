@@ -9,20 +9,14 @@ on:
 jobs:
   node-ci:
     runs-on: ubuntu-latest
-    env:
-      CVS_MGMT_AWS_ROLE: ${{ secrets.CVS_MGMT_AWS_ROLE }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Checks
-        run: |
-          echo ${{ github.sha }}
-          repo=$(echo ${GITHUB_REPOSITORY#dvsa/cvs-})
-          echo $repo
-
-      - uses: aws-actions/configure-aws-credentials@v2.2.0
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2.2.0
         with:
-          role-to-assume: arn:aws:iam::${{ env.CVS_MGMT_AWS_ROLE }}:role/github-actions-role
+          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
           aws-region: eu-west-1
           role-session-name: MGMTGHA
 
@@ -37,36 +31,42 @@ jobs:
           node -v
           npm -v
 
-      # - name: Install dependencies
-      #   run: npm ci --prefer-offline
+      - name: Install dependencies
+        run: npm ci --prefer-offline
 
-      # - name: Security Check
-      #   run: echo 'Skipping for now'
+      - name: Security Check
+        run: echo 'Skipping for now'
 
-      # - name: Configure Tools
-      #   run: npm run tools-setup
+      - name: Configure Tools
+        run: npm run tools-setup
 
-      # - name: Run Linting
-      #   run: npm run lint
+      - name: Run Linting
+        run: npm run lint
 
-      # - name: Build
-      #   run: npm run build
+      - name: Build
+        run: npm run build
       
-      # - name: Run Tests
-      #   run: npm run test
+      - name: Run Tests
+        run: npm run test
 
-      # - name: Run Integration Tests
-      #   run: npm run test-i
+      - name: Run Integration Tests
+        run: npm run test-i
 
-      # - name: Sonar Scanner
-      #   run: echo 'Skipping this one'
+      - name: Sonar Scanner
+        run: echo 'Skipping this one'
 
-      # - name: Coverage Check
-      #   run: echo 'Skipping this one'
+      - name: Coverage Check
+        run: echo 'Skipping this one'
 
-      # - name: Push
-      #   run: |
-      #    npm run package
+      - name: Push
+        env:
+          ZIP_NAME: ${{ github.sha }}}
+        run: |
+          npm run package
+          ls -la 
+# openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64
+# repo=$(echo ${GITHUB_REPOSITORY#dvsa/cvs-})
+# echo $repo
 
       # - name: S3 Upload
       #   run: aws s3 cp 
