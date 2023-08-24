@@ -9,7 +9,7 @@ on:
 
 jobs:
   node-ci:
-    runs-on: ubuntu-latest
+    runs-on: mito-7
     steps:
       - name: Configure Branch
         run: |
