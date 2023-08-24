@@ -11,14 +11,16 @@ jobs:
   node-ci:
     runs-on: mito-7
     steps:
-      - name: Configure Branch
+      - name: Branching
         run: |
-          echo $GITHUB_BASE_REF
-          echo $GITHUB_HEAD_REF
-          cat $GITHUB_EVENT_PATH
+          echo ${{ github.base_ref }}
+          echo ${{ github.ref }}
+          echo ${{ github.head_ref }}
 
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.base_ref }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2.2.0
@@ -61,17 +63,17 @@ jobs:
         run: |
           npm run package
 
-      # - name: Upload
-      #   run: |
-      #     SERVICE_NAME_SHORT=$(echo ${GITHUB_REPOSITORY#dvsa/cvs-svc-})
-      #     NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
-      #     aws s3 cp ${{github.sha}}.zip s3://${{ secrets.CVS_SERVICES_S3 }}/$SERVICE_NAME_SHORT/${{github.sha}}.zip --metadata "sha256sum=$NODE_SHA,Tag=$SERVICE_NAME_SHORT"
+      - name: Upload
+        run: |
+          SERVICE_NAME_SHORT=$(echo ${GITHUB_REPOSITORY#dvsa/cvs-svc-})
+          NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
+          aws s3 cp ${{github.sha}}.zip s3://${{ secrets.CVS_SERVICES_S3 }}/$SERVICE_NAME_SHORT/${{github.sha}}.zip --metadata "sha256sum=$NODE_SHA,Tag=$SERVICE_NAME_SHORT"
 
-      # - name: Record Hash
-      #   run: |
-      #     SERVICE_NAME_SHORT=$(echo ${GITHUB_REPOSITORY#dvsa/cvs-svc-})
-      #     unfeature=$(echo ${GITHUB_REF_NAME#feature/})
-      #     branch=$(python3 -c "print('$unfeature'.lower())")
-      #     echo ${{ github.sha }} > latestHash_$branch.txt
+      - name: Record Hash
+        run: |
+          SERVICE_NAME_SHORT=$(echo ${GITHUB_REPOSITORY#dvsa/cvs-svc-})
+          unfeature=$(echo ${GITHUB_REF_NAME#feature/})
+          branch=$(python3 -c "print('$unfeature'.lower())")
+          echo ${{ github.sha }} > latestHash_$branch.txt
 
-      #     aws s3 cp latestHash_$branch.txt s3://${{ secrets.CVS_SERVICES_S3 }}/$SERVICE_NAME_SHORT/latestHash_$branch.txt --metadata "Tag=$SERVICE_NAME_SHORT"
+          aws s3 cp latestHash_$branch.txt s3://${{ secrets.CVS_SERVICES_S3 }}/$SERVICE_NAME_SHORT/latestHash_$branch.txt --metadata "Tag=$SERVICE_NAME_SHORT"
