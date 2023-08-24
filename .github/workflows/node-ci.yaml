@@ -10,7 +10,6 @@ on:
 jobs:
   node-ci:
     runs-on: ubuntu-latest
-    if: github.event.pull
     steps:
       - name: Configure Branch
         run: |
