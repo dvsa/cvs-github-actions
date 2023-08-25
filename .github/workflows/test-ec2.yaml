@@ -63,7 +63,7 @@ jobs:
           role-session-name: MGMTGHA
 
       - name: Stop EC2 runner
-        uses: machulav/ec2-github-runner@v2
+        uses: dvsa/ec2-gha-runner@initial
         with:
           mode: stop
           github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
