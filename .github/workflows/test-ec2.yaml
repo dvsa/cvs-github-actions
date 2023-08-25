@@ -2,6 +2,10 @@ name: test ec2 create and terminate
 on: 
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   start-runner:
     name: Start self-hosted EC2 runner
