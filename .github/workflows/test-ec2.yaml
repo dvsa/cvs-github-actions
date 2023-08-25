@@ -1,0 +1,71 @@
+name: test ec2 create and terminate
+on: 
+  workflow_dispatch:
+
+jobs:
+  start-runner:
+    name: Start self-hosted EC2 runner
+    runs-on: mito-7
+    environment: test
+    outputs:
+      label: ${{ steps.start-ec2-runner.outputs.label }}
+      ec2-instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2.2.0
+        with:
+          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
+          aws-region: eu-west-1
+          role-session-name: MGMTGHA
+
+      - name: Start EC2 runner
+        id: start-ec2-runner
+        uses: machulav/ec2-github-runner@v2
+        with:
+          mode: start
+          github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          ec2-image-id: ${{ secrets.AMI }}
+          ec2-instance-type: t3.nano
+          subnet-id: ${{ secrets.SUBNET_ID }}
+          security-group-id: ${{ secrets.SECURITY_GROUP }}
+          aws-resource-tags: > # optional, requires additional permissions
+            [
+              {"Key": "Name", "Value": "ec2-github-runner"},
+              {"Key": "GitHubRepository", "Value": "${{ github.repository }}"}
+            ]
+
+
+  say-hello:
+    name: Do the job on the runner
+    needs: start-runner
+    environment: test
+    runs-on: ${{ needs.start-runner.outputs.label }}
+    steps:
+      - name: Hello World
+        run: echo 'Hello World!'
+
+
+  stop-runner:
+    name: Stop self-hosted EC2 runner
+    environment: test
+    needs:
+      - start-runner
+      - say-hello
+    runs-on: mito-7
+    if: ${{ always() }}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2.2.0
+        with:
+          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
+          aws-region: eu-west-1
+          role-session-name: MGMTGHA
+
+      - name: Stop EC2 runner
+        uses: machulav/ec2-github-runner@v2
+        with:
+          mode: stop
+          github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          label: ${{ needs.start-runner.outputs.label }}
+          ec2-instance-id: ${{ needs.start-runner.outputs.ec2-instance-id }}
