@@ -1,0 +1,18 @@
+name: Pull Request Labeller
+
+on:
+  workflow_call:
+
+jobs:
+  labeler:
+    runs-on: mac-os
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/labeler@v4
+        with:
+          configuration-path: .github/auto-label.yaml
+          sync-labels: true
