@@ -1,0 +1,103 @@
+name: Mobile Build
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: true      
+      cert_repo_branch:
+        type: string
+        required: true
+      secret_name:
+        type: string
+        required: true
+      fastlane_cmd:
+        type: string
+        required: true
+    
+    secrets:
+      IONIC_HUB_PRODUCT_KEY:
+        required: true
+      IPHONE8_P_ID:
+        required: true
+      AWS_ROLE:
+        required: true
+      MATCH_PASSWORD:
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    name: Build ${{ inputs.environment }} Mobile Artefacts
+    runs-on: mito-8
+    environment: ${{ inputs.environment }}
+    env:
+      RUN_ID: ${{ github.run_id }}
+      GEM_HOME: '/Users/jenkins/.gem'
+      BUNDLE_PATH: '.bundle'
+      ENVIRONMENT: ${{ inputs.environment }}
+      IPHONE8_P_ID: ${{ secrets.IPHONE8_P_ID }}
+      CERT_REPO_BRANCH: ${{ inputs.cert_repo_branch }}
+      IONIC_HUB_PRODUCT_KEY: ${{ secrets.IONIC_HUB_PRODUCT_KEY }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+    steps:
+      - name: ⚙️ Get Codebase
+        uses: actions/checkout@v3
+        with: 
+          ref: ${{ inputs.branch }}
+
+      - name: ⚙️ Configure Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: 🛸 Extract Branch Name
+        run: |
+          clean=$(echo ${GITHUB_REF_NAME#feature/})
+          clean=$(echo ${clean#release/})
+          branch=$(python3 -c "print('$clean'.lower())")
+          echo "BRANCH=$(echo $branch)"
+        id: branch
+      
+      - name: ⚙️ Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: eu-west-1
+          role-session-name: GHA-MobileBuild
+
+      - name: ♦️ Set Fastlane Secrets
+        uses: aws-actions/aws-secretsmanager-get-secrets@v1
+        with:
+          secret-ids: ${{ inputs.secret_name }}
+          parse-json-secrets: true
+
+      - name: 📂 Set Configuration Files
+        run: |
+          aws secretsmanager get-secret-value --secret-id npmrc --query SecretString | jq . --raw-output  > .npmrc
+          aws secretsmanager get-secret-value --secret-id feature/mobile/env --query SecretString | jq . --raw-output  > .env
+          sed  -i '' -e "s/BRANCH/${{ steps.branch.outputs.BRANCH }}/g" .env
+
+      - name: 🛠️ Install Dependencies
+        run: |
+          echo "NPM Version: $(npm -v)" >> $GITHUB_STEP_SUMMARY
+          echo "Node Version: $(node -v)" >> $GITHUB_STEP_SUMMARY
+          npm install
+
+      - name: 🛠️ Build Project
+        run: npm run build-ios -- --no-open
+
+      - name: 📱 Run Fastlane
+        env:
+          BRANCH: ${{ steps.branch.outputs.BRANCH }}
+        run: |
+          bundle install --path ~/.gem --jobs $(sysctl -n hw.physicalcpu)
+          bundle exec ${{ inputs.fastlane_cmd }}
+  
