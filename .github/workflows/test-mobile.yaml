@@ -31,6 +31,9 @@ on:
     MSTEAMS_WEBHOOK:
       required: false
       description: The Webhook for teams notifications.
+    REPORT_S3:
+      required: true
+      description: The S3 Bucket to store reports.
 
 permissions:
     contents: write
@@ -93,8 +96,8 @@ jobs:
       - name: 📱 Get App.app
         run: |
           mkdir apps
-          OBJECT="$(aws s3 ls s3://${{ secrets.CVS_ARTEFACT_S3 }}/github-actions/files/${{ inputs.environment }}/ --recursive | sort | grep 'APP.txt' | awk '{print $4}')"
-          aws s3 cp s3://${{ secrets.CVS_ARTEFACT_S3 }}/$OBJECT apps/${{needs.setup.outputs.branch}}-APP.txt
+          OBJECT="$(aws s3 ls s3://${{ secrets.AWS_ARTEFACT_S3 }}/github-actions/files/${{ inputs.environment }}/ --recursive | sort | grep 'APP.txt' | awk '{print $4}')"
+          aws s3 cp s3://${{ secrets.AWS_ARTEFACT_S3 }}/$OBJECT apps/${{needs.setup.outputs.branch}}-APP.txt
           wget -q -O apps/CVSMobile.App.zip `cat apps/${{needs.setup.outputs.branch}}-APP.txt`
           unzip -qq apps/CVSMobile.App.zip -d apps/
       
@@ -128,7 +131,7 @@ jobs:
       - name: ⬆️ Upload S3
         run: |
           zip -r reports.zip reports/
-          aws s3 cp reports.zip s3://cvs-mobile-test-reports/github-actions/${{ inputs.environment }}/report-${{ needs.test.outputs.branch }}-${{ github.run_id }}.zip
+          aws s3 cp reports.zip s3://${{ secrets.REPORT_S3 }}/github-actions/${{ inputs.environment }}/report-${{ needs.test.outputs.branch }}-${{ github.run_id }}.zip
 
       - name: Post 🧹 Clean Workspace
         if: always()
