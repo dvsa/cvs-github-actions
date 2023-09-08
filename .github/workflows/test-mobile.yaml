@@ -113,72 +113,72 @@ jobs:
       - name: "🛠️ Run Automation Suite"
         run: npm run wdio:vta:ap:report
       
-      - name: "📝 Generate Report"
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: report-${{ needs.setup.outputs.branch }}-${{ github.run_id }}
-          path: reports
-          retention-days: ${{ inputs.retention_days }}
+      # - name: "📝 Generate Report"
+      #   if: always()
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: report-${{ needs.setup.outputs.branch }}-${{ github.run_id }}
+      #     path: reports
+      #     retention-days: ${{ inputs.retention_days }}
 
-  upload:
-    name: ⬆️ Upload ${{ inputs.environment }} Documents
-    runs-on: ${{ inputs.builder }}
-    environment: ${{ inputs.environment }}
-    needs: [test]
-    steps:
-      - name: 🔑 Configuration of MGMT AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ secrets.MGMT_ROLE_NAME }}
-          aws-region: eu-west-1
-          role-session-name: ServiceAutoGHAMGMT
+  # upload:
+  #   name: ⬆️ Upload ${{ inputs.environment }} Documents
+  #   runs-on: ${{ inputs.builder }}
+  #   environment: ${{ inputs.environment }}
+  #   needs: [test]
+  #   steps:
+  #     - name: 🔑 Configuration of MGMT AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         role-to-assume: ${{ secrets.MGMT_ROLE_NAME }}
+  #         aws-region: eu-west-1
+  #         role-session-name: ServiceAutoGHAMGMT
 
-      - name: ⬆️ Upload S3
-        run: |
-          zip -r reports.zip reports/
-          aws s3 cp reports.zip s3://${{ secrets.REPORT_S3 }}/github-actions/${{ inputs.environment }}/report-${{ needs.test.outputs.branch }}-${{ github.run_id }}.zip
+  #     - name: ⬆️ Upload S3
+  #       run: |
+  #         zip -r reports.zip reports/
+  #         aws s3 cp reports.zip s3://${{ secrets.REPORT_S3 }}/github-actions/${{ inputs.environment }}/report-${{ needs.test.outputs.branch }}-${{ github.run_id }}.zip
 
-      - name: Post 🧹 Clean Workspace
-        if: always()
-        run: |
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          echo '✅ Workspace Cleared!' >> $GITHUB_STEP_SUMMARY
+  #     - name: Post 🧹 Clean Workspace
+  #       if: always()
+  #       run: |
+  #         rm -rf ./* || true
+  #         rm -rf ./.??* || true
+  #         echo '✅ Workspace Cleared!' >> $GITHUB_STEP_SUMMARY
 
-      - name: 🔔 Microsoft Teams Notification
-        uses: skitionek/notify-microsoft-teams@v1.0.4
-        if: inputs.environment != 'feature'
-        with:
-          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK }}
-          job: ${{ toJson(job) }}
-          needs: ${{ toJson(needs) }}
-          steps: ${{ toJson(steps) }}
+  #     - name: 🔔 Microsoft Teams Notification
+  #       uses: skitionek/notify-microsoft-teams@v1.0.4
+  #       if: inputs.environment != 'feature'
+  #       with:
+  #         webhook_url: ${{ secrets.MSTEAMS_WEBHOOK }}
+  #         job: ${{ toJson(job) }}
+  #         needs: ${{ toJson(needs) }}
+  #         steps: ${{ toJson(steps) }}
 
-  deploy:
-    if: always()
-    name: 📑 Publish to GitHub Pages
-    runs-on: ubuntu-latest
-    needs: [ setup, test ]
-    steps:
-      - name: ⬇️ Download Artifacts
-        uses: actions/download-artifact@v3
-        id: download
-        with:
-          name: report-${{ needs.setup.outputs.branch }}-${{ github.run_id }}
-          path: reports
+  # deploy:
+  #   if: always()
+  #   name: 📑 Publish to GitHub Pages
+  #   runs-on: ubuntu-latest
+  #   needs: [ setup, test ]
+  #   steps:
+  #     - name: ⬇️ Download Artifacts
+  #       uses: actions/download-artifact@v3
+  #       id: download
+  #       with:
+  #         name: report-${{ needs.setup.outputs.branch }}-${{ github.run_id }}
+  #         path: reports
         
-      - name: ✅ Validate Workspace
-        run: ls -lah reports
+  #     - name: ✅ Validate Workspace
+  #       run: ls -lah reports
       
-      - name: 📑 Deploy Report to Github Pages
-        if: always()
-        uses: peaceiris/actions-gh-pages@v3
-        with: 
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: reports
-          publish_branch: gh-pages
-          destination_dir: ${{ needs.setup.outputs.branch }}/${{ github.run_id }}
+  #     - name: 📑 Deploy Report to Github Pages
+  #       if: always()
+  #       uses: peaceiris/actions-gh-pages@v3
+  #       with: 
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         publish_dir: reports
+  #         publish_branch: gh-pages
+  #         destination_dir: ${{ needs.setup.outputs.branch }}/${{ github.run_id }}
       
-      - name: Output Report Link
-        run: echo "/${{ needs.setup.outputs.branch }}/${{ github.run_id }}/" >> $GITHUB_STEP_SUMMARY
+  #     - name: Output Report Link
+  #       run: echo "/${{ needs.setup.outputs.branch }}/${{ github.run_id }}/" >> $GITHUB_STEP_SUMMARY
