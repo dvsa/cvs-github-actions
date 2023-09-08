@@ -17,6 +17,9 @@ on:
       fastlane_cmd:
         type: string
         required: true
+      env_file:
+        type: string
+        required: true
     
     secrets:
       IONIC_HUB_PRODUCT_KEY:
@@ -82,7 +85,7 @@ jobs:
       - name: 📂 Set Configuration Files
         run: |
           aws secretsmanager get-secret-value --secret-id npmrc --query SecretString | jq . --raw-output  > .npmrc
-          aws secretsmanager get-secret-value --secret-id feature/mobile/env --query SecretString | jq . --raw-output  > .env
+          aws secretsmanager get-secret-value --secret-id ${{ inputs.env_file }} --query SecretString | jq . --raw-output  > .env
           sed  -i '' -e "s/BRANCH/${{ steps.branch.outputs.BRANCH }}/g" .env
 
       - name: 🛠️ Install Dependencies
