@@ -90,7 +90,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: '16.13.0'
+          node-version: '16.13.0'
 
       - name: 🔑 Configuration of MGMT AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
