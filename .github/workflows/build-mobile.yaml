@@ -63,7 +63,7 @@ jobs:
           clean=$(echo ${GITHUB_REF_NAME#feature/})
           clean=$(echo ${clean#release/})
           branch=$(python3 -c "print('$clean'.lower())")
-          echo "BRANCH=$(echo $branch)"
+          echo "BRANCH=$(echo $branch)" >> $GITHUB_OUTPUT
         id: branch
       
       - name: ⚙️ Configure AWS Credentials
