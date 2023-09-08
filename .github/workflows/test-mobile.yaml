@@ -62,6 +62,7 @@ jobs:
           unfeature=$(echo ${GITHUB_REF_NAME#feature/})
           branch=$(python3 -c "print('$unfeature'.lower())")
           echo "BRANCH=$(echo $branch)" >> $GITHUB_OUTPUT
+          echo "BRANCH=$(echo $branch)" > .env
         id: extract_branch
 
       - name: 🔑 Configuration of MGMT AWS Credentials
