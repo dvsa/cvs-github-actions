@@ -86,6 +86,11 @@ jobs:
     outputs:
       branch: ${{ needs.setup.outputs.branch }}
     steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.node-version'
+
       - name: 🔑 Configuration of MGMT AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
