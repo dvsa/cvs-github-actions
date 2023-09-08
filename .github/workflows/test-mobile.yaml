@@ -1,0 +1,161 @@
+name: Test Mobile
+
+on: 
+ workflow_call:
+  inputs:
+    environment:
+      required: true
+      type: string
+    builder:
+      required: false
+      type: string
+      default: ubuntu-latest
+    java_version:
+      required: false
+      type: string
+      default: '11'
+    retention_days:
+      required: false
+      type: number
+      default: 1
+  secrets:
+    TOKEN:
+      required: true
+      description: The Token to allow NPM to run correctly.
+    AWS_ARTEFACT_S3:
+      required: true
+      description: The S3 Bucket to get the App File from.
+    MGMT_ROLE_NAME: 
+      required: true
+      description: The AWS Role for the Management Account.
+    MSTEAMS_WEBHOOK:
+      required: false
+      description: The Webhook for teams notifications.
+
+permissions:
+    contents: write
+    id-token: write
+
+jobs:
+  setup:
+    name: Setup VTA [${{ inputs.environment }}]
+    runs-on: ${{ inputs.builder }}
+    environment: ${{ inputs.environment }}
+    outputs:
+      branch: ${{ steps.extract_branch.outputs.BRANCH }}
+    steps:
+      - name: 📨 Get Codebase
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Configure Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: ${{ inputs.java_version }}
+
+      - name: 🛸 Extract branch name
+        shell: bash
+        run: |
+          unfeature=$(echo ${GITHUB_REF_NAME#feature/})
+          branch=$(python3 -c "print('$unfeature'.lower())")
+          echo "BRANCH=$(echo $branch)" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: 🔑 Configuration of MGMT AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.MGMT_ROLE_NAME }}
+          aws-region: eu-west-1
+          role-session-name: ServiceAutoGHAMGMT
+
+      - name: 🔍 Configure Settings Files
+        run: |
+          mkdir creds
+          aws secretsmanager get-secret-value --secret-id nonprod/vta-automation/credentials --query SecretString > creds/credentials.json
+          aws secretsmanager get-secret-value --secret-id nonprod/vta-automation/openvisits --query SecretString --output text > creds/openVisit.ts
+          echo ${{ secrets.TOKEN }} | base64 --decode >> .npmrc
+
+  test:
+    name: Test VTA [${{ inputs.environment }}]
+    runs-on: ${{ inputs.builder }}
+    environment: ${{ inputs.environment }}
+    needs: [ setup ]
+    outputs:
+      branch: ${{ needs.setup.outputs.branch }}
+    steps:
+      - name: 📱 Get App.app
+        run: |
+          mkdir apps
+          aws s3 cp s3://${{ secrets.CVS_ARTEFACT_S3 }}/github-actions/files/${{ needs.setup.outputs.branch }}-APP.txt apps/${{needs.setup.outputs.branch}}-APP.txt
+          wget -q -O apps/CVSMobile.App.zip `cat apps/${{needs.setup.outputs.branch}}-APP.txt`
+          unzip -qq apps/CVSMobile.App.zip -d apps/
+      
+      - name: 🛠️ Install Dependencies
+        run: npm ci
+
+      - name: "🛠️ Run Automation Suite"
+        run: | 
+          npm run wdio:vta:ap:report  
+      
+      - name: "📝 Generate Report"
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: report-${{ needs.setup.outputs.branch }}-${{ github.run_id }}
+          path: reports
+          retention-days: ${{ inputs.retention_days }}
+
+  upload:
+    name: ⬆️ Upload ${{ inputs.environment }} Documents
+    runs-on: ${{ inputs.builder }}
+    environment: ${{ inputs.environment }}
+    needs: [test]
+    steps:
+      - name: ⬆️ Upload S3
+        run: |
+          zip -r reports.zip reports/
+          aws s3 cp reports.zip s3://cvs-mobile-test-reports/github-actions/${{ inputs.environment }}/report-${{ needs.test.outputs.branch }}-${{ github.run_id }}.zip
+
+      - name: Post 🧹 Clean Workspace
+        if: always()
+        run: |
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          echo '✅ Workspace Cleared!' >> $GITHUB_STEP_SUMMARY
+
+      - name: 🔔 Microsoft Teams Notification
+        uses: skitionek/notify-microsoft-teams@v1.0.4
+        if: inputs.environment != 'feature'
+        with:
+          webhook_url: ${{ secrets.MSTEAMS_WEBHOOK }}
+          job: ${{ toJson(job) }}
+          needs: ${{ toJson(needs) }}
+          steps: ${{ toJson(steps) }}
+
+  deploy:
+    if: always()
+    name: 📑 Publish to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [ setup, test ]
+    steps:
+      - name: ⬇️ Download Artifacts
+        uses: actions/download-artifact@v3
+        id: download
+        with:
+          name: report-${{ needs.setup.outputs.branch }}-${{ github.run_id }}
+          path: reports
+        
+      - name: ✅ Validate Workspace
+        run: ls -lah reports
+      
+      - name: 📑 Deploy Report to Github Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with: 
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: reports
+          publish_branch: gh-pages
+          destination_dir: ${{ needs.setup.outputs.branch }}/${{ github.run_id }}
+      
+      - name: Output Report Link
+        run: echo "/${{ needs.setup.outputs.branch }}/${{ github.run_id }}/" >> $GITHUB_STEP_SUMMARY
