@@ -62,7 +62,7 @@ jobs:
           unfeature=$(echo ${GITHUB_REF_NAME#feature/})
           branch=$(python3 -c "print('$unfeature'.lower())")
           echo "BRANCH=$(echo $branch)" >> $GITHUB_OUTPUT
-          echo "BRANCH=$(echo $branch)" > .env
+          echo "BRANCH=develop" > .env
         id: extract_branch
 
       - name: 🔑 Configuration of MGMT AWS Credentials
@@ -111,7 +111,7 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: "🛠️ Run Automation Suite"
-        run: npm run wdio:vta:ap:report  
+        run: npm run wdio:vta:ap:report
       
       - name: "📝 Generate Report"
         if: always()
