@@ -118,6 +118,13 @@ jobs:
     environment: ${{ inputs.environment }}
     needs: [test]
     steps:
+      - name: 🔑 Configuration of MGMT AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.MGMT_ROLE_NAME }}
+          aws-region: eu-west-1
+          role-session-name: ServiceAutoGHAMGMT
+
       - name: ⬆️ Upload S3
         run: |
           zip -r reports.zip reports/
