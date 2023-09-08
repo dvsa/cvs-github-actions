@@ -95,7 +95,7 @@ jobs:
 
       - name: 📱 Get App.app
         run: |
-          mkdir apps
+          mkdir apps -p
           OBJECT="$(aws s3 ls s3://${{ secrets.AWS_ARTEFACT_S3 }}/github-actions/files/${{ inputs.environment }}/ --recursive | sort | grep 'APP.txt' | awk '{print $4}')"
           aws s3 cp s3://${{ secrets.AWS_ARTEFACT_S3 }}/$OBJECT apps/${{needs.setup.outputs.branch}}-APP.txt
           wget -q -O apps/CVSMobile.App.zip `cat apps/${{needs.setup.outputs.branch}}-APP.txt`
