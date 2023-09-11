@@ -24,10 +24,12 @@ permissions:
   id-token: write
 
 jobs:
-  steps:
+  test:
     name: Test VTA [${{ inputs.environment }}]
     runs-on: ${{ inputs.builder }}
     environment: ${{ inputs.environment }}
+    outputs:
+      branch: ${{ steps.extract_branch.outputs.BRANCH }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -52,7 +54,15 @@ jobs:
         with:
           secret-ids: 'vta-automation/env'
           parse-json-secrets: true
-      
+
+      - name: 🛸 Extract Branch
+        shell: bash
+        run: |
+          unfeature=$(echo ${GITHUB_REF_NAME#feature/})
+          branch=$(python3 -c "print('$unfeature'.lower())")
+          echo "BRANCH=$(echo $branch)" >> $GITHUB_OUTPUT
+        id: extract_branch
+        
       - name: 🔍 Configure Settings Files
         run: |
           mkdir creds
@@ -78,6 +88,50 @@ jobs:
           echo "NODE: $(which node)"
           echo "NODE VERSION: $(node -v)"
           npm i
-      
+        
       - name: 🛠️ Run Automation Suite
         run: npm run wdio:vta:ap:report
+
+      - name: 📑 Generate Reports
+        run: npm run s3report
+
+      - name: 🤐 Zip Reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: vta-report-${{ steps.extract_branch.outputs.branch }}-${{ github.run_id }}
+          path: reports/allure-report
+          retention-days: ${{ inputs.retention_days }}
+
+      - name: ⬆️ Upload S3
+        run: |
+          zip -r reports.zip reports/
+          aws s3 cp reports.zip s3://${{ env.VTA_AUTOMATION_ENV_AWS_REPORT_BUCKET }}/github-actions/${{ inputs.environment }}/report-${{ steps.extract_branch.outputs.branch }}-${{ github.run_id }}.zip
+
+  deploy:
+     if: always()
+     name: 📑 Publish to GitHub Pages
+     runs-on: ubuntu-latest
+     needs: [ test ]
+     steps:
+       - name: ⬇️ Download Artifacts
+         uses: actions/download-artifact@v3
+         id: download
+         with:
+           name: vta-report-${{ needs.test.outputs.branch }}-${{ github.run_id }}
+           path: reports
+         
+       - name: ✅ Validate Workspace
+         run: ls -lah reports
+       
+       - name: 📑 Deploy Report to Github Pages
+         if: always()
+         uses: peaceiris/actions-gh-pages@v3
+         with: 
+           github_token: ${{ secrets.GITHUB_TOKEN }}
+           publish_dir: reports
+           publish_branch: gh-pages
+           destination_dir: ${{ needs.test.outputs.branch }}/${{ github.run_id }}
+       
+       - name: Output Report Link
+         run: echo "https://super-funicular-597oy3e.pages.github.io/${{ needs.test.outputs.branch }}/${{ github.run_id }}/" >> $GITHUB_STEP_SUMMARY
