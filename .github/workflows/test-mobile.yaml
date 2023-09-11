@@ -73,7 +73,11 @@ jobs:
           unzip -qq apps/CVSMobile.App.zip -d apps/
 
       - name: 🛠️ Install Dependencies
-        run: npm ci
+        run: | 
+          echo "NPM: $(which npm)"
+          echo "NODE: $(which node)"
+          echo "NODE VERSION: $(node -v)"
+          npm ci
       
       - name: 🛠️ Run Automation Suite
         run: npm run wdio:vta:ap:report
