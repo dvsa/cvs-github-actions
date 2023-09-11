@@ -56,8 +56,8 @@ jobs:
       - name: 🔍 Configure Settings Files
         run: |
           mkdir creds
-          aws secretsmanager get-secret-value --secret-id nonprod/vta-automation/credentials --query SecretString > creds/credentials.json
-          aws secretsmanager get-secret-value --secret-id nonprod/vta-automation/openvisits --query SecretString --output text > creds/openVisit.ts
+          aws secretsmanager get-secret-value --secret-id ${{ env.VTA_AUTOMATION_ENV_CREDENTIALS }} --query SecretString > creds/credentials.json
+          aws secretsmanager get-secret-value --secret-id ${{ env.VTA_AUTOMATION_ENV_OPENVISITS }} --query SecretString --output text > creds/openVisit.ts
           echo ${{ env.VTA_AUTOMATION_ENV_NPMJS_REGISTRY }} >> .npmrc
           echo ${{ env.VTA_AUTOMATION_ENV_NPM_PKG }} >> .npmrc
           echo "BRANCH=develop" > .env
