@@ -77,7 +77,7 @@ jobs:
           echo "NPM: $(which npm)"
           echo "NODE: $(which node)"
           echo "NODE VERSION: $(node -v)"
-          npm ci --legacy-peer-deps
+          npm i
       
       - name: 🛠️ Run Automation Suite
         run: npm run wdio:vta:ap:report
