@@ -67,7 +67,7 @@ jobs:
           ARTEFACTS: ${{ env.VTA_AUTOMATION_ENV_AWS_ARTEFACT_BUCKET }}
         run: |
           mkdir apps
-          OBJECT="$(aws s3 ls s3://${{ env.ARTEFACTS }}/github-actions/files/${{ inputs.environment }}/ --recursive | sort | grep 'APP.txt' | awk '{print $4}')"
+          OBJECT="$(aws s3 ls s3://${{ env.ARTEFACTS }}/github-actions/files/${{ inputs.environment }}/ --recursive | sort | grep 'APP.txt' | tail -n 1 | awk '{print $4}')"
           aws s3 cp s3://${{ env.ARTEFACTS }}/$OBJECT apps/develop-APP.txt
           wget -q -O apps/CVSMobile.App.zip `cat apps/develop-APP.txt`
           unzip -qq apps/CVSMobile.App.zip -d apps/
