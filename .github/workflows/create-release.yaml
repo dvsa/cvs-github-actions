@@ -47,4 +47,4 @@ jobs:
 
       - name: Push
         if: inputs.dry-run == false
-        run: git push -u origin release/${{ inputs.release-branch-name }}
+        run: git push -u origin release/${{ inputs.release-branch-name }} --no-verify
