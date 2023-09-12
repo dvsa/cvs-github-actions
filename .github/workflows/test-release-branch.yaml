@@ -1,0 +1,21 @@
+name: Create Release Branch
+run-name: "${{ github.actor }} - ${{ github.ref_name }} - ${{ github.run_id }} 🚀"
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-branch: 
+        type: string
+        required: true      
+      release-branch:
+          type: string
+          required: true
+
+jobs:
+  test-release:
+    name: Testing
+    uses: ./create-release.yaml@develop
+    with:
+      release-branch-name: 'release/0.1'
+      source-branch-name: 'develop'
+      dry-run: true
