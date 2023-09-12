@@ -10,12 +10,15 @@ on:
       release-branch:
           type: string
           required: true
+      dry-run:
+        type: boolean
+        default: true
 
 jobs:
   test-release:
     name: Testing
     uses: ./.github/workflows/create-release.yaml
     with:
-      release-branch-name: 'release/0.1'
-      source-branch-name: 'develop'
-      dry-run: true
+      release-branch-name: ${{ inputs.release-branch }}
+      source-branch-name: ${{ inputs.source-branch }}
+      dry-run: ${{ inputs.dry-run }}
