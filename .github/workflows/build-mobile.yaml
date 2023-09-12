@@ -103,4 +103,10 @@ jobs:
         run: |
           bundle install --path ~/.gem --jobs $(sysctl -n hw.physicalcpu)
           bundle exec ${{ inputs.fastlane_cmd }}
-  
+
+      - name: ⬆️ Store QR Code
+        uses: actions/upload-artifact@v3
+        with:
+          name: VTA-QR-${{ steps.branch.outputs.BRANCH }}
+          path: fastlane/codes
+          retention-days: 3
