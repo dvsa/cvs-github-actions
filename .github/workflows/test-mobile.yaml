@@ -68,7 +68,7 @@ jobs:
           aws secretsmanager get-secret-value --secret-id ${{ env.VTA_AUTOMATION_ENV_OPENVISITS }} --query SecretString --output text > creds/openVisit.ts
           echo ${{ env.VTA_AUTOMATION_ENV_NPMJS_REGISTRY }} >> .npmrc
           echo ${{ env.VTA_AUTOMATION_ENV_NPM_PKG }} >> .npmrc
-          echo "BRANCH=develop" > .env
+          echo "BRANCH=${{ steps.extract_branch.outputs.BRANCH }}" > .env
 
       - name: 📱 Get App.app
         env:
