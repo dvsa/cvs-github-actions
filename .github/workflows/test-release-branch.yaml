@@ -14,7 +14,7 @@ on:
 jobs:
   test-release:
     name: Testing
-    uses: ./create-release.yaml@develop
+    uses: ./.github/workflows/create-release.yaml
     with:
       release-branch-name: 'release/0.1'
       source-branch-name: 'develop'
