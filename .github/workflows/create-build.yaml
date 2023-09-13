@@ -4,17 +4,11 @@ on:
   repository_dispatch:
 
 jobs:
-  create-branch:
-    if: ${{ github.event.client_payload.action == 'create' }}
+  manage-branch:
     uses: ./.github/workflows/manage-branch.yaml
     with:
-      create: true
+      create: ${{ github.event.client_payload.action == 'create' }}
       source-branch: ${{ github.event.client_payload.source-branch }}
       branch-to-create: ${{ github.event.client_payload.branch-to-create }}
-
-  delete-branch:
-    if: ${{ github.event.client_payload.action == 'delete' }}
-    uses: ./.github/workflows/manage-branch.yaml
-    with:
-      delete: true
+      delete: ${{ github.event.client_payload.action == 'delete' }}
       branch-to-delete: ${{ github.event.client_payload.branch-to-delete }}
