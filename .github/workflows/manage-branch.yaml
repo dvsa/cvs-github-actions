@@ -12,12 +12,9 @@ on:
       source-branch:
         type: string
         default: develop
-      branch-to-create:
+      branch:
         type: string
-        default: 'N/A'
-      branch-to-delete:
-        type: string
-        default: 'N/A'
+        required: true
 
 permissions:
   contents: write
@@ -26,22 +23,21 @@ permissions:
 jobs:
   create:
     if: ${{ fromJSON(inputs.create) }}
-    name: Create ${{ inputs.branch-to-create }}
+    name: Create ${{ inputs.branch }} from ${{ inputs.source-branch }}
     runs-on: 'ubuntu-latest'
     steps:
       - name: Git Checkout ${{ inputs.source-branch }}
         uses: actions/checkout@v3
         with:
           ref: ${{ inputs.source-branch }}
-      - run: echo "Hello World from (Create)!"
+      
 
   delete:
     if: ${{ fromJSON(inputs.delete) }}
-    name: Delete ${{ inputs.branch-to-delete }}
+    name: Delete ${{ inputs.branch }}
     runs-on: 'ubuntu-latest'
     steps:
       - name: Git Checkout Develop
         uses: actions/checkout@v3
         with:
           ref: 'develop'
-      - run: echo "Hello World from (Delete inputs.branch-to-delete)!"

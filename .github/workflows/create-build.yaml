@@ -9,6 +9,5 @@ jobs:
     with:
       create: ${{ github.event.client_payload.action == 'create' }}
       source-branch: ${{ github.event.client_payload.source-branch }}
-      branch-to-create: ${{ github.event.client_payload.branch-to-create }}
       delete: ${{ github.event.client_payload.action == 'delete' }}
-      branch-to-delete: ${{ github.event.client_payload.branch-to-delete }}
+      branch: ${{ github.event.client_payload.branch }}
