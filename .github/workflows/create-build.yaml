@@ -4,11 +4,15 @@ jobs:
   create-branch:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Create Branch"
+      - uses: actions/checkout@v3
+      - run: 'echo "field: ${{ github.event.client_payload.branch-to-create }}"'
+      - run: 'echo "payload: ${{ toJson(github.event.client_payload) }}"'
 
   build:
     needs: [ create-branch ]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Run Build Commands"
+      - uses: actions/checkout@v3
+      - run: 'echo "field: ${{ github.event.client_payload.build }}"'
+      - run: 'echo "payload: ${{ toJson(github.event.client_payload) }}"'
   
