@@ -1,7 +1,7 @@
 name: Manage Branch
 
 on: 
-  workflow_dispatch:
+  workflow_call:
     inputs:
       source-branch:
         type: string
