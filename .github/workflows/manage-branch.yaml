@@ -29,6 +29,19 @@ jobs:
           git config --global user.email '${{ github.actor }}@users.noreply.github.com'
           git push -u origin ${{ env.BRANCH }} --no-verify
 
+  build:
+    if: ${{ fromJSON(github.event.client_payload.action == 'build') }}
+    name: ✅ Build ${{github.event.client_payload.branch}}
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Git Checkout ${{ env.BRANCH }}
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ env.BRANCH }}
+  
+      - name: Build Using NPM
+        run: echo "npm run build"
+
   delete:
     if: ${{ github.event.client_payload.action == 'delete' }}
     name: ⛔️ Delete ${{github.event.client_payload.branch}}
