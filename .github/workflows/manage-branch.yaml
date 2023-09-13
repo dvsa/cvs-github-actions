@@ -14,7 +14,7 @@ env:
 jobs:
   create:
     if: ${{ fromJSON(github.event.client_payload.action == 'create') }}
-    name: Create ${{github.event.client_payload.branch}} from ${{github.event.client_payload.source-branch}}
+    name: ✅ Create ${{github.event.client_payload.branch}} from ${{github.event.client_payload.source-branch}}
     runs-on: 'ubuntu-latest'
     steps:
       - name: Git Checkout ${{ env.SOURCE }}
@@ -31,7 +31,7 @@ jobs:
 
   delete:
     if: ${{ github.event.client_payload.action == 'delete' }}
-    name: Delete ${{github.event.client_payload.branch}}
+    name: ⛔️ Delete ${{github.event.client_payload.branch}}
     runs-on: 'ubuntu-latest'
     steps:
       - name: Git Checkout Develop
