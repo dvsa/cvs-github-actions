@@ -43,5 +43,6 @@ jobs:
         id: exists
         run: echo "RESULT=$(git ls-remote origin ${{ env.BRANCH }} | wc -l)" >> $GITHUB_OUTPUT
       
-      - name: Output Branch
+      - name: Delete Branch
+        if: ${{ steps.exists.outputs.RESULT == '1' }}
         run: echo "${{ steps.exists.outputs.RESULT }}"
