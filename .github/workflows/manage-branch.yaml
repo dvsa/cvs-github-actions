@@ -1,0 +1,41 @@
+name: Manage Branch
+
+on: 
+  workflow_dispatch:
+    inputs:
+      source-branch:
+        type: string
+        default: develop
+      branch-to-create:
+        type: string
+        default: 'N/A'
+      branch-to-delete:
+        type: string
+        default: 'N/A'
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  create:
+    if: inputs.branch-to-create != 'N/A'
+    name: Create ${{ inputs.branch-to-create }}
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Git Checkout ${{ inputs.source-branch }}
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.source-branch }}
+      - run: echo "Hello World from (Create)!"
+
+  delete:
+    if: inputs.branch-to-delete != 'N/A'
+    name: Create ${{ inputs.branch-to-create }}
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Git Checkout Develop
+        uses: actions/checkout@v3
+        with:
+          ref: 'develop'
+      - run: echo "Hello World from (Delete)!"

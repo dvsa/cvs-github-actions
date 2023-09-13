@@ -1,18 +1,19 @@
-name: Create & Build Job
-on: [repository_dispatch]
+name: Branch Manager
+
+on:
+  repository_dispatch:
+
 jobs:
   create-branch:
-    runs-on: ubuntu-latest
-    steps:
-      - run: 'echo "field: ${{ github.event.client_payload.branch-to-create }}"'
-      - run: 'echo "git checkout -b ${{ github.event.client_payload.branch-to-create }}"'
-      - uses: actions/checkout@v3
+    if: ${{ github.event.client_payload.branch-to-create != 'N/A' }}
+    uses: ./.github/workflows/manage-branch.yaml
+    with:
+      source-branch: ${{ github.event.client_payload.source-branch }}
+      branch-to-create: ${{ github.event.client_payload.branch-to-create }}
 
-  build:
-    if: ${{ github.event.client_payload.build == 'true' }}
-    needs: [ create-branch ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - run: 'echo "npm run build"'
-  
+  delete-branch:
+    if: ${{ github.event.client_payload.branch-to-delete != 'N/A' }}
+    uses: ./.github/workflows/manage-branch.yaml
+    with:
+      branch-to-create: 'N/A'
+      branch-to-delete: ${{ github.event.client_payload.branch-to-delete }}
