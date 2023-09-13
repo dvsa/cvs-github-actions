@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   create:
-    if: inputs.branch-to-create != 'N/A'
+    if: ${{ inputs.branch-to-create != 'N/A' }}
     name: Create ${{ inputs.branch-to-create }}
     runs-on: 'ubuntu-latest'
     steps:
@@ -30,7 +30,7 @@ jobs:
       - run: echo "Hello World from (Create)!"
 
   delete:
-    if: inputs.branch-to-delete != 'N/A'
+    if: ${{ inputs.branch-to-delete != 'N/A' }}
     name: Delete ${{ inputs.branch-to-delete }}
     runs-on: 'ubuntu-latest'
     steps:
