@@ -44,5 +44,5 @@ jobs:
         run: echo "RESULT=$(git ls-remote origin ${{ env.BRANCH }} | wc -l)" >> $GITHUB_OUTPUT
       
       - name: Delete Branch
-        if: ${{ steps.exists.outputs.RESULT == '0' }}
-        run: echo "${{ steps.exists.outputs.RESULT }}"
+        if: ${{ steps.exists.outputs.RESULT == '1' }}
+        run: git push origin --delete ${{ env.BRANCH }}
