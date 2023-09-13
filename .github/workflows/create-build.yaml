@@ -15,5 +15,4 @@ jobs:
     if: ${{ github.event.client_payload.branch-to-delete != 'N/A' }}
     uses: ./.github/workflows/manage-branch.yaml
     with:
-      branch-to-create: 'N/A'
       branch-to-delete: ${{ github.event.client_payload.branch-to-delete }}
