@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   create:
-    if: ${{ inputs.create == 'true' }}
+    if: ${{ fromJSON(inputs.create) }}
     name: Create ${{ inputs.branch-to-create }}
     runs-on: 'ubuntu-latest'
     steps:
@@ -36,7 +36,7 @@ jobs:
       - run: echo "Hello World from (Create)!"
 
   delete:
-    if: ${{ inputs.delete == 'true' }}
+    if: ${{ fromJSON(inputs.delete) }}
     name: Delete ${{ inputs.branch-to-delete }}
     runs-on: 'ubuntu-latest'
     steps:
