@@ -1,0 +1,14 @@
+name: Create & Build Job
+on: [repository_dispatch]
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Create Branch"
+
+  build:
+    needs: [ create-branch ]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Run Build Commands"
+  
