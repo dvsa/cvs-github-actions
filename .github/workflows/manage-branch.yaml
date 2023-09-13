@@ -41,8 +41,7 @@ jobs:
 
       - name: Check Branch Exists
         id: exists
-        run: echo "${{ github.repositoryUrl }}"
-        # run: echo "RESULT=$(git ls-remote --heads ${{ github.repositoryUrl }} ${{ env.BRANCH }} | wc -l)" >> $GITHUB_OUTPUT
+        run: echo "RESULT=$(git ls-remote origin ${{ env.BRANCH }} | wc -l)" >> $GITHUB_OUTPUT
       
-      # - name: Output Branch
-      #   run: echo "${{ steps.exists.outputs.RESULT }}"
+      - name: Output Branch
+        run: echo "${{ steps.exists.outputs.RESULT }}"
