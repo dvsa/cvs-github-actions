@@ -14,17 +14,17 @@ env:
 jobs:
   create:
     if: ${{ fromJSON(github.event.client_payload.action == 'create') }}
-    name: Create $BRANCH from $SOURCE
+    name: Create ${{ env.BRANCH }} from ${{ env.SOURCE }}
     runs-on: 'ubuntu-latest'
     steps:
-      - name: Git Checkout $SOURCE
+      - name: Git Checkout ${{ env.SOURCE }}
         uses: actions/checkout@v3
         with:
-          ref: $SOURCE
+          ref: ${{ env.SOURCE }}
 
   delete:
     if: ${{ github.event.client_payload.action == 'delete' }}
-    name: Delete $BRANCH
+    name: Delete ${{ env.BRANCH }}
     runs-on: 'ubuntu-latest'
     steps:
       - name: Git Checkout Develop
