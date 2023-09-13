@@ -5,14 +5,16 @@ on:
 
 jobs:
   create-branch:
-    if: ${{ github.event.client_payload.branch-to-create != 'N/A' }}
+    if: ${{ github.event.event_type == 'create' }}
     uses: ./.github/workflows/manage-branch.yaml
     with:
+      create: true
       source-branch: ${{ github.event.client_payload.source-branch }}
       branch-to-create: ${{ github.event.client_payload.branch-to-create }}
 
   delete-branch:
-    if: ${{ github.event.client_payload.branch-to-delete != 'N/A' }}
+    if: ${{ github.event.event_type == 'delete' }}
     uses: ./.github/workflows/manage-branch.yaml
     with:
+      delete: true
       branch-to-delete: ${{ github.event.client_payload.branch-to-delete }}
