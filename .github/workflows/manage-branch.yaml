@@ -1,40 +1,30 @@
-name: Manage Branch
+name: Manage Branch 🎋
 
-on: 
-  workflow_call:
-    inputs:
-      create:
-        type: boolean
-        default: false
-      delete:
-        type: boolean
-        default: false
-      source-branch:
-        type: string
-        default: develop
-      branch:
-        type: string
-        required: true
+on:
+  repository_dispatch:
 
 permissions:
   contents: write
   id-token: write
 
+env:
+  SOURCE: ${{ github.event.client_payload.source-branch }}
+  BRANCH: ${{ github.event.client_payload.branch }}
+
 jobs:
   create:
-    if: ${{ fromJSON(inputs.create) }}
-    name: Create ${{ inputs.branch }} from ${{ inputs.source-branch }}
+    if: ${{ fromJSON(github.event.client_payload.action == 'create') }}
+    name: Create $BRANCH from $SOURCE
     runs-on: 'ubuntu-latest'
     steps:
-      - name: Git Checkout ${{ inputs.source-branch }}
+      - name: Git Checkout $SOURCE
         uses: actions/checkout@v3
         with:
-          ref: ${{ inputs.source-branch }}
-      
+          ref: $SOURCE
 
   delete:
-    if: ${{ fromJSON(inputs.delete) }}
-    name: Delete ${{ inputs.branch }}
+    if: ${{ github.event.client_payload.action == 'delete' }}
+    name: Delete $BRANCH
     runs-on: 'ubuntu-latest'
     steps:
       - name: Git Checkout Develop
