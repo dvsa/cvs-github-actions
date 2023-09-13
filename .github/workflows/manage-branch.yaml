@@ -31,7 +31,7 @@ jobs:
 
   delete:
     if: inputs.branch-to-delete != 'N/A'
-    name: Create ${{ inputs.branch-to-create }}
+    name: Delete ${{ inputs.branch-to-delete }}
     runs-on: 'ubuntu-latest'
     steps:
       - name: Git Checkout Develop
