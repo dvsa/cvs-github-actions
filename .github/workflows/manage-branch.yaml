@@ -22,6 +22,13 @@ jobs:
         with:
           ref: ${{ env.SOURCE }}
 
+      - name: Create and Push ${{ env.BRANCH }} to Origin
+        run: |
+          git checkout -b ${{ env.BRANCH }}
+          git config --global user.name '${{ github.actor }}'
+          git config --global user.email '${{ github.actor }}@users.noreply.github.com'
+          git push -u origin ${{ env.BRANCH }} --no-verify
+
   delete:
     if: ${{ github.event.client_payload.action == 'delete' }}
     name: Delete ${{github.event.client_payload.branch}}
