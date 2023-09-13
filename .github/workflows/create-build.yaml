@@ -5,7 +5,7 @@ on:
 
 jobs:
   create-branch:
-    if: ${{ github.event.event_type == 'create' }}
+    if: ${{ github.event.client_payload.action == 'create' }}
     uses: ./.github/workflows/manage-branch.yaml
     with:
       create: true
@@ -13,7 +13,7 @@ jobs:
       branch-to-create: ${{ github.event.client_payload.branch-to-create }}
 
   delete-branch:
-    if: ${{ github.event.event_type == 'delete' }}
+    if: ${{ github.event.client_payload.action == 'delete' }}
     uses: ./.github/workflows/manage-branch.yaml
     with:
       delete: true
