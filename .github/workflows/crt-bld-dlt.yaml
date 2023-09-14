@@ -39,7 +39,7 @@ jobs:
     name: ✅ Build ${{inputs.branch}}
     runs-on: 'ubuntu-latest'
     steps:
-      - run: Coming soon!
+      - run: echo "coming soon!"
 
   delete:
     if: ${{ inputs.action == 'delete' }}
