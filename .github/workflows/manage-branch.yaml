@@ -7,55 +7,10 @@ permissions:
   contents: write
   id-token: write
 
-env:
-  SOURCE: ${{ github.event.client_payload.source-branch }}
-  BRANCH: ${{ github.event.client_payload.branch }}
-
 jobs:
-  create:
-    if: ${{ fromJSON(github.event.client_payload.action == 'create') }}
-    name: ✅ Create ${{github.event.client_payload.branch}} from ${{github.event.client_payload.source-branch}}
-    runs-on: 'ubuntu-latest'
-    steps:
-      - name: Git Checkout ${{ env.SOURCE }}
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ env.SOURCE }}
-
-      - name: Create and Push ${{ env.BRANCH }} to Origin
-        run: |
-          git checkout -b ${{ env.BRANCH }}
-          git config --global user.name '${{ github.actor }}'
-          git config --global user.email '${{ github.actor }}@users.noreply.github.com'
-          git push -u origin ${{ env.BRANCH }} --no-verify
-
-  build:
-    if: ${{ fromJSON(github.event.client_payload.action == 'build') }}
-    name: ✅ Build ${{github.event.client_payload.branch}}
-    runs-on: 'ubuntu-latest'
-    steps:
-      - name: Git Checkout ${{ env.BRANCH }}
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ env.BRANCH }}
-  
-      - name: Build Using NPM
-        run: echo "npm run build"
-
-  delete:
-    if: ${{ github.event.client_payload.action == 'delete' }}
-    name: ⛔️ Delete ${{github.event.client_payload.branch}}
-    runs-on: 'ubuntu-latest'
-    steps:
-      - name: Git Checkout Develop
-        uses: actions/checkout@v3
-        with:
-          ref: 'develop'
-
-      - name: Check Branch Exists
-        id: exists
-        run: echo "RESULT=$(git ls-remote origin ${{ env.BRANCH }} | wc -l)" >> $GITHUB_OUTPUT
-      
-      - name: Delete Branch
-        if: ${{ steps.exists.outputs.RESULT == '1' }}
-        run: git push origin --delete ${{ env.BRANCH }}
+  manage-branch:
+    uses: ./.github/workflows/crt-bld-dlt.yaml
+    with:
+      action: ${{ github.event.client_payload.action }}
+      branch: ${{ github.event.client_payload.branch }}
+      source-branch: ${{ github.event.client_payload.source-branch }}
