@@ -27,7 +27,7 @@ jobs:
         with:
           ref: ${{ inputs.source-branch }}
 
-      - name: Create and Push ${{ inputs.branch }} to Origin
+      - name: Create and Push ${{ inputs.branch }}
         run: |
           git checkout -b ${{ inputs.branch }}
           git config --global user.name '${{ github.actor }}'
