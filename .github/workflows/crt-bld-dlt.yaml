@@ -35,7 +35,7 @@ jobs:
           git push -u origin ${{ inputs.branch }} --no-verify
 
   build:
-    if: ${{ fromJSON(inputs.action == 'build') || fromJSON(inputs.action == 'create&build') }}
+    if: ${{ inputs.action == 'build' || inputs.action == 'create&build' }}
     name: ✅ Build ${{inputs.branch}}
     runs-on: 'ubuntu-latest'
     steps:
