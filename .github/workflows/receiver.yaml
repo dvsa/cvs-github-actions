@@ -1,0 +1,12 @@
+name: Receiver 
+on:
+  repository_dispatch:
+    types: ['create', 'build', 'delete', 'create & build']
+jobs:
+  receiver:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Received Event!
+        run: |
+          echo "Event Context: '${{ github.event }}'"
+          echo "Payload: '${{ github.event.client_payload }}'"
