@@ -30,7 +30,12 @@ jobs:
         with:
           ref: ${{ inputs.source-branch }}
 
+      - name: Check Branch Exists
+        id: exists
+        run: echo "RESULT=$(git ls-remote origin ${{ github.event.client_payload.branch }} | wc -l)" >> $GITHUB_OUTPUT
+
       - name: Create and Push ${{ inputs.branch }}
+        if: ${{ steps.exists.outputs.RESULT == '0' }}
         run: |
           git checkout -b ${{ inputs.branch }}
           git config --global user.name '${{ github.actor }}'
