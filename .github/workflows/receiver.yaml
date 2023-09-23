@@ -8,5 +8,5 @@ jobs:
     steps:
       - name: Received Event!
         run: |
-          echo "Event Context: '${{ github.event }}'"
-          echo "Payload: '${{ github.event.client_payload }}'"
+          echo "${{ github.event }}" | jq '.'
+          echo "${{ github.event.client_payload }}" | jq '.'
