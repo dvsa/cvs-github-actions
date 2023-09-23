@@ -17,6 +17,7 @@ jobs:
           echo "payload source branch '${{ github.event.client_payload.source-branch }}'"
 
   action:
+    needs: receiver
     name:  ${{ github.event.action }} ${{  github.event.client_payload.branch }} from ${{  github.event.client_payload.source-branch }}
     uses: ./.github/workflows/branch-actioner.yaml
     with:
