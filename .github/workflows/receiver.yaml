@@ -6,6 +6,7 @@ on:
 
 jobs:
   receiver:
+    name: Event Recieved - ${{ github.event_name }} ${{ github.event.sender }}
     runs-on: ubuntu-latest
     steps:
       - name: Received Event!
