@@ -38,7 +38,16 @@ jobs:
           git push -u origin ${{ inputs.branch }} --no-verify
 
   build:
-    if: inputs.action == 'build' || inputs.action == 'create & build'
+    if: inputs.action == 'build'
+    name: 🛠️ Build ${{ inputs.branch }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coming soon
+        run: echo "Coming Soon"
+
+  build-and-create:
+    if: inputs.action == 'create & build'
+    needs: [create]
     name: 🛠️ Build ${{ inputs.branch }}
     runs-on: ubuntu-latest
     steps:
