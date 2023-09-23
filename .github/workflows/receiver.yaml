@@ -16,36 +16,28 @@ jobs:
           echo "payload source branch '${{ github.event.client_payload.source-branch }}'"
 
   create:
-    if: github.event.action == 'create' || github.event.action == 'create&build'
-    name: ✅ Create ${{ github.event.client_payload.branch }} from ${{ github.event.client_payload.source-branch }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Git Checkout ${{ github.event.client_payload.source-branch }}
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.client_payload.source-branch }}
+    if: github.event.action == 'create' || github.event.action == 'create & build'
+    name: ✅ Create ${{  github.event.client_payload.branch }} from ${{  github.event.client_payload.source-branch }}
+    uses: ./.github/workflows/branch-actioner.yaml
+    with:
+      action: 'create'
+      branch: ${{ github.event.client_payload.branch }}
+      source-branch: ${{ github.event.client_payload.source-branch }}
 
-      - name: Create and Push ${{ github.event.client_payload.branch }}
-        run: |
-          git checkout -b ${{ github.event.client_payload.branch }}
-          git config --global user.name '${{ github.actor }}'
-          git config --global user.email '${{ github.actor }}@users.noreply.github.com'
-          git push -u origin ${{ github.event.client_payload.branch }} --no-verify
+  build:
+    if: github.event.action == 'build' || github.event.action == 'create & build'
+    name: ✅ Create ${{  github.event.client_payload.branch }} from ${{  github.event.client_payload.source-branch }}
+    uses: ./.github/workflows/branch-actioner.yaml
+    with:
+      action: 'build'
+      branch: ${{ github.event.client_payload.branch }}
+      source-branch: ${{ github.event.client_payload.source-branch }}
 
   delete:
-    if: github.event.action == 'delete' 
+    if: github.event.action == 'delete'
     name: ⛔️ Delete ${{ github.event.client_payload.branch }}
-    runs-on: 'ubuntu-latest'
-    steps:
-      - name: Git Checkout Develop
-        uses: actions/checkout@v3
-        with:
-          ref: 'develop'
-  
-      - name: Check Branch Exists
-        id: exists
-        run: echo "RESULT=$(git ls-remote origin ${{ github.event.client_payload.branch }} | wc -l)" >> $GITHUB_OUTPUT
-      
-      - name: Delete Branch
-        if: ${{ steps.exists.outputs.RESULT == '1' }}
-        run: git push origin --delete ${{ github.event.client_payload.branch }}
+    uses: ./.github/workflows/branch-actioner.yaml
+    with:
+      action: 'delete'
+      branch: ${{ github.event.client_payload.branch }}
+      source-branch: ${{ github.event.client_payload.source-branch }}

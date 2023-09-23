@@ -1,0 +1,64 @@
+name: Branch Actioner
+run-name: "${{ inputs.action }} - ${{ inputs.branch }}"
+on:
+  workflow_call:
+    inputs:
+      action:
+        type: string
+        required: true
+        description: 'The action to run: choices [create, build, create & build, delete]'
+        default: feature/CVS-1234 
+      branch:
+        type: string
+        required: true
+        description: 'The branch to action on, Example: feature/CVS-1234'
+        default: feature/CVS-1234
+      source-branch:
+        type: string
+        required: false
+        description: 'The branch to create from, Example: develop'
+        default: 'develop'
+
+jobs:
+  create:
+    if: inputs.action == 'create' || inputs.action == 'create & build' 
+    name: ✅ Create ${{ inputs.branch }} from ${{ inputs.source-branch }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git Checkout ${{ inputs.source-branch }}
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.source-branch }}
+
+      - name: Create and Push ${{ inputs.branch }}
+        run: |
+          git checkout -b ${{ inputs.branch }}
+          git config --global user.name '${{ github.actor }}'
+          git config --global user.email '${{ github.actor }}@users.noreply.github.com'
+          git push -u origin ${{ inputs.branch }} --no-verify
+
+  build:
+    if: inputs.action == 'build' || inputs.action == 'create & build'
+    name: 🛠️ Build ${{ inputs.branch }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coming soon
+        run: echo "Coming Soon"
+
+  delete:
+    if: inputs.action == 'delete'
+    name: ⛔️ Delete ${{ inputs.branch }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git Checkout Develop
+        uses: actions/checkout@v3
+        with:
+          ref: 'develop'
+  
+      - name: Check Branch Exists
+        id: exists
+        run: echo "RESULT=$(git ls-remote origin ${{ github.event.client_payload.branch }} | wc -l)" >> $GITHUB_OUTPUT
+      
+      - name: Delete Branch
+        if: ${{ steps.exists.outputs.RESULT == '1' }}
+        run: git push origin --delete ${{ github.event.client_payload.branch }}
