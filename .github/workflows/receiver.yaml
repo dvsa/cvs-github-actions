@@ -8,6 +8,6 @@ jobs:
     steps:
       - name: Received Event!
         run: |
-          echo "event '${{ github.event_name }}'"
+          echo "event '${{ github.event.action }}'"
           echo "payload branch '${{ github.event.client_payload.branch }}'"
           echo "payload source branch '${{ github.event.client_payload.source-branch }}'"
