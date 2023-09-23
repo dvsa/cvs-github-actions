@@ -2,7 +2,7 @@ name: Receiver
 run-name: "${{github.event.action}} - ${{ github.event.client_payload.branch }}"
 on:
   repository_dispatch:
-    types: [create, build, delete]
+    types: [create, create & build, build, delete]
 
 jobs:
   receiver:
@@ -15,29 +15,10 @@ jobs:
           echo "payload branch '${{ github.event.client_payload.branch }}'"
           echo "payload source branch '${{ github.event.client_payload.source-branch }}'"
 
-  create:
-    if: github.event.action == 'create' || github.event.action == 'create & build'
-    name: ✅ Create ${{  github.event.client_payload.branch }} from ${{  github.event.client_payload.source-branch }}
+  action:
+    name:  ${{ github.event.action }} ${{  github.event.client_payload.branch }} from ${{  github.event.client_payload.source-branch }}
     uses: ./.github/workflows/branch-actioner.yaml
     with:
-      action: 'create'
-      branch: ${{ github.event.client_payload.branch }}
-      source-branch: ${{ github.event.client_payload.source-branch }}
-
-  build:
-    if: github.event.action == 'build' || github.event.action == 'create & build'
-    name: ✅ Create ${{  github.event.client_payload.branch }} from ${{  github.event.client_payload.source-branch }}
-    uses: ./.github/workflows/branch-actioner.yaml
-    with:
-      action: 'build'
-      branch: ${{ github.event.client_payload.branch }}
-      source-branch: ${{ github.event.client_payload.source-branch }}
-
-  delete:
-    if: github.event.action == 'delete'
-    name: ⛔️ Delete ${{ github.event.client_payload.branch }}
-    uses: ./.github/workflows/branch-actioner.yaml
-    with:
-      action: 'delete'
+      action: ${{ github.event.action }}
       branch: ${{ github.event.client_payload.branch }}
       source-branch: ${{ github.event.client_payload.source-branch }}
