@@ -1,7 +1,7 @@
 name: Receiver 
 on:
   repository_dispatch:
-    types: ['create', 'build', 'delete', 'create & build']
+    types: [create, build, delete]
 jobs:
   receiver:
     runs-on: ubuntu-latest
