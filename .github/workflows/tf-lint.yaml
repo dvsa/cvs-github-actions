@@ -1,0 +1,52 @@
+name: Terraform Lint
+run-name: "Terraform Lint - ${{ inputs.branch }}"
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: true
+        description: 'The branch to action on, Example: feature/CVS-1234'
+
+permissions:
+    id-token: write
+    contents: write
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📨 Get Codebase
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.3.9'
+          terraform_wrapper: false
+
+      - name: ✅ Check Formatting
+        id: format
+        continue-on-error: true
+        run: |
+          set +e
+          terraform fmt -check -recursive
+          echo "exitcode=$?" >> $GITHUB_OUTPUT
+
+      - name: 🛠️ Terraform Format
+        if: ${{ steps.format.outputs.exitcode != 0 }}
+        run: |
+          terraform fmt -recursive
+          echo 'Format Completed ✅' >> $GITHUB_STEP_SUMMARY
+
+      - name: ✅ Add & Commit
+        if: ${{ steps.format.outputs.exitcode != 0 }}
+        continue-on-error: true
+        run: |
+          git config --global user.name '${{ github.actor  }}'
+          git config --global user.email '${{ github.actor }}@users.noreply.github.com'
+          git add -A && git commit -m '[GHA] - Formatted by GitHub Action - Run ${{ github.run_id }}'
+          git push
+          echo 'Formatting Changes Committed ✅' >> $GITHUB_STEP_SUMMARY

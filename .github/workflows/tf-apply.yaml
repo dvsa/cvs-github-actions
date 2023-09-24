@@ -1,0 +1,70 @@
+name: Terraform Apply
+run-name: "Terraform Apply - ${{ inputs.branch }}"
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: true
+        description: 'The branch to action on, Example: feature/CVS-1234'
+      environment:
+        type: string
+        required: true
+        description: 'The environment to action against'
+    secrets:
+      AWS_MGMT_ROLE:
+        required: true
+
+permissions:
+  id-token: write
+  contents: write        
+
+jobs:
+  apply:
+    name: Terraform Apply ${{ inputs.branch }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      ENV: ${{ inputs.environment }}
+    steps:
+      - name: 📨 Get Codebase
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Set auto-approve
+        id: auto
+        run: |
+          autoapprove=false
+          if [[ $ENV == 'feature' || $ENV == 'develop' ]]; then autoapprove=true; fi
+          echo "value=$autoapprove"
+
+      - name: Get Workspace
+        id: workspace
+        run: |
+          workspace="${${{ inputs.branch }}#/feature}" # remove feature
+          workspace="${workspace,,}" # Lowercase it
+          echo "name=$workspace" >> $GITHUB_OUTPUT
+
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_MGMT_ROLE }}
+          aws-region: eu-west-1
+          role-session-name: Terraform-GHA
+
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.3.9'
+          terraform_wrapper: false
+      
+      - name: 🛠️ Terraform Init
+        run: |
+          terraform init -lock-timeout=300s
+          terraform workspace select ${{ steps.workspace.outputs.name }} || terraform workspace new ${{ steps.workspace.outputs.name }}
+          echo "Workspace: ${{ steps.workspace.outputs.name }}" >> $GITHUB_STEP_SUMMARY
+  
+      - name: 🛠️ Terraform Apply
+        continue-on-error: true
+        run: |
+          terraform apply -lock-timeout=300s
+          echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
