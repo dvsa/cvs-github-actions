@@ -1,0 +1,67 @@
+name: Terraform Destroy
+run-name: "Terraform Destroy - ${{ inputs.branch }}"
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        description: Performs this workflow as a dry run.
+        type: boolean
+        required: true
+        default: true
+      workflow_call:
+        type: boolean
+        default: true
+      branch:
+        description: The name of the terraform workspace we want to delete.
+        type: string
+        required: true
+      builder:
+        type: string
+        required: false
+    secrets:
+      MGMT_ROLE:
+        required: true
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  delete:
+    name: Destroy
+    runs-on: ${{ inputs.builder || 'X64' }}
+    steps:
+      - name: 📨 Get Codebase
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.3.9"
+          terraform_wrapper: false
+
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.MGMT_ROLE }}
+          aws-region: eu-west-1
+          role-session-name: TFDESTROY
+
+      - name: 🛠️ Init
+        run: |
+          terraform init -lock-timeout=300s
+          terraform workspace select develop
+          echo "## Terraform Initialised" >> $GITHUB_STEP_SUMMARY
+          echo "🛠️ Workspace: ${{inputs.branch}}" >> $GITHUB_STEP_SUMMARY
+
+      - name: 🛠️ Destroy
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          echo "Deleting AWS Infrastructure for ${{ inputs.branch }}"
+          terraform workspace select ${{ inputs.branch }}
+          terraform init && terraform destroy -auto-approve
+          echo "### Terraform Destroy: Completed!" >> $GITHUB_STEP_SUMMARY
+          
+          terraform workspace select default && terraform workspace delete ${{ inputs.branch }}
+          echo "### Terraform Workspace: Deleted!" >> $GITHUB_STEP_SUMMARY
