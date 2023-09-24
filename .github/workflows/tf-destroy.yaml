@@ -47,21 +47,28 @@ jobs:
           aws-region: eu-west-1
           role-session-name: TFDESTROY
 
+      - name: Get Workspace
+        id: workspace
+        run: |
+          workspace="${${{ inputs.branch }}#/feature}" # remove feature
+          workspace="${workspace,,}" # Lowercase it
+          echo "name=$workspace" >> $GITHUB_OUTPUT
+
       - name: 🛠️ Init
         run: |
           terraform init -lock-timeout=300s
           terraform workspace select develop
           echo "## Terraform Initialised" >> $GITHUB_STEP_SUMMARY
-          echo "🛠️ Workspace: ${{inputs.branch}}" >> $GITHUB_STEP_SUMMARY
 
       - name: 🛠️ Destroy
         env:
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           echo "Deleting AWS Infrastructure for ${{ inputs.branch }}"
-          terraform workspace select ${{ inputs.branch }}
+          terraform workspace select ${{ steps.workspace.outputs.name }}
+          echo "🛠️ Workspace: ${{ steps.workspace.outputs.name }}" >> $GITHUB_STEP_SUMMARY
           terraform init && terraform destroy -auto-approve
           echo "### Terraform Destroy: Completed!" >> $GITHUB_STEP_SUMMARY
           
-          terraform workspace select default && terraform workspace delete ${{ inputs.branch }}
+          terraform workspace select default && terraform workspace delete ${{ steps.workspace.outputs.name }}
           echo "### Terraform Workspace: Deleted!" >> $GITHUB_STEP_SUMMARY

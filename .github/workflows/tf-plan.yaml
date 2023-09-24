@@ -53,7 +53,7 @@ jobs:
         run: |
           terraform init -lock-timeout=300s
           terraform workspace select ${{ steps.workspace.outputs.name }}
-          echo 'Workspace: develop' >> $GITHUB_STEP_SUMMARY
+          echo 'Workspace: ${{ steps.workspace.outputs.name }}' >> $GITHUB_STEP_SUMMARY
 
       - name: ✅ Terraform Validate
         run: |
