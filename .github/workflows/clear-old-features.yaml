@@ -26,7 +26,7 @@ jobs:
             if [ "$(git log -1 --before='3 month ago' -s $branch)" ]; then
               if [[ $branch = *origin/feature* && $branch != *origin/feature/VTAWELSH* && $branch != *origin/feature/VTMDEV* ]]; then
                 if [[ ${{ inputs.clear }} == true ]]; then
-                  git branch -D $branch && echo "⛔️ $branch Removed" >> summary.txt
+                  git branch -D $branch --remote && echo "⛔️ $branch Removed" >> summary.txt
                 else
                   echo $branch
                   echo "⛔️ - $branch" >> summary.txt
