@@ -18,11 +18,11 @@ jobs:
       - name: 📨 Get Codebase
         uses: actions/checkout@v3
 
-      - name: 👴 Get Old Branches
+      - name: 👴 Get Old Feature Branches
         run: |
           git fetch
           touch summary.txt
-          echo "## Old GitHub Branches" >> $GITHUB_STEP_SUMMARY
+          echo "## Old Feature GitHub Branches" >> $GITHUB_STEP_SUMMARY
           for branch in $(git branch -r | sed 's/^\s*//' | sed 's/^remotes\///'); do 
             if [ "$(git log -1 --before='3 month ago' -s $branch)" ]; then
               if [[ $branch = *origin/feature* && $branch != *origin/feature/VTAWELSH* && $branch != *origin/feature/VTMDEV* ]]; then
@@ -44,11 +44,11 @@ jobs:
       - name: 📨 Get Codebase
         uses: actions/checkout@v3
 
-      - name: 👴 Get Old Branches
+      - name: 👴 Get Old Release Branches
         run: |
           git fetch
           touch summary.txt
-          echo "## Old GitHub Branches" >> $GITHUB_STEP_SUMMARY
+          echo "## Old Release GitHub Branches" >> $GITHUB_STEP_SUMMARY
           for branch in $(git branch -r | sed 's/^\s*//' | sed 's/^remotes\///'); do
             if [ "$(git log -1 --before='6 month ago' -s $branch)" ]; then
               if [[ $branch = *origin/release* ]]; then
