@@ -26,8 +26,6 @@ jobs:
 
       - name: 👴 Get Old Branches
         run: |
-          # git branch -D $k
-
           for branch in $(git branch -r | sed /\*/d); do 
             if [ -z "$(git log -1 --since='12 weeks ago' -s $branch)" ]; then
               if [[ $branch = *origin/feature* ]]; then
