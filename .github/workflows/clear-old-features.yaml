@@ -25,7 +25,7 @@ jobs:
           for branch in $(git branch -r | sed 's/^\s*//' | sed 's/^remotes\///'); do 
             if [ "$(git log -1 --before='3 month ago' -s $branch)" ]; then
               if [[ $branch = *origin/feature* && $branch != *origin/feature/VTAWELSH* && $branch != *origin/feature/VTMDEV* ]]; then
-                if [[ ${{ inputs.clear }} ]] then;
+                if [[ ${{ inputs.clear }} ]]; then
                   echo "⛔️ $branch Removed" >> summary.txt
                   # echo "git branch -D $branch"
                 else
