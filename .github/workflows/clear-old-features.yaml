@@ -37,29 +37,3 @@ jobs:
           done
 
           cat summary.txt >> $GITHUB_STEP_SUMMARY
-
-  release-branches:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📨 Get Codebase
-        uses: actions/checkout@v3
-
-      - name: 👴 Get Old Release Branches
-        run: |
-          git fetch
-          touch summary.txt
-          echo "## Old Release GitHub Branches" >> $GITHUB_STEP_SUMMARY
-          for branch in $(git branch -r | sed 's/^\s*//' | sed 's/^remotes\///'); do
-            if [ "$(git log -1 --before='12 month ago' -s $branch)" ]; then
-              if [[ $branch = *origin/release* ]]; then
-                if [[ ${{ inputs.clear }} == true ]]; then
-                  git push origin --delete ${branch#origin/} && echo "⛔️ $branch Removed" >> summary.txt
-                else
-                  echo $branch
-                  echo "⛔️ - $branch" >> summary.txt
-                fi
-              fi
-            fi
-          done
-
-          cat summary.txt >> $GITHUB_STEP_SUMMARY
