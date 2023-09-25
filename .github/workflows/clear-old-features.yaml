@@ -28,7 +28,7 @@ jobs:
         run: |
           git fetch
           echo "## Old GitHub Branches" >> $GITHUB_STEP_SUMMARY
-          for branch in $(git branch -a | sed 's/^\s*//' | sed 's/^remotes\///' | grep -v 'master$\|develop$'); do 
+          for branch in $(git branch -a | sed 's/^\s*//'); do 
             if [ -z "$(git log -1 --since='3 months ago' -s $branch)" ]; then
               if [[ $branch = *origin/feature* && $branch != *origin/feature* ]]; then
                 echo $branch >> $GITHUB_STEP_SUMMARY
