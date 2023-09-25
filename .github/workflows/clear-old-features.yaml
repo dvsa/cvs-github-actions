@@ -1,0 +1,37 @@
+# for k in $(git branch -r | sed /\*/d); do 
+#   if [ -z "$(git log -1 --since='12 weeks ago' -s $k)" ]; then
+#     if [[ $k = *origin/feature* ]]; then
+#         echo $k
+#     fi
+#     # git branch -D $k
+#   fi
+# done
+
+
+name: Clear Stale Branches
+run-name: "Clear Stale Branches ${{ github.run_id }}"
+on:
+  workflow_call:
+
+permissions:
+  id-token: write
+  contents: write        
+
+jobs:
+  find-old-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📨 Get Codebase
+        uses: actions/checkout@v3
+
+      - name: 👴 Get Old Branches
+        run: |
+          # git branch -D $k
+
+          for branch in $(git branch -r | sed /\*/d); do 
+            if [ -z "$(git log -1 --since='12 weeks ago' -s $branch)" ]; then
+              if [[ $branch = *origin/feature* ]]; then
+                echo $branch
+              fi
+            fi
+          done
