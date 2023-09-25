@@ -50,7 +50,7 @@ jobs:
           touch summary.txt
           echo "## Old Release GitHub Branches" >> $GITHUB_STEP_SUMMARY
           for branch in $(git branch -r | sed 's/^\s*//' | sed 's/^remotes\///'); do
-            if [ "$(git log -1 --before='6 month ago' -s $branch)" ]; then
+            if [ "$(git log -1 --before='12 month ago' -s $branch)" ]; then
               if [[ $branch = *origin/release* ]]; then
                 if [[ ${{ inputs.clear }} == true ]]; then
                   git push origin --delete ${branch#origin/} && echo "⛔️ $branch Removed" >> summary.txt
