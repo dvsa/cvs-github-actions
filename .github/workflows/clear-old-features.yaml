@@ -1,18 +1,11 @@
-# for k in $(git branch -r | sed /\*/d); do 
-#   if [ -z "$(git log -1 --since='12 weeks ago' -s $k)" ]; then
-#     if [[ $k = *origin/feature* ]]; then
-#         echo $k
-#     fi
-#     # git branch -D $k
-#   fi
-# done
-
-
 name: Clear Stale Branches
 run-name: "Clear Stale Branches ${{ github.run_id }}"
 on:
   workflow_call:
-  push:
+    inputs: 
+      clear:
+        type: boolean
+        default: false
 
 permissions:
   id-token: write
@@ -32,8 +25,14 @@ jobs:
           for branch in $(git branch -r | sed 's/^\s*//' | sed 's/^remotes\///'); do 
             if [ "$(git log -1 --before='3 month ago' -s $branch)" ]; then
               if [[ $branch = *origin/feature* && $branch != *origin/feature/VTAWELSH* && $branch != *origin/feature/VTMDEV* ]]; then
-                echo $branch
-                echo "⛔️ - $branch" >> summary.txt
+                if [[ ${{ inputs.clear }} ]] then;
+                  echo "⛔️ $branch Removed" >> summary.txt
+                  # echo "git branch -D $branch"
+                else
+                  echo $branch
+                  echo "⛔️ - $branch" >> summary.txt
+                fi
+
               fi
             fi
           done
