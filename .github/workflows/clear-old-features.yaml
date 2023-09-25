@@ -31,7 +31,10 @@ jobs:
           for branch in $(git branch -r | sed /\*/d); do 
             if [ "$(git log -1 --since '3 month ago' -s $branch)" ]; then
               if [[ $branch = *origin/feature* ]]; then
-                echo $branch >> $GITHUB_STEP_SUMMARY
+                echo $branch
+                echo "⛔️ - $branch" >> summary.txt
               fi
             fi
           done
+
+          cat summary.txt >> $GITHUB_STEP_SUMMARY
