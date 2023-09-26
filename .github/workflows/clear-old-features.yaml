@@ -37,3 +37,37 @@ jobs:
           done
 
           cat summary.txt >> $GITHUB_STEP_SUMMARY
+
+
+  find_old_release_branches:
+    runs-on: X64
+    steps:
+      - name: Get Codebase
+        uses: actions/checkout@v3
+
+      - name: Get Branches
+        run: |
+          repo_url="https://api.github.com/repos/${{ github.repository }}"
+          pattern="release"
+          current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          one_year_ago=$(date -u -j -v-1y +"%Y-%m-%dT%H:%M:%SZ")
+          branches_json=$(curl -s -H "Authorization: token ${{ github.token }}" "$repo_url/branches" | jq -r '.[].name')
+
+          branches=($branches_json)
+          branch_count=${#branches[@]}
+          COUNT=0
+
+          echo "Found ${branch_count} branches!"
+          echo "Branches older than 1 year matching the pattern $pattern:"
+          echo "--------------------------------------------------------"
+
+          for branch in ${branches[@]}; do
+            branch_date=$(curl -s -H "Authorization: token ${{ github.token }}" "$repo_url/branches/$branch" \
+            | jq -rc ".commit.commit.committer.date")
+            if [[ "$branch_date" < "$one_year_ago" ]]; then
+              ((COUNT++))
+              echo "$branch ($branch_date)"
+            fi
+          done
+
+          echo "Found $COUNT branches that are older than: ${one_year_ago}"
