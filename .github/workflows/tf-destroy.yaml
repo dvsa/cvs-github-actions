@@ -27,14 +27,27 @@ permissions:
   contents: write
 
 jobs:
+  check-branch: 
+    if: contains(inputs.branch, 'feature')
+    runs-on: ${{ inputs.builder || 'X64' }}
+    outputs: 
+      branch: ${{ steps.branch.outputs.value }}
+    steps:
+      - name: Configure Branch
+        id: branch
+        run: |
+          BRANCH=$(echo ${{ inputs.branch }}| tr '[a-z]' '[A-Z]')
+          echo "value=feature/$BRANCH" >> $GITHUB_OUTPUT
+
   delete:
     name: Destroy
     runs-on: ${{ inputs.builder || 'X64' }}
+    needs: check-branch
     steps:
       - name: 📨 Get Codebase
         uses: actions/checkout@v3
         with:
-          ref: ${{ inputs.branch }}
+          ref: ${{ needs.check-branch.outputs.branch }}
 
       - uses: hashicorp/setup-terraform@v2
         with:
