@@ -27,8 +27,7 @@ permissions:
   contents: write
 
 jobs:
-  check-branch: 
-    if: contains(inputs.branch, 'feature')
+  check-branch:
     runs-on: ${{ inputs.builder || 'X64' }}
     outputs: 
       branch: ${{ steps.branch.outputs.value }}
