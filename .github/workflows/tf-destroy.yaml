@@ -35,8 +35,9 @@ jobs:
       - name: Configure Branch
         id: branch
         run: |
-          BRANCH=$(echo ${{ inputs.branch }}| tr '[a-z]' '[A-Z]')
-          echo "value=feature/$BRANCH" >> $GITHUB_OUTPUT
+          BRANCH=$(echo ${{ inputs.branch }} | tr '[a-z]' '[A-Z]')
+          echo "value=feature/${BRANCH}" >> $GITHUB_OUTPUT
+          echo "feature/${BRANCH}" >> $GITHUB_STEP_SUMMARY
 
   delete:
     name: Destroy
