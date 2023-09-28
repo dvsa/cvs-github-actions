@@ -42,7 +42,8 @@ jobs:
             if [[ $days_since_commit -gt 365 ]]; then
               echo "- Branch: $branch, Commit Date: $(date -r "$latest_commit_date" "+%d-%m-%Y") - Last commit was $days_since_commit days ago." >> report.md
               if [ ${{ inputs.clear }} == true ]; then
-                echo "Deleting Stale Branch: $branch" >> deletions.md
+                git push origin -d $branch
+                echo "Deleted Stale Branch: $branch" >> deletions.md
               fi
             fi
           done
@@ -59,7 +60,8 @@ jobs:
             if [[ $days_since_commit -gt 365 ]]; then
               echo "- Tag: $tag, Commit Date: $(date -r "$latest_commit_date" "+%d-%m-%Y") - Last commit was $days_since_commit days ago." >> report.md
               if [ ${{ inputs.clear }} == true ]; then
-                echo "Deleting Stale Tag: $tag" >> deletions.md
+                git push --delete origin $tag
+                echo "Deleted Stale Tag: $tag" >> deletions.md
               fi
             fi
           done
