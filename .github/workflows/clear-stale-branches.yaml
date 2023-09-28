@@ -20,6 +20,7 @@ jobs:
 
       - name: Check References
         run: |
+          git fetch --tags 
           touch report.md deletions.md
 
           echo "Delete References? ${{ inputs.clear }}" > report.md
