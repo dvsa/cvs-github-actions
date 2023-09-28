@@ -1,0 +1,68 @@
+name: Clear Stale References
+run-name: "Clear Stale References ${{ github.run_id }}"
+on:
+  workflow_call:
+    inputs: 
+      clear:
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write
+  contents: write        
+
+jobs:
+  find-stale-refs:
+    runs-on: X64
+    steps:
+      - name: Get Codebase
+        uses: actions/checkout@v3
+
+      - name: Check References
+        run: |
+          touch report.md deletions.md
+
+          echo "Delete References? ${{ inputs.clear }}" > report.md
+          echo "Delete References? ${{ inputs.clear }}" > deletions.md
+          current_date=$(date +%s)
+
+          calculate_days_since_commit() {
+            local commit_date=$1
+            local days=$(( (current_date - commit_date) / 86400 ))
+            echo "$days"
+          }
+
+          echo "# BRANCHES" >> report.md
+          echo "# BRANCHES" >> deletions.md
+
+          for branch in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/); do
+            latest_commit_date=$(git log -n 1 --format=%at "$branch")
+            days_since_commit=$(calculate_days_since_commit "$latest_commit_date")
+            if [[ $days_since_commit -gt 365 ]]; then
+              echo "- Branch: $branch, Commit Date: $(date -r "$latest_commit_date" "+%d-%m-%Y") - Last commit was $days_since_commit days ago." >> report.md
+              if [ ${{ inputs.clear }} == true ]; then
+                echo "Deleting Stale Branch: $branch" >> deletions.md
+              fi
+            fi
+          done
+
+          echo && echo >> report.md
+          echo && echo >> deletions.md
+
+          echo "# TAGS" >> report.md
+          echo "# TAGS" >> deletions.md
+
+          for tag in $(git ls-remote --tags origin | awk -F 'refs/tags/' '{print $2}'); do
+            latest_commit_date=$(git log -n 1 --format=%at "refs/tags/$tag")
+            days_since_commit=$(calculate_days_since_commit "$latest_commit_date")
+            if [[ $days_since_commit -gt 365 ]]; then
+              echo "- Tag: $tag, Commit Date: $(date -r "$latest_commit_date" "+%d-%m-%Y") - Last commit was $days_since_commit days ago." >> report.md
+              if [ ${{ inputs.clear }} == true ]; then
+                echo "Deleting Stale Tag: $tag" >> deletions.md
+              fi
+            fi
+          done
+
+          cat report.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat deletions.md >> $GITHUB_STEP_SUMMARY
