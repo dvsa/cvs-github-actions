@@ -1,0 +1,99 @@
+name: OPENAPI-GEN
+
+on:
+  workflow_call:
+    inputs:
+      docs_path:
+        type: string
+        required: true
+      owner:
+        type: string
+        required: true
+      pr_repository:
+        type: string
+        required: true
+      pr_repository_path:
+        type: string
+        required: true
+      pr_repository_base_branch:
+        type: string
+        required: true
+
+    secrets:
+      PAT:
+        required: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: this
+
+      - name: Get Generator
+        run: |
+          wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.0.1/openapi-generator-cli-7.0.1.jar -O openapi-generator-cli.jar
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "zulu" # See 'Supported distributions' for available options
+          java-version: "17"
+
+      - name: Generate Services
+        run: |
+          java -jar openapi-generator-cli.jar generate \
+          -i this/${{inputs.docs_path}} \
+          -g typescript-angular \
+          -o ./generated
+
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{format('{0}/{1}', inputs.owner, inputs.pr_repository)}}
+          path: pr_repo
+          token: ${{secrets.PAT}}
+
+      - name: Debug
+        run: ls
+
+      - name: Package changes
+        run: |
+          rm -rf pr_repo/${{inputs.pr_repository_path}}
+          mkdir -p pr_repo/${{inputs.pr_repository_path}}
+          cp -r generated pr_repo/${{inputs.pr_repository_path}}
+
+      - name: Check for changes
+        id: change-check
+        run: |
+          cd pr_repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b openapi-gen-$GITHUB_SHA
+          git add -N .
+          git diff -s --exit-code || (echo "No changes found, skipping push to remote" && exit 0 && echo "HAS_CHANGED=false" >> "$GITHUB_OUTPUT")
+
+      - name: Push branch to remote
+        if: steps.change-check.outputs.HAS_CHANGED != 'false'
+        run: |
+          cd pr_repo
+          git add .
+          git commit -am "chore: update open api services"
+          git push --set-upstream origin openapi-gen-$GITHUB_SHA
+
+      - name: Create PR
+        if: steps.change-check.outputs.HAS_CHANGED != 'false'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT }}
+          script: |
+            const data = await github.rest.pulls.create({
+              owner: "${{inputs.owner}}",
+              repo: "${{inputs.pr_repository}}",
+              base: "${{inputs.pr_repository_base_branch}}",
+              head: `openapi-gen-${context.sha}`,
+              title: `chore: update ${context.repo.repo} open api services`,
+              body: `Update services generated from [${context.repo.repo}](https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}).`
+            })
+
+            await core.summary.addLink("PR raised ✅", data.data.html_url).write()
