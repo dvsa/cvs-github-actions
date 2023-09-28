@@ -20,7 +20,7 @@ on:
         required: true
 
     secrets:
-      PAT:
+      AWS_ROLE:
         required: true
 
 jobs:
@@ -30,11 +30,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          path: this
+          path: this      
+          
+      - name: ⚙️ Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: eu-west-1
+          role-session-name: OPENAPIGEN
+  
+      - name: ♦️ Set Secrets
+        uses: aws-actions/aws-secretsmanager-get-secrets@v1
+        with:
+          secret-ids: openapi-gen/env
+          parse-json-secrets: true
 
       - name: Get Generator
         run: |
-          wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.0.1/openapi-generator-cli-7.0.1.jar -O openapi-generator-cli.jar
+          wget ${{ env.OPENAPI_GEN_ENV_URL }} -O openapi-generator-cli.jar
 
       - uses: actions/setup-java@v3
         with:
@@ -52,10 +65,7 @@ jobs:
         with:
           repository: ${{format('{0}/{1}', inputs.owner, inputs.pr_repository)}}
           path: pr_repo
-          token: ${{secrets.PAT}}
-
-      - name: Debug
-        run: ls
+          token: ${{ env.OPENAPI_GEN_ENV_GH_PAT }}
 
       - name: Package changes
         run: |
@@ -85,7 +95,7 @@ jobs:
         if: steps.change-check.outputs.HAS_CHANGED != 'false'
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.PAT }}
+          github-token: ${{ env.OPENAPI_GEN_ENV_GH_PAT }}
           script: |
             const data = await github.rest.pulls.create({
               owner: "${{inputs.owner}}",
