@@ -42,8 +42,13 @@ jobs:
       - name: Get Workspace
         id: workspace
         run: |
-          workspace="${${{ inputs.branch }}#/feature}" # remove feature
-          workspace="${workspace,,}" # Lowercase it
+          workspace=${{ inputs.branch }}
+
+          if [ ${{ inputs.branch }} == '*feature*' ]; then
+            workspace="${${{ inputs.branch }}#feature/}" # remove feature
+            workspace="${workspace,,}" # Lowercase it
+          fi
+          
           echo "name=$workspace" >> $GITHUB_OUTPUT
 
       - uses: aws-actions/configure-aws-credentials@v2
