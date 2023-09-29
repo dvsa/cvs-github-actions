@@ -53,6 +53,8 @@ jobs:
       - name: 🛠️ Terraform Init
         run: |
           terraform init -lock-timeout=300s
+          terraform workspace show
+          terraform workspace select default
           terraform workspace select ${{ steps.workspace.outputs.name }}
           echo 'Workspace: ${{ steps.workspace.outputs.name }}' >> $GITHUB_STEP_SUMMARY
 
