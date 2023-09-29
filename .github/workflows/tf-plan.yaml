@@ -31,9 +31,13 @@ jobs:
       - name: Get Workspace
         id: workspace
         run: |
-          workspace="${${{ inputs.branch }}#feature/}" # remove feature
-          workspace="${workspace,,}" # Lowercase it
-          echo $workspace
+          workspace=${{ inputs.branch }}
+
+          if [ ${{ inputs.branch }} == '*feature*' ]; then
+            workspace="${${{ inputs.branch }}#feature/}" # remove feature
+            workspace="${workspace,,}" # Lowercase it
+          fi
+          
           echo "name=$workspace" >> $GITHUB_OUTPUT
 
       - uses: aws-actions/configure-aws-credentials@v2
@@ -53,8 +57,6 @@ jobs:
       - name: 🛠️ Terraform Init
         run: |
           terraform init -lock-timeout=300s
-          terraform workspace show
-          terraform workspace select default
           terraform workspace select ${{ steps.workspace.outputs.name }}
           echo 'Workspace: ${{ steps.workspace.outputs.name }}' >> $GITHUB_STEP_SUMMARY
 
