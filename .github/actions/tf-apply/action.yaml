@@ -35,4 +35,5 @@ runs:
       shell: bash
       continue-on-error: true
       run: |
-        terraform apply -lock-timeout=300s -no-color -auto-approve
+        echo "terraform apply -lock-timeout=300s -no-color -auto-approve"
+        # terraform apply -lock-timeout=300s -no-color -auto-approve
