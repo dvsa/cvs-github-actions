@@ -48,11 +48,11 @@ runs:
       continue-on-error: true
       run: |
         terraform plan -out terraform.tfplan
-        terraform show terraform.tfplan -no-color | ansi2html > plan.html
+        terraform show terraform.tfplan -no-color > plan.txt
 
     - name: 📝 Upload Plan
       uses: actions/upload-artifact@v3
       with:
         name: plan-${{ github.run_id }}
-        path: plan.html
+        path: plan.txt
         retention-days: ${{ inputs.retention-days }}
