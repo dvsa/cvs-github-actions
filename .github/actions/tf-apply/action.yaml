@@ -18,7 +18,7 @@ runs:
   using: composite
   steps:
     - name: Download the release artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: plan-${{ inputs.run-id }}
         path: .
