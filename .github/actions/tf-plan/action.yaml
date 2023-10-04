@@ -51,5 +51,7 @@ runs:
       uses: actions/upload-artifact@v3
       with:
         name: plan-${{ github.run_id }}
-        path: plan.txt
+        path: |
+          plan.txt
+          terraform.tfplan
         retention-days: ${{ inputs.retention-days }}

@@ -10,10 +10,19 @@ inputs:
   workspace:
     required: false
     description: "The Terraform workspace to action against"
+  run-id:
+    required: false
+    description: "The Terraform Plan file"
 
 runs:
   using: composite
   steps:
+    - name: Download the release artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: plan-${{ inputs.run-id }}
+        path: .
+
     - uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ inputs.aws-role-to-assume }}
@@ -30,10 +39,12 @@ runs:
       run: |
         terraform init -lock-timeout=300s
         terraform workspace select ${{ inputs.workspace }} || terraform workspace new ${{ inputs.workspace }}
+        echo "Workspace: ${{ inputs.workspace }}" >> $GITHUB_STEP_SUMMARY 
 
     - name: 🛠️ Terraform Apply
       shell: bash
       continue-on-error: true
       run: |
-        echo "terraform apply -lock-timeout=300s -no-color -auto-approve"
-        # terraform apply -lock-timeout=300s -no-color -auto-approve
+        echo "terraform apply -lock-timeout=300s -no-color"
+        echo "Plan File: plan-${{ inputs.run-id }}" >> $GITHUB_STEP_SUMMARY
+        # terraform apply -lock-timeout=300s -no-color terraform.tfplan
