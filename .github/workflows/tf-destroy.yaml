@@ -29,6 +29,7 @@ permissions:
 jobs:
   check-branch:
     runs-on: ${{ inputs.builder || 'X64' }}
+    environment: feature
     outputs: 
       branch: ${{ steps.branch.outputs.value }}
     steps:
@@ -43,6 +44,7 @@ jobs:
     name: Destroy
     runs-on: ${{ inputs.builder || 'X64' }}
     needs: check-branch
+    environment: feature
     steps:
       - name: 📨 Get Codebase
         uses: actions/checkout@v3
