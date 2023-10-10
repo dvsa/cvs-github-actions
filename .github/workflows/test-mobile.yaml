@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: '16.17.0'
 
-      - uses: aws-actions/configure-aws-credentials@v2
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.MGMT_ROLE_NAME }}
           aws-region: eu-west-1
