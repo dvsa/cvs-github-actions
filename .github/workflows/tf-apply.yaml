@@ -11,18 +11,37 @@ on:
         type: string
         required: true
         description: 'The environment to action against'
+      tf-version:
+        type: string
+        required: false
+        description: 'The version of Terraform to run'
+        default: '1.3.9'
+      retention-days:
+        required: false
+        type: number
+        description: 'The amount of days to hold a plan artefact for'
+        default: 3
+      workspace:
+        required: false
+        type: string
+        description: 'The Terraform workspace to action against'
+        default: develop
+      run-id:
+        required: false
+        type: string
+        description: 'The Terraform Plan file'
     secrets:
       AWS_MGMT_ROLE:
         required: true
 
 permissions:
   id-token: write
-  contents: write        
+  contents: write
 
 jobs:
   apply:
     name: Terraform Apply ${{ inputs.branch }}
-    runs-on: ubuntu-latest
+    runs-on: X64
     environment: ${{ inputs.environment }}
     env:
       ENV: ${{ inputs.environment }}
@@ -32,24 +51,11 @@ jobs:
         with:
           ref: ${{ inputs.branch }}
 
-      - name: Set auto-approve
-        id: auto
-        run: |
-          autoapprove=false
-          if [[ $ENV == 'feature' || $ENV == 'develop' ]]; then autoapprove=true; fi
-          echo "value=$autoapprove"
-
-      - name: Get Workspace
-        id: workspace
-        run: |
-          workspace=${{ inputs.branch }}
-
-          if [ ${{ inputs.branch }} == '*feature*' ]; then
-            workspace="${${{ inputs.branch }}#feature/}" # remove feature
-            workspace="${workspace,,}" # Lowercase it
-          fi
-          
-          echo "name=$workspace" >> $GITHUB_OUTPUT
+      - name: ⬇️ Download the release artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: plan-${{ inputs.run-id }}
+          path: .
 
       - uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -65,11 +71,11 @@ jobs:
       - name: 🛠️ Terraform Init
         run: |
           terraform init -lock-timeout=300s
-          terraform workspace select ${{ steps.workspace.outputs.name }} || terraform workspace new ${{ steps.workspace.outputs.name }}
-          echo "Workspace: ${{ steps.workspace.outputs.name }}" >> $GITHUB_STEP_SUMMARY
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
+          echo "Workspace: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
   
       - name: 🛠️ Terraform Apply
         continue-on-error: true
         run: |
-          terraform apply -lock-timeout=300s
+          terraform apply -lock-timeout=300s -no-color
           echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
