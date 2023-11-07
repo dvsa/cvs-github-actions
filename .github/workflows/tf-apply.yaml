@@ -77,5 +77,5 @@ jobs:
       - name: 🛠️ Terraform Apply
         continue-on-error: true
         run: |
-          terraform apply -lock-timeout=300s -no-color
+          terraform apply -lock-timeout=300s -auto-approve
           echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
