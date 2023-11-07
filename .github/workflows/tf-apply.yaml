@@ -41,7 +41,7 @@ permissions:
 jobs:
   apply:
     name: Terraform Apply ${{ inputs.branch }}
-    runs-on: X64
+    runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
       ENV: ${{ inputs.environment }}
