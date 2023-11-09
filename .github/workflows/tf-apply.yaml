@@ -33,7 +33,7 @@ on:
       runner:
         required: false
         type: string
-        description: 'The github runner machine type'
+        description: 'The Github runner machine type'
         default: X64
     secrets:
       AWS_MGMT_ROLE:
