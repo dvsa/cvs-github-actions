@@ -30,6 +30,11 @@ on:
         required: false
         type: string
         description: 'The Terraform Plan file'
+      runner:
+        required: false
+        type: string
+        description: 'The Terraform Plan file'
+        default: X64
     secrets:
       AWS_MGMT_ROLE:
         required: true
@@ -41,7 +46,7 @@ permissions:
 jobs:
   apply:
     name: Terraform Apply ${{ inputs.branch }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     environment: ${{ inputs.environment }}
     env:
       ENV: ${{ inputs.environment }}
