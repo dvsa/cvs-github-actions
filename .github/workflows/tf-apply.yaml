@@ -30,6 +30,11 @@ on:
         required: false
         type: string
         description: 'The Terraform Plan file'
+      runner:
+        required: false
+        type: string
+        description: 'The Github runner machine type'
+        default: X64
     secrets:
       AWS_MGMT_ROLE:
         required: true
@@ -41,7 +46,7 @@ permissions:
 jobs:
   apply:
     name: Terraform Apply ${{ inputs.branch }}
-    runs-on: X64
+    runs-on: ${{ inputs.runner }}
     environment: ${{ inputs.environment }}
     env:
       ENV: ${{ inputs.environment }}
@@ -77,5 +82,5 @@ jobs:
       - name: 🛠️ Terraform Apply
         continue-on-error: true
         run: |
-          terraform apply -lock-timeout=300s -no-color
+          terraform apply -lock-timeout=300s -auto-approve
           echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
