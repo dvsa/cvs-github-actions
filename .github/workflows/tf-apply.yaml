@@ -70,7 +70,7 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: ${{ inputs..tf-version }}
+          terraform_version: ${{ inputs.tf-version }}
           terraform_wrapper: false
       
       - name: 🛠️ Terraform Init
