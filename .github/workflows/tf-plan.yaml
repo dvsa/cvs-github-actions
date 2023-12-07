@@ -26,6 +26,11 @@ on:
         type: string
         description: 'The Terraform workspace to action against'
         default: develop
+      runner:
+        required: false
+        type: string
+        description: 'The Github runner machine type'
+        default: ubuntu-latest
     secrets:
       AWS_MGMT_ROLE:
         required: true
@@ -37,7 +42,7 @@ permissions:
 jobs:
   plan:
     name: Terraform Plan ${{ inputs.branch }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     steps:
       - name: 📨 Get Codebase
         uses: actions/checkout@v3
@@ -52,13 +57,13 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: '1.3.9'
+          terraform_version: ${{ inputs.tf-version }}
           terraform_wrapper: false
       
       - name: 🛠️ Terraform Init
         run: |
           terraform init -lock-timeout=300s
-          terraform workspace select ${{ inputs.workspace }}
+          terraform workspace select ${{ inputs.workspace }} || terraform workspace new ${{ inputs.workspace }}
           echo 'Workspace: ${{ inputs.workspace }}' >> $GITHUB_STEP_SUMMARY
 
       - name: ✅ Terraform Validate

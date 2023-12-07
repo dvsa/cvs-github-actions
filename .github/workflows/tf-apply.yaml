@@ -34,7 +34,7 @@ on:
         required: false
         type: string
         description: 'The Github runner machine type'
-        default: X64
+        default: ubuntu-latest
     secrets:
       AWS_MGMT_ROLE:
         required: true
@@ -70,13 +70,13 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: '1.3.9'
+          terraform_version: ${{ inputs.tf-version }}
           terraform_wrapper: false
       
       - name: 🛠️ Terraform Init
         run: |
           terraform init -lock-timeout=300s
-          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
+          terraform workspace select ${{ inputs.environment }} vtm.develop.cvs.dvsacloud.uk terraform workspace new ${{ inputs.environment }}
           echo "Workspace: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
   
       - name: 🛠️ Terraform Apply
