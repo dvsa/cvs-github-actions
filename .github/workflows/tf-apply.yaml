@@ -34,7 +34,7 @@ on:
         required: false
         type: string
         description: 'The Github runner machine type'
-        default: X64
+        default: ubuntu-latest
     secrets:
       AWS_MGMT_ROLE:
         required: true
@@ -76,7 +76,7 @@ jobs:
       - name: 🛠️ Terraform Init
         run: |
           terraform init -lock-timeout=300s
-          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
+          terraform workspace select ${{ inputs.environment }} vtm.develop.cvs.dvsacloud.uk terraform workspace new ${{ inputs.environment }}
           echo "Workspace: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
   
       - name: 🛠️ Terraform Apply
