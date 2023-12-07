@@ -30,7 +30,7 @@ on:
         required: false
         type: string
         description: 'The Github runner machine type'
-        default: X64
+        default: ubuntu-latest
     secrets:
       AWS_MGMT_ROLE:
         required: true
