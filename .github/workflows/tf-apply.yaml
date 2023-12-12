@@ -9,7 +9,7 @@ on:
         description: 'The branch to action on, Example: feature/CVS-1234'
       environment:
         type: string
-        required: true
+        required: false
         description: 'The environment to action against'
       tf-version:
         type: string
@@ -22,10 +22,9 @@ on:
         description: 'The amount of days to hold a plan artefact for'
         default: 3
       workspace:
-        required: false
+        required: true
         type: string
         description: 'The Terraform workspace to action against'
-        default: develop
       run-id:
         required: false
         type: string
@@ -76,8 +75,8 @@ jobs:
       - name: 🛠️ Terraform Init
         run: |
           terraform init -lock-timeout=300s
-          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
-          echo "Workspace: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          terraform workspace select ${{ inputs.workspace }} || terraform workspace new ${{ inputs.workspace }}
+          echo "Workspace: ${{ inputs.workspace }}" >> $GITHUB_STEP_SUMMARY
   
       - name: 🛠️ Terraform Apply
         continue-on-error: true

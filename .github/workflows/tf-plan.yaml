@@ -22,10 +22,9 @@ on:
         description: 'The amount of days to hold a plan artefact for'
         default: 3
       workspace:
-        required: false
+        required: true
         type: string
         description: 'The Terraform workspace to action against'
-        default: develop
       runner:
         required: false
         type: string
