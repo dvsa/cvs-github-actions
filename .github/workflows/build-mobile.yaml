@@ -95,7 +95,7 @@ jobs:
           npm install
 
       - name: 🛠️ Build Project
-        run: npm run build-ios -- --no-open
+        run: npm run build-ci
 
       - name: 📱 Run Fastlane
         env:
