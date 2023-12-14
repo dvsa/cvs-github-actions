@@ -93,6 +93,7 @@ jobs:
           echo "NPM Version: $(npm -v)" >> $GITHUB_STEP_SUMMARY
           echo "Node Version: $(node -v)" >> $GITHUB_STEP_SUMMARY
           npm ci
+          env > environment.txt
 
       - name: 🛠️ Build Project
         run: npm run build-ci
