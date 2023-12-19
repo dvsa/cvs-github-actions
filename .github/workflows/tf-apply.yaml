@@ -79,7 +79,6 @@ jobs:
           echo "Workspace: ${{ inputs.workspace }}" >> $GITHUB_STEP_SUMMARY
   
       - name: 🛠️ Terraform Apply
-        continue-on-error: true
         run: |
           terraform apply -lock-timeout=300s -auto-approve
           echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
