@@ -8,9 +8,6 @@ on:
         type: boolean
         required: true
         default: true
-      workflow_call:
-        type: boolean
-        default: true
       branch:
         description: The name of the terraform workspace we want to delete.
         type: string
