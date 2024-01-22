@@ -7,7 +7,7 @@ on:
         required: true
       branch:
         type: string
-        required: true      
+        required: true
       cert_repo_branch:
         type: string
         required: true
@@ -56,12 +56,12 @@ jobs:
 
     steps:
       - name: ⚙️ Get Codebase
-        uses: actions/checkout@v3
-        with: 
+        uses: actions/checkout@v4
+        with:
           ref: ${{ inputs.branch }}
 
       - name: ⚙️ Configure Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
@@ -72,7 +72,7 @@ jobs:
           branch=$(python3 -c "print('$clean'.lower())")
           echo "BRANCH=$(echo $branch)" >> $GITHUB_OUTPUT
         id: branch
-      
+
       - name: ⚙️ Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -104,6 +104,10 @@ jobs:
 
       - name: 🛠️ Build Project
         run: npm run build-ci
+
+      - name: ☁️️ Deploy Sentry
+        if: ${{ inputs.environment == 'prod' }}
+        run: npm run sentry-deploy
 
       - name: 📱 Run Fastlane
         env:
