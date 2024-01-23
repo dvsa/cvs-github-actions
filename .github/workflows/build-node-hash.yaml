@@ -18,6 +18,8 @@ on:
           required: true
         AWS_MGMT_ROLE:
           required: true
+        DVSA_AWS_REGION:
+          required: true
 
 permissions:
   id-token: write
