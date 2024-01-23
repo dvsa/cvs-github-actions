@@ -14,8 +14,6 @@ on:
         required: true
       
     secrets:
-      AWS_ROLE:
-        required: true
       CVS_AWS_MGMT_ROLE:
         required: true
       DVSA_AWS_REGION:
