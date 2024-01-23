@@ -34,7 +34,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
           aws-region: ${{ secrets.DVSA_AWS_REGION }}
-          role-session-name: '${{ inputs.short_repo_name }}-hash-upload'
+          role-session-name: ${{ inputs.short_repo_name }}'-hash-upload'
 
       - name: Make bucket name 
         env:
