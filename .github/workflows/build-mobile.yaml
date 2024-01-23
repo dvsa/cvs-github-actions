@@ -20,6 +20,10 @@ on:
       env_file:
         type: string
         required: true
+      is_auto:
+        type: boolean
+        required: false
+        default: false
 
     secrets:
       IONIC_HUB_PRODUCT_KEY:
@@ -87,6 +91,10 @@ jobs:
           aws secretsmanager get-secret-value --secret-id npmrc --query SecretString | jq . --raw-output  > .npmrc
           aws secretsmanager get-secret-value --secret-id ${{ inputs.env_file }} --query SecretString | jq . --raw-output  > .env
           sed  -i '' -e "s/BRANCH/${{ steps.branch.outputs.BRANCH }}/g" .env
+
+      - name: 🛠️ Simulator Check
+        if: ${{ inputs.is_auto == true }}
+        run: sed  -i '' -e "s/IS_AUTOMATION=false/IS_AUTOMATION=true/g" .env
 
       - name: 🛠️ Install Dependencies
         run: |
