@@ -1,12 +1,7 @@
 name: Build zip and upload hash
 
 on:
- workflow_call:
-    inputs:     
-      repository_name:
-        type: string
-        required: true
-      
+ workflow_call:      
     secrets:
       CVS_MGMT_AWS_ROLE:
         required: true
@@ -28,7 +23,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
           aws-region: ${{ secrets.DVSA_AWS_REGION }}
-          role-session-name: '${{ inputs.repository_name }}-hash-upload'
+          role-session-name: '${{ github.event.repository.name }}-hash-upload'
 
       - name: Make bucket name 
         env:
