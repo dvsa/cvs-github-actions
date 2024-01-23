@@ -1,25 +1,25 @@
 name: Build zip and upload hash
 
 on:
-    workflow_call:
-      inputs:
-        environment:
-          type: string
-          required: true
-        branch:
-          type: string
-          required: true      
-        short_repo_name:
-          type: string
-          required: true
+ workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: true      
+      short_repo_name:
+        type: string
+        required: true
       
-      secrets:
-        AWS_ROLE:
-          required: true
-        AWS_MGMT_ROLE:
-          required: true
-        DVSA_AWS_REGION:
-          required: true
+    secrets:
+      AWS_ROLE:
+        required: true
+      AWS_MGMT_ROLE:
+        required: true
+      DVSA_AWS_REGION:
+        required: true
 
 permissions:
   id-token: write
