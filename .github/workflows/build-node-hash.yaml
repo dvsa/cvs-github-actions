@@ -9,9 +9,6 @@ on:
         branch:
           type: string
           required: true      
-        secret_name:
-          type: string
-          required: true
         short_repo_name:
           type: string
           required: true
