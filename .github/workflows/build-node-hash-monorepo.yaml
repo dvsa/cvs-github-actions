@@ -5,6 +5,7 @@ on:
    inputs:
      mono_repo:
        type: boolean
+       default: false
    secrets:
      CVS_MGMT_AWS_ROLE:
        required: true
@@ -22,7 +23,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: extract services (YAML)
-        if: ${{ inputs.mono_repo == 'true' }}
+        if: ${{ inputs.mono_repo == true }}
         id: extract_services
         run: |
           SERVICES_LIST=$(yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml)
