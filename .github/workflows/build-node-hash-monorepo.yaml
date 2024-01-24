@@ -28,7 +28,7 @@ jobs:
         run: |
           SERVICES_LIST=$(jq -c . ./services.json)
           echo "SERVICES_LIST: $SERVICES_LIST"
-          echo "JSON: ${{ fromJson(env.SERVICES_LIST) }}"
+          echo "JSON: ${{ fromJson(SERVICES_LIST) }}"
           
 
 #          SERVICES_LIST=$(yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml)
