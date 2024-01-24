@@ -30,7 +30,7 @@ jobs:
           declare -p SERVICES_LIST
           echo "SERVICES_LIST: $SERVICES_LIST"
           echo "SERVICES_LIST:=$SERVICES_LIST" >> $GITHUB_ENV
-          for x in "${$SERVICES_LIST[@]}"; do
+          for x in "${SERVICES_LIST[@]}"; do
             echo "service: $x"
           done
           
