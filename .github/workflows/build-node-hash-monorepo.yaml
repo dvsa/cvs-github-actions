@@ -26,6 +26,7 @@ jobs:
         if: ${{ inputs.mono_repo == true }}
         id: extract_services
         run: |
+          ls -al
           jq -r '.[]' services.json
           readarray -t SERVICES_LIST < <(jq -r '.[]' services.json)
           echo "SERVICES_LIST: $SERVICES_LIST"
