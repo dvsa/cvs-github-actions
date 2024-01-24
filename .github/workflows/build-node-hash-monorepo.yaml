@@ -22,15 +22,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: extract services (YAML)
-        if: ${{ inputs.mono_repo == true }}
-        id: extract_services
-        run: |
-          {
-            echo 'SERVICES_LIST<<EOF'
-            yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml
-            echo EOF
-          } >> "$GITHUB_ENV"
+#      - name: extract services (YAML)
+#        if: ${{ inputs.mono_repo == true }}
+#        id: extract_services
+#        run: |
+#          {
+#            echo 'SERVICES_LIST<<EOF'
+#            yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml
+#            echo EOF
+#          } >> "$GITHUB_ENV"
 
 #      - name: Get AWS credentials
 #        uses: aws-actions/configure-aws-credentials@v4
@@ -49,7 +49,7 @@ jobs:
 
       - name: Check if hash file exists
         run: |
-          for x in ${{ env.SERVICES_LIST }}; do
+          for x in (yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml); do
             echo "service: $x"
           done
 
