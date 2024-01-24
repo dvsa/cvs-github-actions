@@ -27,18 +27,7 @@ jobs:
         id: extract_services
         run: |
           readarray -t SERVICES_LIST < <(jq -r '.[]' services.json)
-          declare -p SERVICES_LIST
-          echo "SERVICES_LIST: $SERVICES_LIST"
           echo "SERVICES_LIST:=$SERVICES_LIST" >> $GITHUB_ENV
-          for x in "${SERVICES_LIST[@]}"; do
-            echo "service: $x"
-          done
-          
-
-#          SERVICES_LIST=$(yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml)
-#          echo -e "SERVICES_LIST_JSON: ${{ fromJson(env.SERVICES_LIST) }}"
-#          echo '${{ fromJson(env.PACKAGE_JSON).version }}'
-#          echo "SERVICES_LIST=${SERVICES_LIST}" >> $GITHUB_ENV
 
 #      - name: Get AWS credentials
 #        uses: aws-actions/configure-aws-credentials@v4
@@ -55,11 +44,11 @@ jobs:
 #          echo "BUCKET_NAME=${BUCKET_NAME,,}" >> $GITHUB_ENV
 #          echo "BUCKET_NAME: $BUCKET_NAME"
 
-#      - name: Check if hash file exists
-#        run: |
-#          for x in (yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml); do
-#            echo "service: $x"
-#          done
+      - name: Check if hash file exists
+        run: |
+          for x in "${SERVICES_LIST[@]}"; do
+            echo "service: $x"
+          done
 
 #    MONO_REPOSITORIES.get(REPO).each { monoRepoName ->
 #    def SERVICE_NAME_SHORT_MONO_REPO = "${SERVICE_NAME_SHORT}-${monoRepoName}"    // e.g. "reference-data-GetTypeKeyLambdaFunction"
