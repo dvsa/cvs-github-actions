@@ -27,9 +27,8 @@ jobs:
         id: extract_services
         run: |
           SERVICES_LIST=$(jq -c . ./services.json)
-          echo "SERVICES_LIST: $SERVICES_LIST"
-          echo '${{ toJSON(github) }}'
-          echo '${{ fromJson(SERVICES_LIST) }}'
+          echo "SERVICES_LIST:=$SERVICES_LIST" >> $GITHUB_ENV
+          echo '${{ fromJson(env.SERVICES_LIST) }}'
           
 
 #          SERVICES_LIST=$(yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml)
