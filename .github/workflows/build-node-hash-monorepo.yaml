@@ -20,7 +20,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: extract services (YAML)
         if: ${{ inputs.mono_repo == true }}
@@ -28,7 +28,7 @@ jobs:
         run: |
           SERVICES_LIST=$(yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml)
           echo -e "SERVICES_LIST: \n$SERVICES_LIST"
-          cho "SERVICES_LIST=${SERVICES_LIST}" >> $GITHUB_ENV
+          echo "SERVICES_LIST=${SERVICES_LIST}" >> $GITHUB_ENV
 
       - name: Get AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
