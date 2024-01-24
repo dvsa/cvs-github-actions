@@ -26,9 +26,11 @@ jobs:
         if: ${{ inputs.mono_repo == true }}
         id: extract_services
         run: |
-          SERVICES_LIST=$(yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml)
-          echo -e "SERVICES_LIST: \n$SERVICES_LIST"
-          echo "SERVICES_LIST=${SERVICES_LIST}" >> $GITHUB_ENV
+          {
+            echo 'SERVICES_LIST<<EOF'
+            yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml
+            echo EOF
+          } >> "$GITHUB_ENV"
 
       - name: Get AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -50,7 +52,6 @@ jobs:
           for x in ${{ env.SERVICES_LIST }}; do
             echo "service: $x"
           done
-          
 
 #    MONO_REPOSITORIES.get(REPO).each { monoRepoName ->
 #    def SERVICE_NAME_SHORT_MONO_REPO = "${SERVICE_NAME_SHORT}-${monoRepoName}"    // e.g. "reference-data-GetTypeKeyLambdaFunction"
