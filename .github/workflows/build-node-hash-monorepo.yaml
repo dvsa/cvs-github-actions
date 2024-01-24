@@ -30,6 +30,9 @@ jobs:
           declare -p SERVICES_LIST
           echo "SERVICES_LIST: $SERVICES_LIST"
           echo "SERVICES_LIST:=$SERVICES_LIST" >> $GITHUB_ENV
+          for x in ($SERVICES_LIST); do
+            echo "service: $x"
+          done
           
 
 #          SERVICES_LIST=$(yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml)
