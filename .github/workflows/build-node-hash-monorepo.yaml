@@ -3,9 +3,8 @@ name: Build zip and upload hash
 on:
  workflow_call:
    inputs:
-     services_list:
-       type: string
-       required: true
+     mono_repo:
+       type: boolean
    secrets:
      CVS_MGMT_AWS_ROLE:
        required: true
@@ -22,9 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: testing
+      - name: extract services (YAML)
+        if: ${{ inputs.mono_repo == 'true' }}
+        id: extract_services
         run: |
-          echo -e "SERVICES_LIST: \n${{ inputs.services_list }}"
+          SERVICES_LIST=$(yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml)
+          echo -e "SERVICES_LIST: \n$SERVICES_LIST"
 
 #      - name: Get AWS credentials
 #        uses: aws-actions/configure-aws-credentials@v4
