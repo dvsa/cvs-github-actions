@@ -29,27 +29,31 @@ jobs:
           SERVICES_LIST=$(yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml)
           echo -e "SERVICES_LIST: \n$SERVICES_LIST"
 
-#      - name: Get AWS credentials
-#        uses: aws-actions/configure-aws-credentials@v4
-#        with:
-#          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
-#          aws-region: ${{ secrets.DVSA_AWS_REGION }}
-#          role-session-name: '${{ github.event.repository.name }}-hash-upload'
-#
-#      - name: Make bucket name
-#        env:
-#          BUCKET_NAME: ${{ github.event.repository.name }}
-#        run: |
-#          BUCKET_NAME=$(echo "$BUCKET_NAME" | sed -e "s/cvs-//" -e "s/svc-//" -e "s/tsk-//" -e "s/app-//")
-#          echo "BUCKET_NAME=${BUCKET_NAME,,}" >> $GITHUB_ENV
-#          echo "BUCKET_NAME: $BUCKET_NAME"
-#
-#      - name: Check if hash file exists
-#        run: |
+      - name: Get AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
+          aws-region: ${{ secrets.DVSA_AWS_REGION }}
+          role-session-name: '${{ github.event.repository.name }}-hash-upload'
+
+      - name: Make bucket name
+        env:
+          BUCKET_NAME: ${{ github.event.repository.name }}
+        run: |
+          BUCKET_NAME=$(echo "$BUCKET_NAME" | sed -e "s/cvs-//" -e "s/svc-//" -e "s/tsk-//" -e "s/app-//")
+          echo "BUCKET_NAME=${BUCKET_NAME,,}" >> $GITHUB_ENV
+          echo "BUCKET_NAME: $BUCKET_NAME"
+
+      - name: Check if hash file exists
+        run: |
+          for x in ${{ SERVICES_LIST }}; do
+            echo "service: $x"
+          done
+
 #          aws s3api head-object --bucket cvs-services --key ${{ env.BUCKET_NAME }}-test/${{ github.sha }}.zip > /dev/null 2>&1 || ZIP_DOES_NOT_EXIST=true
 #          echo "ZIP_DOES_NOT_EXIST=$ZIP_DOES_NOT_EXIST" >> $GITHUB_ENV
 #          echo "ZIP_DOES_NOT_EXIST: $ZIP_DOES_NOT_EXIST" >> $GITHUB_STEP_SUMMARY
-#
+
 #      - name: Setup Node.js
 #        if: ${{ env.ZIP_DOES_NOT_EXIST }}
 #        uses: actions/setup-node@v4
