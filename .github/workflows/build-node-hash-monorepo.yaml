@@ -22,30 +22,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-#      - name: extract services (YAML)
-#        if: ${{ inputs.mono_repo == true }}
-#        id: extract_services
-#        run: |
-#          {
-#            echo 'SERVICES_LIST<<EOF'
-#            yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml
-#            echo EOF
-#          } >> "$GITHUB_ENV"
-
-      - name: Get AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
-          aws-region: ${{ secrets.DVSA_AWS_REGION }}
-          role-session-name: '${{ github.event.repository.name }}-hash-upload'
-
-      - name: Make bucket name
-        env:
-          BUCKET_NAME: ${{ github.event.repository.name }}
+      - name: extract services (YAML)
+        if: ${{ inputs.mono_repo == true }}
+        id: extract_services
         run: |
-          BUCKET_NAME=$(echo "$BUCKET_NAME" | sed -e "s/cvs-//" -e "s/svc-//" -e "s/tsk-//" -e "s/app-//")
-          echo "BUCKET_NAME=${BUCKET_NAME,,}" >> $GITHUB_ENV
-          echo "BUCKET_NAME: $BUCKET_NAME"
+          {
+            echo 'SERVICES_LIST<<EOF'
+            yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml
+            echo EOF
+          } >> "$GITHUB_ENV"
+
+#      - name: Get AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v4
+#        with:
+#          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
+#          aws-region: ${{ secrets.DVSA_AWS_REGION }}
+#          role-session-name: '${{ github.event.repository.name }}-hash-upload'
+#
+#      - name: Make bucket name
+#        env:
+#          BUCKET_NAME: ${{ github.event.repository.name }}
+#        run: |
+#          BUCKET_NAME=$(echo "$BUCKET_NAME" | sed -e "s/cvs-//" -e "s/svc-//" -e "s/tsk-//" -e "s/app-//")
+#          echo "BUCKET_NAME=${BUCKET_NAME,,}" >> $GITHUB_ENV
+#          echo "BUCKET_NAME: $BUCKET_NAME"
 
       - name: Check if hash file exists
         run: |
