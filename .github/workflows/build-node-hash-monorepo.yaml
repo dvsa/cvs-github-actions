@@ -28,8 +28,8 @@ jobs:
         run: |
           SERVICES_LIST=$(yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml)
           echo -e "SERVICES_LIST: \n$SERVICES_LIST"
-          echo -e "SERVICES_LIST_JSON: ${{ fromJson(SERVICES_LIST) }}"
-
+          echo -e "SERVICES_LIST_JSON: ${{ fromJson(env.SERVICES_LIST) }}"
+#          echo '${{ fromJson(env.PACKAGE_JSON).version }}'
 #          echo "SERVICES_LIST=${SERVICES_LIST}" >> $GITHUB_ENV
 
 #      - name: Get AWS credentials
