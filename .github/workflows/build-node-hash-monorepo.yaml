@@ -28,6 +28,7 @@ jobs:
         run: |
           SERVICES_LIST=$(yq eval '.Resources | keys | .[] | select(. != "LocalQueue")' template.yml)
           echo -e "SERVICES_LIST: \n$SERVICES_LIST"
+          cho "SERVICES_LIST=${SERVICES_LIST}" >> $GITHUB_ENV
 
       - name: Get AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -46,9 +47,19 @@ jobs:
 
       - name: Check if hash file exists
         run: |
-          for x in ${{ SERVICES_LIST }}; do
+          for x in ${{ env.SERVICES_LIST }}; do
             echo "service: $x"
           done
+          
+
+    MONO_REPOSITORIES.get(REPO).each { monoRepoName ->
+    def SERVICE_NAME_SHORT_MONO_REPO = "${SERVICE_NAME_SHORT}-${monoRepoName}"    // e.g. "reference-data-GetTypeKeyLambdaFunction"
+        // if the zip exists, this will be 0
+        def ZIP_EXISTS = sh(script: "aws s3api head-object --bucket cvs-services --key ${SERVICE_NAME_SHORT_MONO_REPO}/${REPO_HASH}.zip > /dev/null 2>&1", returnStatus:true)
+        if (ZIP_EXISTS != 0){
+            MONO_REPO_REMOVE = false
+        }
+    }
 
 #          aws s3api head-object --bucket cvs-services --key ${{ env.BUCKET_NAME }}-test/${{ github.sha }}.zip > /dev/null 2>&1 || ZIP_DOES_NOT_EXIST=true
 #          echo "ZIP_DOES_NOT_EXIST=$ZIP_DOES_NOT_EXIST" >> $GITHUB_ENV
