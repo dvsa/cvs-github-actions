@@ -52,14 +52,14 @@ jobs:
           done
           
 
-    MONO_REPOSITORIES.get(REPO).each { monoRepoName ->
-    def SERVICE_NAME_SHORT_MONO_REPO = "${SERVICE_NAME_SHORT}-${monoRepoName}"    // e.g. "reference-data-GetTypeKeyLambdaFunction"
-        // if the zip exists, this will be 0
-        def ZIP_EXISTS = sh(script: "aws s3api head-object --bucket cvs-services --key ${SERVICE_NAME_SHORT_MONO_REPO}/${REPO_HASH}.zip > /dev/null 2>&1", returnStatus:true)
-        if (ZIP_EXISTS != 0){
-            MONO_REPO_REMOVE = false
-        }
-    }
+#    MONO_REPOSITORIES.get(REPO).each { monoRepoName ->
+#    def SERVICE_NAME_SHORT_MONO_REPO = "${SERVICE_NAME_SHORT}-${monoRepoName}"    // e.g. "reference-data-GetTypeKeyLambdaFunction"
+#        // if the zip exists, this will be 0
+#        def ZIP_EXISTS = sh(script: "aws s3api head-object --bucket cvs-services --key ${SERVICE_NAME_SHORT_MONO_REPO}/${REPO_HASH}.zip > /dev/null 2>&1", returnStatus:true)
+#        if (ZIP_EXISTS != 0){
+#            MONO_REPO_REMOVE = false
+#        }
+#    }
 
 #          aws s3api head-object --bucket cvs-services --key ${{ env.BUCKET_NAME }}-test/${{ github.sha }}.zip > /dev/null 2>&1 || ZIP_DOES_NOT_EXIST=true
 #          echo "ZIP_DOES_NOT_EXIST=$ZIP_DOES_NOT_EXIST" >> $GITHUB_ENV
