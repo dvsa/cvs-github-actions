@@ -31,11 +31,11 @@ jobs:
           jq . services.json
           echo EOF
           } >> "$GITHUB_ENV"
-          readarray -t SERVICES_LIST < <(jq -r '.[]' services.json)
-          echo "SERVICES_LIST=$SERVICES_LIST" >> $GITHUB_ENV
-          for x in "${SERVICES_LIST[@]}"; do
-            echo "service: $x"
-          done
+#          readarray -t SERVICES_LIST < <(jq -r '.[]' services.json)
+#          echo "SERVICES_LIST=$SERVICES_LIST" >> $GITHUB_ENV
+#          for x in "${SERVICES_LIST[@]}"; do
+#            echo "service: $x"
+#          done
 
 #      - name: Get AWS credentials
 #        uses: aws-actions/configure-aws-credentials@v4
@@ -54,7 +54,7 @@ jobs:
 
       - name: Check if hash file exists
         run: |
-          readarray -t SERVICES_FROM_JSON < <(jq -r '.[]' <<$SERVICES_LIST_JSON)
+          readarray -t SERVICES_FROM_JSON < <(jq -r '.[]' < <(SERVICES_LIST_JSON))
           for x in "${SERVICES_FROM_JSON[@]}"; do
             echo "service: $x"
           done
