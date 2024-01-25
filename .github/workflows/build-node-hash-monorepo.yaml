@@ -26,8 +26,10 @@ jobs:
         if: ${{ inputs.mono_repo == true }}
         id: extract_services
         run: |
+          SERVICES_LIST_JSON=$(cat services.json)
           readarray -t SERVICES_LIST < <(jq -r '.[]' services.json)
           echo "SERVICES_LIST=$SERVICES_LIST" >> $GITHUB_ENV
+          echo "SERVICES_LIST_JSON=$SERVICES_LIST_JSON" >> $GITHUB_ENV
           for x in "${SERVICES_LIST[@]}"; do
             echo "service: $x"
           done
@@ -49,9 +51,16 @@ jobs:
 
       - name: Check if hash file exists
         run: |
-          declare -p SERVICES_LIST
-          echo "count: ${#SERVICES_LIST[@]}"
-          for x in "${SERVICES_LIST[@]}"; do
+#          declare -p SERVICES_LIST
+          declare -p SERVICES_LIST_JSON
+          SERVICES_FROM_JSON=${fromJson(SERVICES_LIST_JSON)}
+#          echo "count: ${#SERVICES_LIST[@]}"
+          echo "count2: ${#SERVICES_FROM_JSON[@]}"
+          declare -p SERVICES_FROM_JSON
+#          for x in "${SERVICES_LIST[@]}"; do
+#            echo "service: $x"
+#          done
+          for x in "${SERVICES_FROM_JSON[@]}"; do
             echo "service: $x"
           done
 
