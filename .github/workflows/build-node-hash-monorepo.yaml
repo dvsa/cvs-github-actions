@@ -50,7 +50,7 @@ jobs:
       - name: Check if hash file exists
         run: |
           declare -p SERVICES_LIST
-          echo "count: ${#SERVICES_LIST[@]}
+          echo "count: ${#SERVICES_LIST[@]}"
           for x in "${SERVICES_LIST[@]}"; do
             echo "service: $x"
           done
