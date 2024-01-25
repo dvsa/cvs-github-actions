@@ -26,10 +26,13 @@ jobs:
         if: ${{ inputs.mono_repo == true }}
         id: extract_services
         run: |
-          SERVICES_LIST_JSON=$(jq . services.json)
+          {
+          echo 'SERVICES_LIST_JSON<<EOF'
+          jq . services.json
+          echo EOF
+          } >> "$GITHUB_ENV"
           readarray -t SERVICES_LIST < <(jq -r '.[]' services.json)
           echo "SERVICES_LIST=$SERVICES_LIST" >> $GITHUB_ENV
-          echo "SERVICES_LIST_JSON=$SERVICES_LIST_JSON" >> $GITHUB_ENV
           for x in "${SERVICES_LIST[@]}"; do
             echo "service: $x"
           done
