@@ -46,7 +46,7 @@ jobs:
 
       - name: Check if hash file exists
         run: |
-          declare -p ${env.SERVICES_LIST}
+          declare -p ${SERVICES_LIST}
           for x in "${env.SERVICES_LIST[@]}"; do
             echo "service: $x"
           done
