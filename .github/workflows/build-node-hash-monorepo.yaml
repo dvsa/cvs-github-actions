@@ -28,9 +28,9 @@ jobs:
         run: |
           readarray -t SERVICES_LIST < <(jq -r '.[]' services.json)
           echo "SERVICES_LIST:=$SERVICES_LIST" >> $GITHUB_ENV
-#          for x in "${SERVICES_LIST[@]}"; do
-#            echo "service: $x"
-#          done
+          for x in "${SERVICES_LIST[@]}"; do
+            echo "service: $x"
+          done
 
 #      - name: Get AWS credentials
 #        uses: aws-actions/configure-aws-credentials@v4
