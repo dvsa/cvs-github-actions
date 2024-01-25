@@ -54,7 +54,7 @@ jobs:
 
       - name: Check if hash file exists
         run: |
-          
+          echo "$SERVICES_LIST_JSON" | jq -r '.[]'
           for SERVICE in `echo $SERVICES_LIST_JSON | jq -r '.[]'`; do
             echo "service: $SERVICE"
           done
