@@ -54,8 +54,7 @@ jobs:
 
       - name: Check if hash file exists
         run: |
-          echo "JSON: $SERVICES_LIST_JSON"
-          for x in "${fromJSON(SERVICES_LIST_JSON)[@]}"; do
+          for x in ${{ fromJSON(SERVICES_LIST_JSON) }}; do
             echo "service: $x"
           done
 
