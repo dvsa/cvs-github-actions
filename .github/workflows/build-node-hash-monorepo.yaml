@@ -55,7 +55,7 @@ jobs:
       - name: Check if hash file exists
         run: |
 
-          echo ${{ env.SERVICES_LIST_JSON }} | jq -r '.[]'
+          echo ${{ env.SERVICES_LIST_JSON }} | jq
           jq -r '.[]' services.json | xargs -I SERVICE echo ${{ github.event.repository.name }}-SERVICE
  #         for x in "${SERVICES_FROM_JSON[@]}"; do
  #           echo "service: $x"
