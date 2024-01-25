@@ -54,7 +54,8 @@ jobs:
 
       - name: Check if hash file exists
         run: |
-          for x in fromJSON($SERVICES_LIST_JSON); do
+          readarray -t SERVICES_FROM_JSON < <(jq -r '.[]' <<$SERVICES_LIST_JSON)
+          for x in "${SERVICES_FROM_JSON[@]}"; do
             echo "service: $x"
           done
 
