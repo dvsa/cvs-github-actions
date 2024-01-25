@@ -54,10 +54,10 @@ jobs:
 
       - name: Check if hash file exists
         run: |
-          readarray -t SERVICES_FROM_JSON < <(jq -r '.[]' < <(SERVICES_LIST_JSON))
-          for x in "${SERVICES_FROM_JSON[@]}"; do
-            echo "service: $x"
-          done
+          echo SERVICES_LIST_JSON | jq -r '.[]' | xargs -I SERVICE echo $SERVICE_NAME_SHORT-SERVICE
+ #         for x in "${SERVICES_FROM_JSON[@]}"; do
+ #           echo "service: $x"
+ #         done
 
 #    MONO_REPOSITORIES.get(REPO).each { monoRepoName ->
 #    def SERVICE_NAME_SHORT_MONO_REPO = "${SERVICE_NAME_SHORT}-${monoRepoName}"    // e.g. "reference-data-GetTypeKeyLambdaFunction"
