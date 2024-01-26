@@ -93,8 +93,8 @@ jobs:
 #        run: npm run test-i
 
       - name: Package Artifact
-        env:
-            ZIP_NAME: ${{ github.sha }}
+#        env:
+#            ZIP_NAME: ${{ github.sha }}
         run: |
           npm run package
           ls -al
