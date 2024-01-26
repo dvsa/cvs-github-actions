@@ -83,9 +83,7 @@ jobs:
       - name: Upload hash zip to S3 (solo-repo)
         if: ${{ inputs.mono_repo == false }}
         run: |
-          for SERVICE in `ls ${{ github.sha }}.zip | sed -e "s/.zip$//"`; do
             NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
             aws s3 cp ${{ github.sha }}.zip s3://cvs-services/${{ env.BUCKET_NAME }}-test/${{ github.sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}-test"
             echo ${{ github.sha }} > hash.txt
             aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}-test/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}-test'
-          done
