@@ -99,7 +99,7 @@ jobs:
             ZIP_NAME: ${{ github.sha }}
         run: |
           npm run package
-          for SERVICE in `ls *.zip | sed -e "s/^${{ github.sha }}-//" -e "s/.zip$//"`; do
+          for SERVICE in `ls ${{ github.sha }}*.zip | sed -e "s/^${{ github.sha }}-//" -e "s/.zip$//"`; do
             echo "service: $SERVICE"
           done
 
