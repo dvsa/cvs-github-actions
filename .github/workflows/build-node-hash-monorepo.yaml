@@ -99,8 +99,9 @@ jobs:
             ZIP_NAME: ${{ github.sha }}
         run: |
           npm run package
-          ls -al
-          ls *.zip | sed -e "s/^${{ github.sha }}-//" -e "s/.zip$//" 
+          for SERVICE in `ls *.zip | sed -e "s/^${{ github.sha }}-//" -e "s/.zip$//"`; do
+            echo "service: $SERVICE"
+          done
 
 #      - name: Generate SHA256 hash
 #        if: ${{ env.ZIP_DOES_NOT_EXIST }}
