@@ -1,7 +1,7 @@
 name: 🧨 Destroy Feature Environment
 run-name: "🧨 ${{github.actor}} is destroying ${{ inputs.branch }}"
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       branch:
         description: The Git Branch to delete (cvs-1234)
@@ -40,6 +40,7 @@ jobs:
       - name: 📥 Get Codebase
         uses: actions/checkout@v4
         with:
+          repository: dvsa/cvs-tf
           ref: ${{ needs.process_inputs.outputs.branch }}
 
       - name: 🪪 Assume MGMT Role
