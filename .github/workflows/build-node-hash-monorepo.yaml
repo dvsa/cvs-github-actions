@@ -71,7 +71,7 @@ jobs:
           echo "BUCKET_NAME: $BUCKET_NAME"
 
       - name: Upload hash zip to S3 (mono-repo)
-        if: ${{ inputs.mono_repo == 'true' }}
+        if: ${{ inputs.mono_repo == true }}
         run: |
           for SERVICE in `ls ${{ github.sha }}*.zip | sed -e "s/^${{ github.sha }}-//" -e "s/.zip$//"`; do
             NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}-$SERVICE.zip | openssl enc -base64)
@@ -81,7 +81,7 @@ jobs:
           done
 
       - name: Upload hash zip to S3 (solo-repo)
-        if: ${{ inputs.mono_repo == 'false' }}
+        if: ${{ inputs.mono_repo == false }}
         run: |
           for SERVICE in `ls ${{ github.sha }}.zip | sed -e "s/.zip$//"`; do
             NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
