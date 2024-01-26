@@ -1,0 +1,134 @@
+name: 🧨 Destroy Feature Environment
+run-name: "🧨 ${{github.actor}} is destroying ${{ inputs.branch }}"
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: The Git Branch to delete (cvs-1234)
+        type: string
+        required: true
+      dry_run:
+        description: Dry run the destroy
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  hash_files:
+    name: 🧨 Destroy Environment
+    runs-on: ubuntu-latest
+    if: ${{ !contains('["develop", "integration", , "preprod", "prod"]', inputs.branch) }}
+    steps:
+ 
+      - name: 📥 Get Codebase
+        uses: actions/checkout@v4
+
+      - name: 🪪 Assume MGMT Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
+          aws-region: ${{ vars.DVSA_AWS_REGION }}
+          role-session-name: Terraform-GHA_MGMT
+
+      - name: ⚙️ Configure Terraform
+        id: terraform_config
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ vars.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: ⏳ Initialize Terraform
+        id: terraform_init
+        run: |
+          terraform init
+          terraform workspace select ${{ inputs.branch }}
+
+      # - name: Assume NonProd Role
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ secrets.NONPRD_ROLE }}
+      #     aws-region: ${{ vars.DVSA_AWS_REGION }}
+      #     role-session-name: Terraform-GHA_NONPROD
+
+      - name: 🔎 Find Hash Files
+        id: find_hash_files
+        run: |
+          terraform show -no-color | grep -E '.*id.*${{ inputs.branch }}.txt' | sed -E 's/.*"(.*)"/\1/' > hash_files.txt
+
+      - name: 🪦 Remove VPC Connections (Dry Run)
+        id: remove_vpc_connections_dry_run
+        if: ${{ inputs.dry_run }}
+        run: |
+          for lambda in $(terraform show -no-color | grep -E '\s+arn\s+=\s.*:lambda.*' | sed -E 's/.*"(.*:lambda.*:function:[a-z0-9-]+).*"/\1/'); do
+            echo "(dryrun) remove: ${lambda}"
+          done
+
+      - name: 🪦 Remove VPC Connections
+        id: remove_vpc_connections
+        if: ${{ !inputs.dry_run }}
+        run: |
+          for lambda in $(terraform show -no-color | grep -E '\s+arn\s+=\s.*:lambda.*' | sed -E 's/.*"(.*:lambda.*:function:[a-z0-9-]+).*"/\1/'); do
+            echo "remove: ${lambda}"
+            aws lambda update-function-configuration --function-name ${lambda} --vpc-config '{"SubnetIds":[], "SecurityGroupIds":[]}' >/dev/null
+          done
+
+      - name: 💣 Terraform Destroy (Dry Run)
+        id: terraform_destroy_dry_run
+        if: ${{ inputs.dry_run }}
+        run: |
+          terraform plan -destroy -no-color -lock-timeout=300s
+      
+      - name: 💣 Terraform Destroy
+        id: terraform_destroy
+        if: ${{ !inputs.dry_run }}
+        run: |
+          terraform destroy -no-color -lock-timeout=300s -auto-apply
+
+      - name: 📃 Remove Hash Files (Dry Run)
+        id: remove_hash_files_dry_run
+        if: ${{ inputs.dry_run }}
+        run: |
+          for hash in $(cat hash_files.txt); do 
+            aws s3 rm s3://${hash} --dryrun
+          done
+      
+      - name: 📃 Remove Hash Files
+        id: remove_hash_files
+        if: ${{ !inputs.dry_run }}
+        run: |
+          for hash in $(cat hash_files.txt); do 
+            aws s3 rm s3://${hash}
+          done
+          
+      - name: 🛢️ Remove Schemas (Dry Run)
+        id: remove_schemas_dry_run
+        if: ${{ inputs.dry_run }}
+        run: |
+          aws secretsmanager get-secret-value --secret-id feature/mysql/config --query SecretString --region=eu-west-1 --output text > my.cnf
+          sudo /etc/init.d/mysql start
+          echo mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS EDH_WMS_STAGING$(echo ${{ inputs.branch }} | tr '[:lower:]' '[:upper:]' | sed -e 's/-//')"
+          echo mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS CVSNOP$(echo ${{ inputs.branch }} | tr '[:lower:]' '[:upper:]' | sed -e 's/-//')"
+
+
+      - name: 🛢️ Remove Schemas
+        id: remove_schemas
+        if: ${{ !inputs.dry_run }}
+        run: |
+          aws secretsmanager get-secret-value --secret-id feature/mysql/config --query SecretString --region=eu-west-1 --output text > my.cnf
+          sudo /etc/init.d/mysql start
+          mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS EDH_WMS_STAGING$(echo ${{ inputs.branch }} | tr '[:lower:]' '[:upper:]' | sed -e 's/-//')"
+          mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS CVSNOP$(echo ${{ inputs.branch }} | tr '[:lower:]' '[:upper:]' | sed -e 's/-//')"
+
+  # delete:
+  #   name: ⛔️ Delete cvs-tf Environment
+  #   uses: dvsa/cvs-github-actions/.github/workflows/tf-destroy.yaml@develop
+  #   with:
+  #     branch: ${{ inputs.branch }}
+  #     dry_run: ${{ inputs.dry_run }}
+  #     builder: X64
+  #   secrets:
+  #     MGMT_ROLE: ${{ secrets.MGMT_ROLE }}
