@@ -63,13 +63,6 @@ jobs:
           terraform init
           terraform workspace select ${{ inputs.branch }}
 
-      # - name: Assume NonProd Role
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     role-to-assume: ${{ secrets.NONPRD_ROLE }}
-      #     aws-region: ${{ vars.DVSA_AWS_REGION }}
-      #     role-session-name: Terraform-GHA_NONPROD
-
       - name: 🔎 Find Hash Files
         id: find_hash_files
         run: |
