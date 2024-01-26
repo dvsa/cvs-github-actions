@@ -13,6 +13,18 @@ on:
         required: false
         default: true
 
+  workflow_call:
+    inputs:
+      branch:
+        description: The Git Branch to delete (cvs-1234)
+        type: string
+        required: true
+      dry_run:
+        description: Dry run the destroy
+        type: boolean
+        required: false
+        default: true
+
 permissions:
   id-token: write
   contents: write
