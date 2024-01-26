@@ -108,7 +108,6 @@ jobs:
 #          echo "NODE_SHA: $NODE_SHA" >> $GITHUB_STEP_SUMMARY
 
       - name: Upload hash zip to S3
-        if: ${{ env.ZIP_DOES_NOT_EXIST }}
         run: |
           for SERVICE in `ls ${{ github.sha }}*.zip | sed -e "s/^${{ github.sha }}-//" -e "s/.zip$//"`; do
             NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
