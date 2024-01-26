@@ -131,8 +131,8 @@ jobs:
         run: |
           aws secretsmanager get-secret-value --secret-id feature/mysql/config --query SecretString --region=eu-west-1 --output text > my.cnf
           sudo /etc/init.d/mysql start
-          echo mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS EDH_WMS_STAGING$(echo ${{ inputs.branch }} | tr '[:lower:]' '[:upper:]' | sed -e 's/-//')"
-          echo mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS CVSNOP$(echo ${{ inputs.branch }} | tr '[:lower:]' '[:upper:]' | sed -e 's/-//')"
+          echo mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS EDH_WMS_STAGING$(echo ${{ needs.process_inputs.outputs.branch }} | sed -e 's/-//')"
+          echo mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS CVSNOP$(echo ${{ needs.process_inputs.outputs.branch }} | sed -e 's/-//')"
 
 
       - name: 🛢️ Remove Schemas
@@ -141,6 +141,6 @@ jobs:
         run: |
           aws secretsmanager get-secret-value --secret-id feature/mysql/config --query SecretString --region=eu-west-1 --output text > my.cnf
           sudo /etc/init.d/mysql start
-          mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS EDH_WMS_STAGING$(echo ${{ inputs.branch }} | tr '[:lower:]' '[:upper:]' | sed -e 's/-//')"
-          mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS CVSNOP$(echo ${{ inputs.branch }} | tr '[:lower:]' '[:upper:]' | sed -e 's/-//')"
+          mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS EDH_WMS_STAGING$(echo ${{ needs.process_inputs.outputs.branch }} | sed -e 's/-//')"
+          mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS CVSNOP$(echo ${{ needs.process_inputs.outputs.branch }} | sed -e 's/-//')"
 
