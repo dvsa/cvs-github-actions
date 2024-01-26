@@ -1,7 +1,7 @@
 name: 🧨 Destroy Feature Environment
 run-name: "🧨 ${{github.actor}} is destroying ${{ inputs.branch }}"
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       branch:
         description: The Git Branch to delete (cvs-1234)
@@ -18,14 +18,29 @@ permissions:
   contents: write
 
 jobs:
-  hash_files:
+  process_inputs:
+    runs-on: ubuntu-latest
+    outputs: 
+      branch: ${{ steps.branch.outputs.value }}
+    steps:
+      - name: ↕️ Get Branch Name
+        id: branch
+        run: |
+          BRANCH=$(echo ${{ inputs.branch }} | tr '[a-z]' '[A-Z]')
+          echo "value=feature/${BRANCH}" >> $GITHUB_OUTPUT
+          echo "feature/${BRANCH}" >> $GITHUB_STEP_SUMMARY
+
+  feature_destroy:
     name: 🧨 Destroy Environment
     runs-on: ubuntu-latest
+    needs: process_inputs
     if: ${{ !contains('["develop", "integration", , "preprod", "prod"]', inputs.branch) }}
     steps:
  
       - name: 📥 Get Codebase
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.process_inputs.outputs.branch }}
 
       - name: 🪪 Assume MGMT Role
         uses: aws-actions/configure-aws-credentials@v4
@@ -123,12 +138,3 @@ jobs:
           mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS EDH_WMS_STAGING$(echo ${{ inputs.branch }} | tr '[:lower:]' '[:upper:]' | sed -e 's/-//')"
           mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS CVSNOP$(echo ${{ inputs.branch }} | tr '[:lower:]' '[:upper:]' | sed -e 's/-//')"
 
-  # delete:
-  #   name: ⛔️ Delete cvs-tf Environment
-  #   uses: dvsa/cvs-github-actions/.github/workflows/tf-destroy.yaml@develop
-  #   with:
-  #     branch: ${{ inputs.branch }}
-  #     dry_run: ${{ inputs.dry_run }}
-  #     builder: X64
-  #   secrets:
-  #     MGMT_ROLE: ${{ secrets.MGMT_ROLE }}
