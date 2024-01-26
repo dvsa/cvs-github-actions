@@ -73,33 +73,26 @@ jobs:
 #          echo "ZIP_DOES_NOT_EXIST: $ZIP_DOES_NOT_EXIST" >> $GITHUB_STEP_SUMMARY
 
       - name: Setup Node.js
-        if: ${{ env.ZIP_DOES_NOT_EXIST }}
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
       - name: Install dependencies
-        if: ${{ env.ZIP_DOES_NOT_EXIST }}
         run: npm ci
 
       - name: Install tools
-        if: ${{ env.ZIP_DOES_NOT_EXIST }}
         run: npm run tools-setup
 
       - name: Build Artifact
-        if: ${{ env.ZIP_DOES_NOT_EXIST }}
         run: npm run build
 
 #      - name: Test
-#        if: ${{ env.ZIP_DOES_NOT_EXIST }}
 #        run: npm run test
 #
 #      - name: Test I
-#        if: ${{ env.ZIP_DOES_NOT_EXIST }}
 #        run: npm run test-i
 
       - name: Package Artifact
-        if: ${{ env.ZIP_DOES_NOT_EXIST }}
         env:
             ZIP_NAME: ${{ github.sha }}
         run: |
