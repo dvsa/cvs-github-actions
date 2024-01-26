@@ -111,7 +111,7 @@ jobs:
         run: |
           for SERVICE in `ls ${{ github.sha }}*.zip | sed -e "s/^${{ github.sha }}-//" -e "s/.zip$//"`; do
             NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}-$SERVICE.zip | openssl enc -base64)
-            aws s3 cp ${{ github.sha }}-$SERVICE.zip s3://cvs-services/${{ env.BUCKET_NAME }}-$SERVICE-test/${{ github.sha }}.zip --metadata 'sha256sum=${{ env.NODE_SHA }},Tag=${{ env.BUCKET_NAME }}-test'
+            aws s3 cp ${{ github.sha }}-$SERVICE.zip s3://cvs-services/${{ env.BUCKET_NAME }}-$SERVICE-test/${{ github.sha }}.zip --metadata "sha256sum=$SERVICE,Tag=${{ env.BUCKET_NAME }}-test"
           done
 
 #      - name: Make branch lowercase
