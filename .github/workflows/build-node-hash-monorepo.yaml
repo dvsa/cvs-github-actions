@@ -22,28 +22,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: extract services (YAML)
-        if: ${{ inputs.mono_repo == true }}
-        id: extract_services
-        run: |
-          {
-          echo 'SERVICES_LIST_JSON<<EOF'
-          jq . services.json
-          echo EOF
-          } >> "$GITHUB_ENV"
-#          readarray -t SERVICES_LIST < <(jq -r '.[]' services.json)
-#          echo "SERVICES_LIST=$SERVICES_LIST" >> $GITHUB_ENV
-#          for x in "${SERVICES_LIST[@]}"; do
-#            echo "service: $x"
-#          done
+#      - name: extract services (YAML)
+#        if: ${{ inputs.mono_repo == true }}
+#        id: extract_services
+#        run: |
+##         Read in from services.json, or add code to extract from webpack/webpack.production.js
+#          {
+#          echo 'SERVICES_LIST_JSON<<EOF'
+#          jq . services.json
+#          echo EOF
+#          } >> "$GITHUB_ENV"
 
-#      - name: Get AWS credentials
-#        uses: aws-actions/configure-aws-credentials@v4
-#        with:
-#          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
-#          aws-region: ${{ secrets.DVSA_AWS_REGION }}
-#          role-session-name: '${{ github.event.repository.name }}-hash-upload'
-#
+      - name: Get AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
+          aws-region: ${{ secrets.DVSA_AWS_REGION }}
+          role-session-name: '${{ github.event.repository.name }}-hash-upload'
+
 #      - name: Make bucket name
 #        env:
 #          BUCKET_NAME: ${{ github.event.repository.name }}
@@ -52,12 +48,12 @@ jobs:
 #          echo "BUCKET_NAME=${BUCKET_NAME,,}" >> $GITHUB_ENV
 #          echo "BUCKET_NAME: $BUCKET_NAME"
 
-      - name: Check if hash file exists
-        run: |
-          echo "$SERVICES_LIST_JSON" | jq -r '.[]'
-          for SERVICE in `echo $SERVICES_LIST_JSON | jq -r '.[]'`; do
-            echo "service: $SERVICE"
-          done
+#      - name: Check if hash file exists
+#        run: |
+#          echo "$SERVICES_LIST_JSON" | jq -r '.[]'
+#          for SERVICE in `echo $SERVICES_LIST_JSON | jq -r '.[]'`; do
+#            echo "service: $SERVICE"
+#          done
  #        jq -r '.[]' services.json | xargs -I SERVICE echo ${{ github.event.repository.name }}-SERVICE
  #         for x in "${SERVICES_FROM_JSON[@]}"; do
  #           echo "service: $x"
@@ -76,24 +72,24 @@ jobs:
 #          echo "ZIP_DOES_NOT_EXIST=$ZIP_DOES_NOT_EXIST" >> $GITHUB_ENV
 #          echo "ZIP_DOES_NOT_EXIST: $ZIP_DOES_NOT_EXIST" >> $GITHUB_STEP_SUMMARY
 
-#      - name: Setup Node.js
-#        if: ${{ env.ZIP_DOES_NOT_EXIST }}
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version-file: '.nvmrc'
-#
-#      - name: Install dependencies
-#        if: ${{ env.ZIP_DOES_NOT_EXIST }}
-#        run: npm ci
-#
-#      - name: Install tools
-#        if: ${{ env.ZIP_DOES_NOT_EXIST }}
-#        run: npm run tools-setup
-#
-#      - name: Build Artifact
-#        if: ${{ env.ZIP_DOES_NOT_EXIST }}
-#        run: npm run build
-#
+      - name: Setup Node.js
+        if: ${{ env.ZIP_DOES_NOT_EXIST }}
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        if: ${{ env.ZIP_DOES_NOT_EXIST }}
+        run: npm ci
+
+      - name: Install tools
+        if: ${{ env.ZIP_DOES_NOT_EXIST }}
+        run: npm run tools-setup
+
+      - name: Build Artifact
+        if: ${{ env.ZIP_DOES_NOT_EXIST }}
+        run: npm run build
+
 #      - name: Test
 #        if: ${{ env.ZIP_DOES_NOT_EXIST }}
 #        run: npm run test
@@ -101,20 +97,22 @@ jobs:
 #      - name: Test I
 #        if: ${{ env.ZIP_DOES_NOT_EXIST }}
 #        run: npm run test-i
-#
-#      - name: Package Artifact
-#        if: ${{ env.ZIP_DOES_NOT_EXIST }}
-#        env:
-#            ZIP_NAME: ${{ github.sha }}
-#        run: npm run package
-#
+
+      - name: Package Artifact
+        if: ${{ env.ZIP_DOES_NOT_EXIST }}
+        env:
+            ZIP_NAME: ${{ github.sha }}
+        run: |
+          npm run package
+          ls -al
+
 #      - name: Generate SHA256 hash
 #        if: ${{ env.ZIP_DOES_NOT_EXIST }}
 #        run: |
 #          NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
 #          echo "NODE_SHA=$NODE_SHA" >> $GITHUB_ENV
 #          echo "NODE_SHA: $NODE_SHA" >> $GITHUB_STEP_SUMMARY
-#
+
 #      - name: Upload hash zip to S3
 #        if: ${{ env.ZIP_DOES_NOT_EXIST }}
 #        run: |
