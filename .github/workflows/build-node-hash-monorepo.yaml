@@ -22,17 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-#      - name: extract services (YAML)
-#        if: ${{ inputs.mono_repo == true }}
-#        id: extract_services
-#        run: |
-##         Read in from services.json, or add code to extract from webpack/webpack.production.js
-#          {
-#          echo 'SERVICES_LIST_JSON<<EOF'
-#          jq . services.json
-#          echo EOF
-#          } >> "$GITHUB_ENV"
-
       - name: Get AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -40,47 +29,13 @@ jobs:
           aws-region: ${{ secrets.DVSA_AWS_REGION }}
           role-session-name: '${{ github.event.repository.name }}-hash-upload'
 
-      - name: Make bucket name
-        env:
-          BUCKET_NAME: ${{ github.event.repository.name }}
-        run: |
-          BUCKET_NAME=$(echo "$BUCKET_NAME" | sed -e "s/cvs-//" -e "s/svc-//" -e "s/tsk-//" -e "s/app-//")
-          echo "BUCKET_NAME=${BUCKET_NAME,,}" >> $GITHUB_ENV
-          echo "BUCKET_NAME: $BUCKET_NAME"
-
-#      - name: Check if hash file exists
-#        run: |
-#          echo "$SERVICES_LIST_JSON" | jq -r '.[]'
-#          for SERVICE in `echo $SERVICES_LIST_JSON | jq -r '.[]'`; do
-#            echo "service: $SERVICE"
-#          done
- #        jq -r '.[]' services.json | xargs -I SERVICE echo ${{ github.event.repository.name }}-SERVICE
- #         for x in "${SERVICES_FROM_JSON[@]}"; do
- #           echo "service: $x"
- #         done
-
-#    MONO_REPOSITORIES.get(REPO).each { monoRepoName ->
-#    def SERVICE_NAME_SHORT_MONO_REPO = "${SERVICE_NAME_SHORT}-${monoRepoName}"    // e.g. "reference-data-GetTypeKeyLambdaFunction"
-#        // if the zip exists, this will be 0
-#        def ZIP_EXISTS = sh(script: "aws s3api head-object --bucket cvs-services --key ${SERVICE_NAME_SHORT_MONO_REPO}/${REPO_HASH}.zip > /dev/null 2>&1", returnStatus:true)
-#        if (ZIP_EXISTS != 0){
-#            MONO_REPO_REMOVE = false
-#        }
-#    }
-
-#          aws s3api head-object --bucket cvs-services --key ${{ env.BUCKET_NAME }}-test/${{ github.sha }}.zip > /dev/null 2>&1 || ZIP_DOES_NOT_EXIST=true
-#          echo "ZIP_DOES_NOT_EXIST=$ZIP_DOES_NOT_EXIST" >> $GITHUB_ENV
-#          echo "ZIP_DOES_NOT_EXIST: $ZIP_DOES_NOT_EXIST" >> $GITHUB_STEP_SUMMARY
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
       - name: Install dependencies
-        run: |
-          ls -al
-          npm ci
+        run: npm ci
 
       - name: Install tools
         run: npm run tools-setup
@@ -100,28 +55,37 @@ jobs:
         run: |
           npm run package
 
-#      - name: Generate SHA256 hash
-#        if: ${{ env.ZIP_DOES_NOT_EXIST }}
-#        run: |
-#          NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
-#          echo "NODE_SHA=$NODE_SHA" >> $GITHUB_ENV
-#          echo "NODE_SHA: $NODE_SHA" >> $GITHUB_STEP_SUMMARY
+      - name: Make branch lowercase
+        env:
+          SHORT_BRANCH: ${{ github.ref_name }}
+        run: |
+          SHORT_BRANCH=${SHORT_BRANCH##*/}
+          echo "SHORT_BRANCH=${SHORT_BRANCH,,}" >> $GITHUB_ENV
 
-      - name: Upload hash zip to S3
+      - name: Make bucket name
+        env:
+          BUCKET_NAME: ${{ github.event.repository.name }}
+        run: |
+          BUCKET_NAME=$(echo "$BUCKET_NAME" | sed -e "s/cvs-//" -e "s/svc-//" -e "s/tsk-//" -e "s/app-//")
+          echo "BUCKET_NAME=${BUCKET_NAME,,}" >> $GITHUB_ENV
+          echo "BUCKET_NAME: $BUCKET_NAME"
+
+      - name: Upload hash zip to S3 (mono-repo)
+        if: ${{ inputs.mono_repo == 'true' }}
         run: |
           for SERVICE in `ls ${{ github.sha }}*.zip | sed -e "s/^${{ github.sha }}-//" -e "s/.zip$//"`; do
             NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}-$SERVICE.zip | openssl enc -base64)
             aws s3 cp ${{ github.sha }}-$SERVICE.zip s3://cvs-services/${{ env.BUCKET_NAME }}-$SERVICE-test/${{ github.sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}-test"
+            echo ${{ github.sha }} > hash.txt
+            aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}-$SERVICE-test/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}-$SERVICE-test'
           done
 
-#      - name: Make branch lowercase
-#        env:
-#          SHORT_BRANCH: ${{ github.ref_name }}
-#        run: |
-#          SHORT_BRANCH=${SHORT_BRANCH##*/}
-#          echo "SHORT_BRANCH=${SHORT_BRANCH,,}" >> $GITHUB_ENV
-#
-#      - name: Upload ref txt to S3
-#        run: |
-#          echo ${{ github.sha }} > hash.txt
-#          aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}-test/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}-test'
+      - name: Upload hash zip to S3 (solo-repo)
+        if: ${{ inputs.mono_repo == 'false' }}
+        run: |
+          for SERVICE in `ls ${{ github.sha }}.zip | sed -e "s/.zip$//"`; do
+            NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
+            aws s3 cp ${{ github.sha }}.zip s3://cvs-services/${{ env.BUCKET_NAME }}-test/${{ github.sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}-test"
+            echo ${{ github.sha }} > hash.txt
+            aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}-test/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}-test'
+          done
