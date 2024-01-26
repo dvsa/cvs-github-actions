@@ -93,11 +93,11 @@ jobs:
 #        run: npm run test-i
 
       - name: Package Artifact
-#        env:
-#            ZIP_NAME: ${{ github.sha }}
+        env:
+            ZIP_NAME: ${{ github.sha }}
         run: |
           npm run package
-          ls -al
+          ls *.zip | sed -e "s/^${{ github.sha }}-//" -e "s/.zip$//" 
 
 #      - name: Generate SHA256 hash
 #        if: ${{ env.ZIP_DOES_NOT_EXIST }}
