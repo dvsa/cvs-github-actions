@@ -27,13 +27,13 @@ jobs:
 
       - name: Build Java
         run: |
-          sh "apt-get update && apt-get install --yes --no-install-recommends jq"
-          sh "./gradlew buildZip"
+          apt-get update && apt-get install --yes --no-install-recommends jq
+          ./gradlew buildZip
 
       - name: Test Java
         run: |
-          sh "./gradlew test"
-          sh "./gradlew jacocoTestReport"
+          ./gradlew test
+          ./gradlew jacocoTestReport
 
       - name: Make branch lowercase
         env:
