@@ -50,7 +50,7 @@ jobs:
           echo "BUCKET_NAME=${BUCKET_NAME,,}" >> $GITHUB_ENV
           echo "BUCKET_NAME: $BUCKET_NAME"
 
-      - name: Upload hash zip to S3 (solo-repo)
+      - name: Upload hash zip to S3
         if: ${{ inputs.mono_repo == false }}
         run: |
           JAVA_SHA=$(openssl dgst -sha256 -binary build/distributions/certificate-generation-service-1.0.zip | openssl enc -base64)
