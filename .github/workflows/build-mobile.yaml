@@ -117,6 +117,7 @@ jobs:
           bundle exec ${{ inputs.fastlane_cmd }}
 
       - name: ⬆️ Store QR Code
+        if: ${{ inputs.is_auto == false }}
         uses: actions/upload-artifact@v4
         with:
           name: VTA-QR-${{ steps.branch.outputs.BRANCH }}
