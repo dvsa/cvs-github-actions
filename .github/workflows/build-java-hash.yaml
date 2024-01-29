@@ -1,0 +1,59 @@
+name: Build zip and upload hash
+
+on:
+  workflow_call:
+    secrets:
+      CVS_MGMT_AWS_ROLE:
+        required: true
+      DVSA_AWS_REGION:
+        required: true
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
+          aws-region: ${{ secrets.DVSA_AWS_REGION }}
+          role-session-name: '${{ github.event.repository.name }}-hash-upload'
+
+      - name: Build Java
+        run: |
+          sh "apt-get update && apt-get install --yes --no-install-recommends jq"
+          sh "./gradlew buildZip"
+
+      - name: Test Java
+        run: |
+          sh "./gradlew test"
+          sh "./gradlew jacocoTestReport"
+
+      - name: Make branch lowercase
+        env:
+          SHORT_BRANCH: ${{ github.ref_name }}
+        run: |
+          SHORT_BRANCH=${SHORT_BRANCH##*/}
+          echo "SHORT_BRANCH=${SHORT_BRANCH,,}" >> $GITHUB_ENV
+
+      - name: Make bucket name
+        env:
+          BUCKET_NAME: ${{ github.event.repository.name }}
+        run: |
+          BUCKET_NAME=$(echo "$BUCKET_NAME" | sed -e "s/cvs-//" -e "s/svc-//" -e "s/tsk-//" -e "s/app-//")
+          echo "BUCKET_NAME=${BUCKET_NAME,,}" >> $GITHUB_ENV
+          echo "BUCKET_NAME: $BUCKET_NAME"
+
+      - name: Upload hash zip to S3 (solo-repo)
+        if: ${{ inputs.mono_repo == false }}
+        run: |
+          JAVA_SHA=$(openssl dgst -sha256 -binary build/distributions/certificate-generation-service-1.0.zip | openssl enc -base64)
+          aws s3 cp build/distributions/certificate-generation-service-1.0.zip s3://cvs-services/${{ env.BUCKET_NAME }}-test/${{ github.sha }}.zip --metadata "sha256sum=$JAVA_SHA,Tag=${{ env.BUCKET_NAME }}-test"
+          echo ${{ github.sha }} > hash.txt
+          aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}-test/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}-test'
