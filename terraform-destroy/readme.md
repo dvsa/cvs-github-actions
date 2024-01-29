@@ -19,5 +19,5 @@ This action does not produce any outputs
   uses: dvsa/cvs-github-actions/terraform-destroy@develop
   with:
     environment: cb2-1099
-    dry-run: no
+    dry-run: 'false'
 ```
