@@ -63,7 +63,7 @@ jobs:
         run: |
           terraform init -lock-timeout=300s
           terraform workspace select develop
-          echo "## Terraform Initialised" >> $GITHUB_STEP_SUMMARY
+          echo "## Terraform Initialized" >> $GITHUB_STEP_SUMMARY
 
       - name: 🛠️ Destroy
         env:
