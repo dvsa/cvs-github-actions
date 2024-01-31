@@ -25,7 +25,7 @@ runs:
           | jq --compact-output '.[]' \
           | tr ',' '\n' \
           | gxargs -0 -d '\n' -I itemKey \
-          $(echo "Removing itemKey from ${{ inputs.table }} && echo aws dynamodb delete-item --table-name ${{ inputs.table }} --key itemKey)
+          $(echo "Removing itemKey from ${{ inputs.table }}" && echo aws dynamodb delete-item --table-name ${{ inputs.table }} --key itemKey)
 
 
 
