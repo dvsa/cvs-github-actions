@@ -27,7 +27,7 @@ runs:
           | tr ',' '\n')
         for itemKey in $itemKeys; do
           echo Deleting itemKey from ${{ inputs.table }} 
-          aws dynamodb delete-item --table-name ${{ inputs.table }} --key itemKey
+          aws dynamodb delete-item --table-name ${{ inputs.table }} --key $itemKey
         done
 
 
