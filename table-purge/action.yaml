@@ -21,11 +21,12 @@ runs:
         [[ "${range_key}" != null ]] && range_key=''
 
         # Scan Table and remove each Item
+        echo Deleting items from ${{ inputs.table }}
         aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${{ inputs.table }} --query 'Items[*]' \
           | jq --compact-output '.[]' \
           | tr ',' '\n' \
           | gxargs -0 -d '\n' -I itemKey \
-          $(echo Removing itemKey from ${{ inputs.table }} && echo aws dynamodb delete-item --table-name ${{ inputs.table }} --key itemKey)
+          aws dynamodb delete-item --table-name ${{ inputs.table }} --key itemKey
 
 
 
