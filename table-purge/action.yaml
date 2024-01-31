@@ -26,7 +26,7 @@ runs:
           | jq --compact-output '.[]' \
           | tr ',' '\n')
         for itemKey in $itemKeys; do
-          echo Deleting itemKey from ${{ inputs.table }} 
+          echo Deleting $itemKey from ${{ inputs.table }} 
           aws dynamodb delete-item --table-name ${{ inputs.table }} --key $itemKey
         done
 
