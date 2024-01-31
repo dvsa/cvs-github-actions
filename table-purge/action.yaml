@@ -18,7 +18,7 @@ runs:
         # Get Range and Hash Key from Table
         hash_key=$(aws dynamodb describe-table --table-name ${{ inputs.table }} --query 'Table.KeySchema[?KeyType==`HASH`].AttributeName | [0]' | tr -d '"')
         range_key=$(aws dynamodb describe-table --table-name ${{ inputs.table }} --query 'Table.KeySchema[?KeyType==`RANGE`].AttributeName | [0]' | tr -d '"')
-        [[ "${range_key}" != 'null' ]] && range_key=''
+        [[ "${range_key}" == null ]] && range_key=''
 
         echo "--attributes-to-get ${hash_key} ${range_key}"
         # Scan Table and remove each Item
