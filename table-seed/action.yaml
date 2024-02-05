@@ -1,0 +1,13 @@
+name: DymamoDB Table Seed
+description: Seed a DynamoDB Table with static/test data
+inputs:
+  table:
+    description: DynamoDB Table Identifier
+    required: true
+  seed-file:
+    description: Full path to the Seed Data File
+    required: true
+runs:
+  using: node20
+  main: index.js
+

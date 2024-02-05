@@ -7,7 +7,7 @@ on:
         required: true
       branch:
         type: string
-        required: true      
+        required: true
       cert_repo_branch:
         type: string
         required: true
@@ -20,7 +20,11 @@ on:
       env_file:
         type: string
         required: true
-    
+      is_auto:
+        type: boolean
+        required: false
+        default: false
+
     secrets:
       IONIC_HUB_PRODUCT_KEY:
         required: true
@@ -52,12 +56,12 @@ jobs:
 
     steps:
       - name: ⚙️ Get Codebase
-        uses: actions/checkout@v3
-        with: 
+        uses: actions/checkout@v4
+        with:
           ref: ${{ inputs.branch }}
 
       - name: ⚙️ Configure Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
@@ -68,7 +72,7 @@ jobs:
           branch=$(python3 -c "print('$clean'.lower())")
           echo "BRANCH=$(echo $branch)" >> $GITHUB_OUTPUT
         id: branch
-      
+
       - name: ⚙️ Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -88,6 +92,10 @@ jobs:
           aws secretsmanager get-secret-value --secret-id ${{ inputs.env_file }} --query SecretString | jq . --raw-output  > .env
           sed  -i '' -e "s/BRANCH/${{ steps.branch.outputs.BRANCH }}/g" .env
 
+      - name: 🛠️ Simulator Check
+        if: ${{ inputs.is_auto == true }}
+        run: sed  -i '' -e "s/IS_AUTOMATION=false/IS_AUTOMATION=true/g" .env
+
       - name: 🛠️ Install Dependencies
         run: |
           echo "NPM Version: $(npm -v)" >> $GITHUB_STEP_SUMMARY
@@ -97,6 +105,10 @@ jobs:
       - name: 🛠️ Build Project
         run: npm run build-ci
 
+      - name: ☁️️ Deploy Sentry
+        if: ${{ inputs.environment == 'prod' }}
+        run: npm run sentry-deploy
+
       - name: 📱 Run Fastlane
         env:
           BRANCH: ${{ steps.branch.outputs.BRANCH }}
@@ -105,7 +117,8 @@ jobs:
           bundle exec ${{ inputs.fastlane_cmd }}
 
       - name: ⬆️ Store QR Code
-        uses: actions/upload-artifact@v3
+        if: ${{ inputs.is_auto == false }}
+        uses: actions/upload-artifact@v4
         with:
           name: VTA-QR-${{ steps.branch.outputs.BRANCH }}
           path: fastlane/codes

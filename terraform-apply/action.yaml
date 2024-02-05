@@ -1,0 +1,34 @@
+name: Terraform Apply
+description: Perform a Terraform Plan
+
+inputs:
+  options:
+    description: Additional Terraform Options 
+  plan-id:
+    description: Artifact Id for a Terraform Plan
+    default: plan-${{ github.run_id }}
+
+runs:
+  using: composite
+  steps:
+
+    - name: Check Initialization
+      id: tf
+      shell: bash
+      run: '[[ -f ".terraform.lock.hcl" ]] && echo "initialized=true" >> $GITHUB_OUTPUT || echo "initialized=false" >> $GITHUB_OUTPUT'
+
+    - name: Initialize Terraform
+      uses: dvsa/cvs-github-actions/terraform-initialize@feature/CB2-10415
+      if: ${{ steps.tf.outputs.initialized == 'false' }}
+        
+    - name: ⬇️ Retrieve Plan
+      uses: actions/download-artifact@v3
+      with:
+        name: plan-${{ inputs.run-id }}
+        path: .
+
+    - name: 🛠️ Terraform Apply
+      shell: bash
+      run: |
+        terraform apply ${{ inputs.options }} -lock-timeout=300s terraform.tfplan
+        echo 'Terraform Applied ✅' >> $GITHUB_STEP_SUMMARY

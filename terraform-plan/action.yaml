@@ -1,0 +1,50 @@
+name: Terraform Plan
+description: Perform a Terraform Plan
+
+inputs:
+  options:
+    description: Additional Terraform Options 
+  validate:
+    description: Run a validation on the Terraform first
+    default: 'true'
+  plan-retention:
+    description: Number of days to retain the plan
+    default: '5'
+
+runs:
+  using: composite
+  steps:
+
+    - name: Check Initialization
+      id: tf
+      shell: bash
+      run: '[[ -f ".terraform.lock.hcl" ]] && echo "initialized=true" >> $GITHUB_OUTPUT || echo "initialized=false" >> $GITHUB_OUTPUT'
+
+    - name: Initialize Terraform
+      uses: dvsa/cvs-github-actions/terraform-initialize@feature/CB2-10415
+      if: ${{ steps.tf.outputs.initialized == 'false' }}
+
+    - name: ✅ Terraform Validate
+      shell: bash
+      if: ${{ inputs.validate == 'true' }}
+      run: |
+        terraform validate -no-color
+        echo 'Terraform Validated ✅' >> $GITHUB_STEP_SUMMARY
+
+    - name: 🛠️ Terraform Plan
+      continue-on-error: true
+      shell: bash
+      run: |
+        terraform plan ${{ inputs.options }} -out terraform.tfplan
+        terraform show terraform.tfplan -no-color > plan.txt
+        echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
+        echo $(terraform show -no-color plan.tfplan | grep -E 'Plan:|Your infrastructure') >> $GITHUB_STEP_SUMMARY
+
+    - name: 📝 Upload Plan
+      uses: actions/upload-artifact@v3
+      with:
+        name: plan-${{ github.run_id }}
+        path: |
+          plan.txt
+          terraform.tfplan
+        retention-days: ${{ inputs.plan-retention }}

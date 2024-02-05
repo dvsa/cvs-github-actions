@@ -1,0 +1,64 @@
+name: Terraform Destroy
+description: Destroy an Environment using Terraform
+
+inputs:
+  environment:
+    description: Environment Identifier (e.g. `cb2-1099`)
+    required: true
+  terraform-version:
+    description: The version of Terraform to use (defaults to 1.3.9)
+    default: 1.3.9
+  dry-run:
+    description: Don't perform destruction, just output information
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+
+    - name: Initialize Terraform
+      uses: dvsa/cvs-github-actions/terraform-initialize@feature/CB2-10415
+      with:
+        terraform_version: ${{ inputs.terraform-version }}
+        environment: $(( inputs.environment ))
+
+    - name: 🔎 Find Hash Files
+      shell: bash
+      run: |
+        terraform show -no-color | grep -E '.*id.*${{ inputs.environment }}.txt' | sed -E 's/.*"(.*)"/\1/' > hash_files.txt
+
+    - name: 🪦 Remove VPC Connections
+      shell: bash
+      run: |
+        for lambda in $(terraform show -no-color | grep -E '\s+arn\s+=\s.*:lambda.*' | sed -E 's/.*"(.*:lambda.*:function:[a-z0-9-]+).*"/\1/'); do
+          echo "$([ "${{ inputs.dry-run }}" == 'true' ] && echo (dryrun)) remove: ${lambda}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.dry-run }}" == 'false' ]; then 
+            aws lambda update-function-configuration --function-name ${lambda} --vpc-config '{"SubnetIds":[], "SecurityGroupIds":[]}' >/dev/null
+          fi
+        done
+
+    - name: Terraform Plan
+      uses: dvsa/cvs-github-actions/terraform-plan@feature/CB2-10415
+      with:
+        options: '-destroy'
+        validate: 'false'
+
+    - name: 💣 Terraform Destroy
+      if: ${{ inputs.dry-run == 'false' }}
+      uses: dvsa/cvs-github-actions/terraform-apply@feature/CB2-10415
+        
+    - name: 💣 Remove Workspace
+      if: ${{ inputs.dry-run == 'false' }}
+      shell: bash
+      run: |
+        terraform workspace select default
+        terraform workspace delete ${{ inputs.environment-name }} 
+        echo "Terraform Workspace `${{ inputs.environment-name }}` Deleted!" >> $GITHUB_STEP_SUMMARY
+
+    - name: 📃 Remove Hash Files
+      id: remove_hash_files
+      shell: bash
+      run: |
+        for hash in $(cat hash_files.txt); do 
+          aws s3 rm s3://${hash} $([ "${{ inputs.dry-run }}" == 'true' ] && echo --dryrun)
+        done
