@@ -1,0 +1,89 @@
+name: Build zip and upload hash
+
+on:
+  workflow_call:
+    inputs:
+      mono_repo:
+        type: boolean
+        default: false
+    secrets:
+      CVS_MGMT_AWS_ROLE:
+        required: true
+      DVSA_AWS_REGION:
+        required: true
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
+          aws-region: ${{ secrets.DVSA_AWS_REGION }}
+          role-session-name: '${{ github.event.repository.name }}-hash-upload'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install tools
+        run: npm run tools-setup
+
+      - name: Build Artifact
+        run: npm run build
+
+      - name: Test
+        run: npm run test
+
+      - name: Test I
+        run: npm run test-i
+
+      - name: Package Artifact
+        env:
+          ZIP_NAME: ${{ github.sha }}
+        run: |
+          npm run package
+
+      - name: Make branch lowercase
+        env:
+          SHORT_BRANCH: ${{ github.ref_name }}
+        run: |
+          SHORT_BRANCH=${SHORT_BRANCH##*/}
+          echo "SHORT_BRANCH=${SHORT_BRANCH,,}" >> $GITHUB_ENV
+
+      - name: Make bucket name
+        env:
+          BUCKET_NAME: ${{ github.event.repository.name }}
+        run: |
+          BUCKET_NAME=$(echo "$BUCKET_NAME" | sed -e "s/cvs-//" -e "s/svc-//" -e "s/tsk-//" -e "s/app-//")
+          echo "BUCKET_NAME=${BUCKET_NAME,,}" >> $GITHUB_ENV
+          echo "BUCKET_NAME: $BUCKET_NAME"
+
+      - name: Upload hash zip to S3 (mono-repo)
+        if: ${{ inputs.mono_repo == true }}
+        run: |
+          for SERVICE in `ls ${{ github.sha }}*.zip | sed -e "s/^${{ github.sha }}-//" -e "s/.zip$//"`; do
+            NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}-$SERVICE.zip | openssl enc -base64)
+            aws s3 cp ${{ github.sha }}-$SERVICE.zip s3://cvs-services/${{ env.BUCKET_NAME }}-$SERVICE/${{ github.sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}"
+            echo ${{ github.sha }} > hash.txt
+            aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}-$SERVICE/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}-$SERVICE'
+          done
+
+      - name: Upload hash zip to S3 (solo-repo)
+        if: ${{ inputs.mono_repo == false }}
+        run: |
+          NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
+          aws s3 cp ${{ github.sha }}.zip s3://cvs-services/${{ env.BUCKET_NAME }}/${{ github.sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}"
+          echo ${{ github.sha }} > hash.txt
+          aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}'
