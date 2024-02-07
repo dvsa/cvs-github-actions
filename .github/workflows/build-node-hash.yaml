@@ -2,15 +2,7 @@ name: Build zip and upload hash
 
 on:
   workflow_call:
-    inputs:
-      mono_repo:
-        type: boolean
-        default: false
-    secrets:
-      CVS_MGMT_AWS_ROLE:
-        required: true
-      DVSA_AWS_REGION:
-        required: true
+
 
 permissions:
   id-token: write
@@ -43,11 +35,11 @@ jobs:
       - name: Build Artifact
         run: npm run build
 
-      #      - name: Test
-      #        run: npm run test
-      #
-      #      - name: Test I
-      #        run: npm run test-i
+      - name: Test
+        run: npm run test
+
+      - name: Test I
+        run: npm run test-i
 
       - name: Package Artifact
         env:
@@ -75,15 +67,15 @@ jobs:
         run: |
           for SERVICE in `ls ${{ github.sha }}*.zip | sed -e "s/^${{ github.sha }}-//" -e "s/.zip$//"`; do
             NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}-$SERVICE.zip | openssl enc -base64)
-            aws s3 cp ${{ github.sha }}-$SERVICE.zip s3://cvs-services/${{ env.BUCKET_NAME }}-$SERVICE-test/${{ github.sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}-test"
+            aws s3 cp ${{ github.sha }}-$SERVICE.zip s3://cvs-services/${{ env.BUCKET_NAME }}-$SERVICE/${{ github.sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}"
             echo ${{ github.sha }} > hash.txt
-            aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}-$SERVICE-test/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}-$SERVICE-test'
+            aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}-$SERVICE/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}-$SERVICE'
           done
 
       - name: Upload hash zip to S3 (solo-repo)
         if: ${{ inputs.mono_repo == false }}
         run: |
           NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
-          aws s3 cp ${{ github.sha }}.zip s3://cvs-services/${{ env.BUCKET_NAME }}-test/${{ github.sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}-test"
+          aws s3 cp ${{ github.sha }}.zip s3://cvs-services/${{ env.BUCKET_NAME }}/${{ github.sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}"
           echo ${{ github.sha }} > hash.txt
-          aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}-test/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}-test'
+          aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}'
