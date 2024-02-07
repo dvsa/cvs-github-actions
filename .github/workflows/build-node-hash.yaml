@@ -2,7 +2,15 @@ name: Build zip and upload hash
 
 on:
   workflow_call:
-
+    inputs:
+      mono_repo:
+        type: boolean
+        default: false
+    secrets:
+      CVS_MGMT_AWS_ROLE:
+        required: true
+      DVSA_AWS_REGION:
+        required: true
 
 permissions:
   id-token: write
