@@ -107,7 +107,9 @@ jobs:
 
       - name: ☁️️ Deploy Sentry
         if: ${{ inputs.environment == 'prod' }}
-        run: npm run sentry-deploy
+        run: |
+          aws secretsmanager get-secret-value --secret-id sentryclirc --query SecretString | jq . --raw-output  > .sentryclirc
+          npm run sentry-deploy
 
       - name: 📱 Run Fastlane
         env:
