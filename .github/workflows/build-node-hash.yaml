@@ -43,7 +43,7 @@ jobs:
       - name: Install Liquibase
         env:
           LB_VERSION: 4.23.0
-        run: sudo apt-get install liquibase=${LB_VERSION}
+        run: sudo apt-get update && sudo apt-get install liquibase=${LB_VERSION}
 #        run: |
 #          curl -L https://github.com/liquibase/liquibase/releases/download/v${LB_VERSION}/liquibase-${LB_VERSION}.zip --output liquibase-${LB_VERSION}.zip
 #          unzip -o -d liquibase liquibase-${LB_VERSION}.zip
