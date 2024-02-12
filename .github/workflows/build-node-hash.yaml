@@ -37,8 +37,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install tools
-        run: npm run tools-setup
+#      - name: Install tools
+#        run: npm run tools-setup
 
       - name: Build Artifact
         run: npm run build
