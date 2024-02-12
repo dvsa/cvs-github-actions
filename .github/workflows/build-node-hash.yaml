@@ -43,16 +43,17 @@ jobs:
       - name: Install Liquibase
         env:
           LB_VERSION: 4.23.0
-        run: |
-          curl -L https://github.com/liquibase/liquibase/releases/download/v${LB_VERSION}/liquibase-${LB_VERSION}.zip --output liquibase-${LB_VERSION}.zip
-          unzip -o -d liquibase liquibase-${LB_VERSION}.zip
-          echo "GITHUB_PATH: $GITHUB_PATH"
-          echo "HOME: $HOME"
-          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
-          pwd
-          ls -al
-          echo "$HOME/liquibase" >> $GITHUB_PATH
-          ./liquibase/liquibase --version
+        run: sudo apt-get install liquibase=${LB_VERSION}
+#        run: |
+#          curl -L https://github.com/liquibase/liquibase/releases/download/v${LB_VERSION}/liquibase-${LB_VERSION}.zip --output liquibase-${LB_VERSION}.zip
+#          unzip -o -d liquibase liquibase-${LB_VERSION}.zip
+#          echo "GITHUB_PATH: $GITHUB_PATH"
+#          echo "HOME: $HOME"
+#          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+#          pwd
+#          ls -al
+#          echo "$HOME/liquibase" >> $GITHUB_PATH
+#          ./liquibase/liquibase --version
           
 ## Make /liquibase directory and change owner to liquibase
 #  RUN mkdir /liquibase
