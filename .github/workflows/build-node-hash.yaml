@@ -38,11 +38,7 @@ jobs:
         run: npm ci
 
       - name: Start MySQL
-        run: |
-          sudo systemctl start mysql.service
-          sudo systemctl status mysql.service
-          mysql
-          mysql --version
+        run: sudo systemctl start mysql.service
 
       - name: Install Liquibase
         env:
@@ -50,6 +46,9 @@ jobs:
         run: |
           curl -L https://github.com/liquibase/liquibase/releases/download/v${LB_VERSION}/liquibase-${LB_VERSION}.zip --output liquibase-${LB_VERSION}.zip
           unzip -o -d liquibase liquibase-${LB_VERSION}.zip
+          pwd
+          ls -al
+          echo "$HOME/liquibase" >> $GITHUB_PATH
           ./liquibase/liquibase --version
           
 ## Make /liquibase directory and change owner to liquibase
