@@ -37,8 +37,43 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-#      - name: Install tools
-#        run: npm run tools-setup
+      - name: Start MySQL
+        run: sudo systemctl start mysql.service
+
+      - name: Install Liquibase
+        env:
+          LB_VERSION: 4.23.0
+        run: |
+          curl -L https://github.com/liquibase/liquibase/releases/download/v${LB_VERSION}/liquibase-${LB_VERSION}.zip --output liquibase-${LB_VERSION}.zip
+          unzip -o -d liquibase liquibase-${LB_VERSION}.zip
+          ./liquibase/liquibase --version
+          
+## Make /liquibase directory and change owner to liquibase
+#  RUN mkdir /liquibase
+#  WORKDIR /liquibase
+#
+#  #Symbolic link will be broken until later
+#  RUN ln -s /liquibase/liquibase /usr/local/bin/liquibase
+#
+#  # Latest Liquibase Release Version
+#  ARG LIQUIBASE_VERSION=4.23.0
+#
+#  # Download, verify, extract
+#  ARG LB_SHA256=988b8734da3f2f987646fa533748d9b7aae2f889741fd6922f86ae3a321ea635
+#  RUN set -x \
+#  && wget -q -O liquibase-${LIQUIBASE_VERSION}.tar.gz "https://github.com/liquibase/liquibase/releases/download/v${LIQUIBASE_VERSION}/liquibase-${LIQUIBASE_VERSION}.tar.gz" \
+#  && echo "$LB_SHA256  liquibase-${LIQUIBASE_VERSION}.tar.gz" | sha256sum -c - \
+#  && tar -xzf liquibase-${LIQUIBASE_VERSION}.tar.gz \
+#  && rm liquibase-${LIQUIBASE_VERSION}.tar.gz
+#
+#  ARG MYSQL_SHA256=a0a1be0389e541dad8841b326e79c51d39abbe1ca52267304d76d1cf4801ce96
+#  RUN wget --no-verbose -O /liquibase/lib/mysql.jar https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.25/mysql-connector-java-8.0.25.jar \
+#  && wget --no-verbose -O /liquibase/lib/mysql.jar.asc https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.25/mysql-connector-java-8.0.25.jar.asc \
+#  && gpg --auto-key-locate keyserver --keyserver keyserver.ubuntu.com --keyserver-options auto-key-retrieve --verify /liquibase/lib/mysql.jar.asc /liquibase/lib/mysql.jar \
+#  && echo "$MYSQL_SHA256  /liquibase/lib/mysql.jar" | sha256sum -c -
+
+      - name: Install tools
+        run: npm run tools-setup
 
       - name: Build Artifact
         run: npm run build
