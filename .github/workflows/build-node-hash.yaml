@@ -55,7 +55,7 @@ jobs:
           unzip -o -d liquibase liquibase-${LB_VERSION}.zip
           echo "$GITHUB_WORKSPACE/liquibase" >> $GITHUB_PATH
           sudo mkdir -p /liquibase/lib/
-          curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/${MJC_VERSION}/mysql-connector-java-${MJC_VERSION}.jar --output /liquibase/lib/mysql.jar
+          sudo curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/${MJC_VERSION}/mysql-connector-java-${MJC_VERSION}.jar --output /liquibase/lib/mysql.jar
           
 ## Make /liquibase directory and change owner to liquibase
 #  RUN mkdir /liquibase
