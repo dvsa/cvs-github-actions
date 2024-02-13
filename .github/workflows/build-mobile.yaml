@@ -94,7 +94,7 @@ jobs:
 
       - name: 🛠️ Simulator Check
         if: ${{ inputs.is_auto == true }}
-        run: sed  -i '' -e "s/IS_AUTOMATION=false/IS_AUTOMATION=true/g" .env
+        run: sed  -i '' -e "s/IS_AUTOMATION=false/IS_AUTOMATION=false/g" .env
 
       - name: 🛠️ Install Dependencies
         run: |
