@@ -41,54 +41,28 @@ jobs:
         env:
           DB_PASSWORD: 12345
         run: |
-          sudo echo "mysql-server mysql-server/root_password_again password $DB_PASSWORD" | debconf-set-selections
           sudo systemctl start mysql.service
+          mysqladmin -u root -p root password ${DB_PASSWORD}
 
       - name: Install Liquibase
         env:
           LB_VERSION: 4.23.0
-          MJC_VERSION: 8.0.25
-#        run: |
-#          wget -O- https://repo.liquibase.com/liquibase.asc | gpg --dearmor > liquibase-keyring.gpg && \
-#          cat liquibase-keyring.gpg | sudo tee /usr/share/keyrings/liquibase-keyring.gpg > /dev/null && \
-#          echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/liquibase-keyring.gpg] https://repo.liquibase.com stable main' | sudo tee /etc/apt/sources.list.d/liquibase.list
-#          sudo apt-get update && sudo apt-get install liquibase=${LB_VERSION}
-#          whereis liquibase
+          MCJ_VERSION: 8.0.25
         run: |
           curl -L https://github.com/liquibase/liquibase/releases/download/v${LB_VERSION}/liquibase-${LB_VERSION}.zip --output liquibase-${LB_VERSION}.zip
           unzip -o -d liquibase liquibase-${LB_VERSION}.zip
           echo "$GITHUB_WORKSPACE/liquibase" >> $GITHUB_PATH
           sudo mkdir -p /liquibase/lib/
-          sudo curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/${MJC_VERSION}/mysql-connector-java-${MJC_VERSION}.jar --output /liquibase/lib/mysql.jar
+          sudo curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/${MCJ_VERSION}/mysql-connector-java-${MCJ_VERSION}.jar --output /liquibase/lib/mysql.jar
 
-#  echo "mysql-server mysql-server/root_password_again password $MYSQL_ROOT_PASSWORD" | debconf-set-selections
-
-## Make /liquibase directory and change owner to liquibase
-#  RUN mkdir /liquibase
-#  WORKDIR /liquibase
-#
-#  #Symbolic link will be broken until later
-#  RUN ln -s /liquibase/liquibase /usr/local/bin/liquibase
-#
-#  # Latest Liquibase Release Version
-#  ARG LIQUIBASE_VERSION=4.23.0
-#
-#  # Download, verify, extract
-#  ARG LB_SHA256=988b8734da3f2f987646fa533748d9b7aae2f889741fd6922f86ae3a321ea635
-#  RUN set -x \
-#  && wget -q -O liquibase-${LIQUIBASE_VERSION}.tar.gz "https://github.com/liquibase/liquibase/releases/download/v${LIQUIBASE_VERSION}/liquibase-${LIQUIBASE_VERSION}.tar.gz" \
-#  && echo "$LB_SHA256  liquibase-${LIQUIBASE_VERSION}.tar.gz" | sha256sum -c - \
-#  && tar -xzf liquibase-${LIQUIBASE_VERSION}.tar.gz \
-#  && rm liquibase-${LIQUIBASE_VERSION}.tar.gz
-#
-#  ARG MYSQL_SHA256=a0a1be0389e541dad8841b326e79c51d39abbe1ca52267304d76d1cf4801ce96
-#  RUN wget --no-verbose -O /liquibase/lib/mysql.jar https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.25/mysql-connector-java-8.0.25.jar \
-#  && wget --no-verbose -O /liquibase/lib/mysql.jar.asc https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.25/mysql-connector-java-8.0.25.jar.asc \
-#  && gpg --auto-key-locate keyserver --keyserver keyserver.ubuntu.com --keyserver-options auto-key-retrieve --verify /liquibase/lib/mysql.jar.asc /liquibase/lib/mysql.jar \
-#  && echo "$MYSQL_SHA256  /liquibase/lib/mysql.jar" | sha256sum -c -
+      - name: Checkout CVS-NOP
+        uses: actions/checkout@v4
+        with:
+          repository: dvsa/cvs-nop
 
       - name: Install tools
         run: npm run tools-setup
+#    "tools-setup": "liquibase --changeLogFile ../cvs-nop/changelog-master.xml --username root --password 12345 --url jdbc:mysql://127.0.0.1:3306/CVSBNOP?createDatabaseIfNotExist=true --classpath /liquibase/lib/mysql.jar update"
 
       - name: Build Artifact
         run: npm run build
