@@ -60,6 +60,11 @@ jobs:
           path: cvs-nop
           ref: ${{ github.ref }}
 
+      - name: List Dirs
+        run: |
+          ls -al
+          ls -al ..
+
       - name: Install tools
         run: npm run tools-setup
 #    "tools-setup": "liquibase --changeLogFile ../cvs-nop/changelog-master.xml --username root --password 12345 --url jdbc:mysql://127.0.0.1:3306/CVSBNOP?createDatabaseIfNotExist=true --classpath /liquibase/lib/mysql.jar update"
