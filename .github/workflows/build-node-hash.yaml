@@ -57,7 +57,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dvsa/cvs-nop
-          path: ../cvs-nop
+          path: $GITHUB_WORKSPACE/cvs-nop
           ref: ${{ github.ref }}
 
       - name: List Dirs
