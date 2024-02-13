@@ -57,6 +57,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dvsa/cvs-nop
+          path: cvs-nop
+          ref: ${{ github.ref }}
 
       - name: Install tools
         run: npm run tools-setup
