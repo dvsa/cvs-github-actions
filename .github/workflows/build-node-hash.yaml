@@ -38,7 +38,11 @@ jobs:
         run: npm ci
 
       - name: Start MySQL
-        run: sudo systemctl start mysql.service
+        env:
+          DB_PASSWORD: 12345
+        run: |
+          sudo systemctl start mysql.service
+          mysqladmin -u root password ${DB_PASSWORD}
 
       - name: Install Liquibase
         env:
