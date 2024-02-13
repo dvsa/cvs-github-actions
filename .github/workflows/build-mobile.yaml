@@ -92,10 +92,6 @@ jobs:
           aws secretsmanager get-secret-value --secret-id ${{ inputs.env_file }} --query SecretString | jq . --raw-output  > .env
           sed  -i '' -e "s/BRANCH/${{ steps.branch.outputs.BRANCH }}/g" .env
 
-      - name: 🛠️ Simulator Check
-        if: ${{ inputs.is_auto == true }}
-        run: sed  -i '' -e "s/IS_AUTOMATION=false/IS_AUTOMATION=true/g" .env
-
       - name: 🛠️ Install Dependencies
         run: |
           echo "NPM Version: $(npm -v)" >> $GITHUB_STEP_SUMMARY
