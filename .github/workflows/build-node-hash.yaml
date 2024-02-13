@@ -41,9 +41,8 @@ jobs:
         env:
           DB_PASSWORD: 12345
         run: |
-          printenv
+          echo "mysql-server mysql-server/root_password_again password $DB_PASSWORD" | debconf-set-selections
           sudo systemctl start mysql.service
-          mysqladmin -u root -p'root' password ${DB_PASSWORD}
 
       - name: Install Liquibase
         env:
@@ -61,7 +60,9 @@ jobs:
           echo "$GITHUB_WORKSPACE/liquibase" >> $GITHUB_PATH
           sudo mkdir -p /liquibase/lib/
           sudo curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/${MJC_VERSION}/mysql-connector-java-${MJC_VERSION}.jar --output /liquibase/lib/mysql.jar
-          
+
+#  echo "mysql-server mysql-server/root_password_again password $MYSQL_ROOT_PASSWORD" | debconf-set-selections
+
 ## Make /liquibase directory and change owner to liquibase
 #  RUN mkdir /liquibase
 #  WORKDIR /liquibase
