@@ -41,8 +41,9 @@ jobs:
         env:
           DB_PASSWORD: 12345
         run: |
+          printenv
           sudo systemctl start mysql.service
-          mysqladmin -u root password ${DB_PASSWORD}
+          mysqladmin -u root -p'root' password ${DB_PASSWORD}
 
       - name: Install Liquibase
         env:
