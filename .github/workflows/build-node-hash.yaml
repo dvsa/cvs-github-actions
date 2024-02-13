@@ -24,6 +24,11 @@ jobs:
         with:
           path: main
 
+      - name: List Dirs
+        run: |
+          ls -al
+          ls -al ..
+
       - name: Get AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
