@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: ${{ github.event.repository.name }}
+          path: main
 
       - name: Get AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
