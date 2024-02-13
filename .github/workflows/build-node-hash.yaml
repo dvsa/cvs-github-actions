@@ -21,13 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: main
-
-      - name: List Dirs
-        run: |
-          ls -al
-          ls -al ..
 
       - name: Get AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -66,11 +59,7 @@ jobs:
           repository: dvsa/cvs-nop
           path: cvs-nop
           ref: ${{ github.ref }}
-
-      - name: List Dirs
-        run: |
-          ls -al
-          ls -al ..
+      - run: mv cvs-nop/ ..
 
       - name: Install tools
         run: npm run tools-setup
