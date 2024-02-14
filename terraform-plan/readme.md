@@ -14,7 +14,7 @@ This action requires the following inputs:
 This action does not produce any outputs
 
 ## Notes
-- This action relies on the AWS Credentials being created in a prior job.
+- This action relies on the AWS Credentials being created in a prior step.
 - If Terraform is not initialized, this action will perform that activity
 
 ## Usage Example
@@ -35,6 +35,10 @@ jobs:
         with:
           environment: ${{ inputs.environment || github.ref_name }}
 
+  terraform-plan:
+    runs-on: [runner]
+
+    steps:
       - name: Configure AWS Profile
         uses: dvsa/cvs-github-actions/aws-profile-configure@develop
         with:
@@ -43,11 +47,6 @@ jobs:
           role-session-name: MySessionName
           main-role: ${{secrets.TF_ROLE }}
           mgmt-role: ${{ secrets.MGMT_TF_ROLE }}
-
-  terraform-plan:
-    runs-on: [runner]
-
-    steps:
 
       - name: Terraform Plan
         uses: dvsa/cvs-github-actions/terraform-plan@develop
