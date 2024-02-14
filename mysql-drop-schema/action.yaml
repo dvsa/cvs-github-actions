@@ -48,8 +48,7 @@ runs:
 
         if [ "${{ inputs.dry-run }}" == 'false' ]; then 
           # sudo /etc/init.d/mysql start
-          # aws rds-data execute-statement --resource-arn arn:aws:rds:eu-west-1:006106226016:cluster:cvs-data-migration-staging-db-cluster-nonprod-cluster --secret-arn arn:aws:secretsmanager:eu-west-1:006106226016:secret:feature/mysql/config-HiaSSH --sql "SHOW MASTER STATUS"
-          #/usr/local/opt/mysql-client/bin/mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
+          # /usr/local/opt/mysql-client/bin/mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
         else
           echo mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
         fi
