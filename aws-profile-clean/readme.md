@@ -2,6 +2,15 @@
 
 Remove AWS Profile information from Runner
 
+## Inputs
+
+This action does not require any inputs
+
+
+## Outputs
+
+This action does not create any Outputs
+
 ## Notes
 - The `Configure AWS Profile` action, used in conjunction with this action, creates 'shared' credentials on the runner
 
