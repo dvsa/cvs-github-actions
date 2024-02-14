@@ -17,7 +17,7 @@ runs:
   steps:
 
     - name: Initialize Terraform
-      uses: dvsa/cvs-github-actions/terraform-initialize@feature/CB2-10415
+      uses: dvsa/cvs-github-actions/terraform-initialize@develop
       with:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
@@ -43,7 +43,7 @@ runs:
         done
 
     - name: Terraform Plan
-      uses: dvsa/cvs-github-actions/terraform-plan@feature/CB2-10415
+      uses: dvsa/cvs-github-actions/terraform-plan@develop
       with:
         options: '-destroy'
         validate: 'false'
@@ -53,7 +53,7 @@ runs:
 
     - name: 💣 Terraform Destroy
       if: ${{ inputs.dry-run == 'false' }}
-      uses: dvsa/cvs-github-actions/terraform-apply@feature/CB2-10415
+      uses: dvsa/cvs-github-actions/terraform-apply@develop
       with:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}

@@ -32,7 +32,7 @@ runs:
         [[ -f ".terraform.lock.hcl" ]] && echo "initialized=true" >> $GITHUB_OUTPUT || echo "initialized=false" >> $GITHUB_OUTPUT
 
     - name: Initialize Terraform
-      uses: dvsa/cvs-github-actions/terraform-initialize@feature/CB2-10415
+      uses: dvsa/cvs-github-actions/terraform-initialize@develop
       if: ${{ steps.tf.outputs.initialized == 'false' }}
       with:
         terraform-version: ${{ inputs.terraform-version }}
