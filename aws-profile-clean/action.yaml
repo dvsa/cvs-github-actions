@@ -1,0 +1,15 @@
+name: Clean AWS Profiles
+description: Remove AWS Profiles from runner
+
+runs:
+  using: composite
+  steps:
+
+    - name: Clean Profiles
+      shell: bash
+      run: |
+        # Clean AWS Profiles
+        rm ~/.aws/config
+        rm ~/.aws/credentials
+
+ 
