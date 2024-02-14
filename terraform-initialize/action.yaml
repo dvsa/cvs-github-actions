@@ -31,6 +31,6 @@ runs:
         create_workspace=$([[ "${{ inputs.create-workspace }}" == 'true' ]] && echo "-or-create" || echo "" )
         terraform init
         terraform workspace select ${{ inputs.environment-name }} ${create_workspace} \
-        && `echo "Workspace: ${{ inputs.environment-name }}" >> $GITHUB_STEP_SUMMARY`
+        && $(echo "Workspace: ${{ inputs.environment-name }}" >> $GITHUB_STEP_SUMMARY)
 
         
