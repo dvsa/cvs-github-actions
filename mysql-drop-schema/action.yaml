@@ -47,8 +47,8 @@ runs:
         AWS_PROFILE=mgmt aws secretsmanager get-secret-value --secret-id ${{ inputs.environment-type }}/mysql/config --query SecretString --region=eu-west-1 --output text > my.cnf
 
         if [ "${{ inputs.dry-run }}" == 'false' ]; then 
-          # sudo /etc/init.d/mysql start
-          # /usr/local/opt/mysql-client/bin/mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
+          echo Step currently disabled
+          # mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
         else
           echo mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
         fi
