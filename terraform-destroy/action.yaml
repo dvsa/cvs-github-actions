@@ -39,19 +39,6 @@ runs:
           echo "${prepend}remove: ${lambda}"
           if [ "${{ inputs.dry-run }}" == 'false' ]; then 
             AWS_PROFILE=main aws lambda update-function-configuration --function-name ${lambda} --vpc-config '{"SubnetIds":[], "SecurityGroupIds":[]}' >/dev/null
-
-            AWS_PROFILE=main aws ec2 describe-network-interfaces \
-              --query 'NetworkInterfaces[?contains(Description,`cb2-10512`)].[NetworkInterfaceId, Attachment.AttachmentId]' | \
-              jq -c '.[]' \
-              | while read interface;
-              do
-                                
-                interfaceid=$( echo $interface | jq -r '.[0]' )
-                attachmentid=$( echo $interface | jq -r '.[1]' )
-
-                AWS_PROFILE=main aws ec2 modify-network-interface-attribute --network-interface-id $interfaceid --attachment "AttachmentId=${attachmentid},DeleteOnTermination=true"
-                #AWS_PROFILE=main aws ec2 detach-network-interface --attachment-id $attachmentid
-              done
           fi
         done
 
