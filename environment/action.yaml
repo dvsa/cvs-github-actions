@@ -8,13 +8,13 @@ inputs:
 outputs:
   github-branch: 
     description: The GitHub Branch Name
-    value: ${{ steps.branch.outputs.github_branch }}
+    value: ${{ steps.branch.outputs.github-branch }}
   environment-name:
     description: The AWS Environment Name
-    value: ${{ steps.branch.outputs.environment_name }}
+    value: ${{ steps.branch.outputs.environment-name }}
   environment-type:
     description: The type of AWS Environment Identified
-    value: ${{ steps.branch.outputs.environment_type }}
+    value: ${{ steps.branch.outputs.environment-type }}
 
 runs:
   using: composite
