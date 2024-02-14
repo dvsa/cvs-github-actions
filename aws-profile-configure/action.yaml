@@ -1,0 +1,67 @@
+name: Configure AWS Profiles
+description: Configure runner AWS Profiles for use with Terraform
+
+inputs:
+  actions-role: 
+    description: The AWS IAM Role to assume
+    required: true
+  role-session-name: 
+    description: The Session Name to use for the role
+    default: github-actions
+  aws-region:
+    description: The AWS Region in which to assume the role
+    default: eu-west-1
+  main-role:
+    description: The Main Role to Configure
+  mgmt-role:
+    description: The Management Role to Configure
+  
+
+runs:
+  using: composite
+  steps:
+
+    - name: Assume AWS Role
+      id: aws-assume
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.actions-role }}
+        aws-region: ${{ inputs.aws-region }}
+        role-session-name: ${{ inputs.role-session-name }}
+
+    - name: Configure Profiles
+      shell: bash
+      run: |
+        # Create AWS Credentials File
+        echo """
+        [default]
+        aws_access_key_id = ${AWS_ACCESS_KEY_ID}
+        aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+        aws_session_token = ${AWS_SESSION_TOKEN}
+        """ > ~/.aws/credentials
+
+        # Create AWS Profiles File
+        echo """
+        [default]
+        region=${{ inputs.aws-region }}
+        output=json
+
+        [profile mgmt]
+        region = ${{ inputs.aws-region }}
+        role_arn = ${{ inputs.mgmt-role }}
+        source_profile = default
+
+        [profile main]
+        region = ${{ inputs.aws-region }}
+        role_arn = ${{ inputs.main-role }}
+        source_profile = mgmt
+        """ > ~/.aws/config
+    
+    - name: Unset AWS Role
+      id: aws-remove
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ inputs.aws-region }}
+        unset-current-credentials: true
+
+ 

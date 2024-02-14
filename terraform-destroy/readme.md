@@ -13,11 +13,47 @@ This action requires the following inputs:
 
 This action does not produce any outputs
 
+## Notes
+- This action relies on the AWS Credentials being created in a prior job.
+- If Terraform is not initialized, this action will perform that activity
+
 ## Usage Example
 ```
-- name: Terraform Destroy
-  uses: dvsa/cvs-github-actions/terraform-destroy@develop
-  with:
-    environment: cb2-1099
-    dry-run: 'false'
+jobs:
+  environment:
+    runs-on: [runner]
+    outputs:
+      environment-name: ${{ steps.environment.outputs.environment-name }}
+      environment-type: ${{ steps.environment.outputs.environment-type }}
+      github-branch: ${{ steps.environment.outputs.github-branch }}
+  
+    steps:
+      - name: Get Environment Details
+        id: environment
+        uses: dvsa/cvs-github-actions/environment@develop
+        with:
+          environment: ${{ inputs.environment || github.ref_name }}
+
+      - name: Configure AWS Profile
+        uses: dvsa/cvs-github-actions/aws-profile-configure@develop
+        with:
+          actions-role: ${{ secrets.MAIN_ROLE }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: MySessionName
+          main-role: ${{secrets.TF_ROLE }}
+          mgmt-role: ${{ secrets.MGMT_TF_ROLE }}
+
+  terraform-destroy:
+    runs-on: [runner]
+
+    steps:
+      - name: Terraform Destroy
+        uses: dvsa/cvs-github-actions/terraform-plan@develop
+        with:
+          environment-name:  ${{ needs.environment.outputs.environment-name }}
+          dry-run: ${{ inputs.dry-run }}
+          terraform-version: 1.7.2
+...
+      - name: Clean AWS Profile
+          uses: dvsa/cvs-github-actions/aws-profile-clean@develop
 ```

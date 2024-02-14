@@ -11,6 +11,9 @@ inputs:
   schema:
     description: Base Schema to drop (e.g. `CVSNOP`)
     required: true
+  role-to-assume: 
+    description: (Optional) Assume an AWS Role directly
+    required: false
   dry-run:
     description: Don't perform destruction, just output information
     default: "true"
@@ -18,9 +21,20 @@ inputs:
 runs:
   using: composite
   steps:
+
+    - name: Assume AWS Role
+      id: aws-assume
+      if: ${{ inputs.aws-role != '' }}
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.role-to-assume }}
+        aws-region: ${{ inputs.aws-region }}
+        role-session-name: ${{ inputs.role-session-name }}
+
     - name: 🛢️ Remove Schemas
       id: remove_schemas
       shell: bash
+
       run: |
         # Drop the requested Schema
 
@@ -30,11 +44,19 @@ runs:
           schema=${{ inputs.schema }}
         fi
 
-        aws secretsmanager get-secret-value --secret-id ${{ inputs.environment-type }}/mysql/config --query SecretString --region=eu-west-1 --output text > my.cnf
+        AWS_PROFILE=mgmt aws secretsmanager get-secret-value --secret-id ${{ inputs.environment-type }}/mysql/config --query SecretString --region=eu-west-1 --output text > my.cnf
+
         if [ "${{ inputs.dry-run }}" == 'false' ]; then 
-          sudo /etc/init.d/mysql start
-          mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
+          # sudo /etc/init.d/mysql start
+          # /usr/local/opt/mysql-client/bin/mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
         else
           echo mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
         fi
 
+    - name: Unset AWS Role
+      id: aws-remove
+      if: ${{ inputs.aws-role != '' }}
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ inputs.aws-region }}
+        unset-current-credentials: true

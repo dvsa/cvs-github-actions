@@ -8,13 +8,13 @@ inputs:
 outputs:
   github-branch: 
     description: The GitHub Branch Name
-    value: ${{ steps.branch.outputs.github_branch }}
+    value: ${{ steps.branch.outputs.github-branch }}
   environment-name:
     description: The AWS Environment Name
-    value: ${{ steps.branch.outputs.environment_name }}
+    value: ${{ steps.branch.outputs.environment-name }}
   environment-type:
     description: The type of AWS Environment Identified
-    value: ${{ steps.branch.outputs.environment_type }}
+    value: ${{ steps.branch.outputs.environment-type }}
 
 runs:
   using: composite
@@ -53,10 +53,10 @@ runs:
         esac
 
         # Output values to GitHub
-        echo "environment_type=${environment_type}" >> $GITHUB_OUTPUT
-        echo "environment_name=${environment_name}" >> $GITHUB_OUTPUT
-        echo "github_branch=${github_branch}" >> $GITHUB_OUTPUT
+        echo "environment-type=${environment_type}" >> $GITHUB_OUTPUT
+        echo "environment-name=${environment_name}" >> $GITHUB_OUTPUT
+        echo "github-branch=${github_branch}" >> $GITHUB_OUTPUT
 
-        echo "environment_type=${environment_type}" >> $GITHUB_STEP_SUMMARY
-        echo "environment_name=${environment_name}" >> $GITHUB_STEP_SUMMARY
-        echo "github_branch=${github_branch}" >> $GITHUB_STEP_SUMMARY
+        echo "environment-type=${environment_type}" >> $GITHUB_STEP_SUMMARY
+        echo "environment-name=${environment_name}" >> $GITHUB_STEP_SUMMARY
+        echo "github-branch=${github_branch}" >> $GITHUB_STEP_SUMMARY

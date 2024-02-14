@@ -1,13 +1,16 @@
-name: Terraform Apply
-description: Apply Terraform
+name: Terraform Initialize
+description: Initialize Terraform
 
 inputs:
-  environment:
+  environment-name:
     description: Environment Identifier (e.g. `cb2-1099`)
     required: true
   terraform-version:
     description: The version of Terraform to use (defaults to 1.3.9)
     default: 1.3.9
+  create-workspace:
+    description: Create new Workspace if required
+    default: 'true'
 
 runs:
   using: composite
@@ -24,6 +27,10 @@ runs:
       id: terraform_init
       shell: bash
       run: |
+        # Initialize ${{ inputs.environment-name }}
+        create_workspace=$([[ "${{ inputs.create-workspace }}" == 'true' ]] && echo "-or-create" || echo "" )
         terraform init
-        terraform workspace select ${{ inputs.environment }}
-        echo 'Workspace: ${{ inputs.environment }}' >> $GITHUB_STEP_SUMMARY
+        terraform workspace select ${{ inputs.environment-name }} ${create_workspace} \
+        && `echo "Workspace: ${{ inputs.environment-name }}" >> $GITHUB_STEP_SUMMARY`
+
+        
