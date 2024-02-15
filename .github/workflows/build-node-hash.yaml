@@ -39,7 +39,6 @@ jobs:
 
       - name: Start MySQL
         run: |
-          cat /etc/hosts
           sudo systemctl start mysql.service
           mysqladmin -u root -p'root' password 12345
 
@@ -65,6 +64,9 @@ jobs:
       - name: Install tools
         run: npm run tools-setup
 #    "tools-setup": "liquibase --changeLogFile ../cvs-nop/changelog-master.xml --username root --password 12345 --url jdbc:mysql://127.0.0.1:3306/CVSBNOP?createDatabaseIfNotExist=true --classpath /liquibase/lib/mysql.jar update"
+
+      - name: Test DB access
+        run: mysql -u root -p'12345' -h localhost -P 3306 -D CVSNOP
 
       - name: Build Artifact
         run: npm run build
