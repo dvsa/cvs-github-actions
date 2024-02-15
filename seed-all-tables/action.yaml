@@ -21,7 +21,7 @@ runs:
         ref: ${{ inputs.github-branch }}
 
     - name: 📥 Get Seed Tables
-      uses: ${{ format('dvsa/{0}/.github/workflows/seed-tables.yaml@feature/CB2-10422', '${{inputs.repository}}') }}
+      uses: ${{ format('dvsa/{0}/.github/workflows/seed-tables.yaml@develop', '${{inputs.repository}}') }}
       with:
         environment-name: ${{ inputs.environment-name }}
         environment: ${{ inputs.environment }}

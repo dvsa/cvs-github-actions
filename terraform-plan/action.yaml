@@ -7,9 +7,18 @@ inputs:
   validate:
     description: Run a validation on the Terraform first
     default: 'true'
+  environment-name:
+    description: Environment Identifier (e.g. `cb2-1099`)
+    required: true
+  terraform-version:
+    description: The version of Terraform to use (defaults to 1.3.9)
+    default: 1.3.9
   plan-retention:
     description: Number of days to retain the plan
     default: '5'
+  create-workspace:
+    description: Should a new Terraform Workspace be created
+    default: 'true'
 
 runs:
   using: composite
@@ -18,11 +27,17 @@ runs:
     - name: Check Initialization
       id: tf
       shell: bash
-      run: '[[ -f ".terraform.lock.hcl" ]] && echo "initialized=true" >> $GITHUB_OUTPUT || echo "initialized=false" >> $GITHUB_OUTPUT'
+      run: |
+        # Check if Terraform has been Initialized
+        [[ -f ".terraform.lock.hcl" ]] && echo "initialized=true" >> $GITHUB_OUTPUT || echo "initialized=false" >> $GITHUB_OUTPUT
 
     - name: Initialize Terraform
-      uses: dvsa/cvs-github-actions/terraform-initialize@feature/CB2-10415
+      uses: dvsa/cvs-github-actions/terraform-initialize@develop
       if: ${{ steps.tf.outputs.initialized == 'false' }}
+      with:
+        terraform-version: ${{ inputs.terraform-version }}
+        environment-name: ${{ inputs.environment-name }}
+        create-workspace: ${{ inputs.create-workspace }}
 
     - name: ✅ Terraform Validate
       shell: bash
@@ -38,10 +53,10 @@ runs:
         terraform plan ${{ inputs.options }} -out terraform.tfplan
         terraform show terraform.tfplan -no-color > plan.txt
         echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
-        echo $(terraform show -no-color plan.tfplan | grep -E 'Plan:|Your infrastructure') >> $GITHUB_STEP_SUMMARY
+        echo $(terraform show -no-color terraform.tfplan | grep -E 'Plan:|Your infrastructure') >> $GITHUB_STEP_SUMMARY
 
     - name: 📝 Upload Plan
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: plan-${{ github.run_id }}
         path: |
