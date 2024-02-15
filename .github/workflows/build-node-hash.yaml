@@ -39,6 +39,7 @@ jobs:
 
       - name: Start MySQL
         run: |
+          cat /etc/hosts
           sudo systemctl start mysql.service
           mysqladmin -u root -p'root' password 12345
 
