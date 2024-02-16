@@ -27,16 +27,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: [self-hosted, X64]
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_DATABASE: CVSBNOP
-          MYSQL_ROOT_PASSWORD: 12345
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -55,11 +46,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-#      - name: Start MySQL
-#        if: ${{ inputs.mysql_liquibase == true }}
-#        run: |
-#          sudo systemctl start mysql.service
-#          mysqladmin -u root -p'root' password 12345
+      - name: Start MySQL
+        if: ${{ inputs.mysql_liquibase == true }}
+        run: |
+          sudo systemctl start mysql.service
+          mysqladmin -u root -p'root' password 12345
+          # remove ipv6 localhost to allow test-i pack to run correctly
+          sudo sed -i '/::1     localhost/d' /etc/hosts
 
       - name: Install Liquibase
         if: ${{ inputs.mysql_liquibase == true }}
