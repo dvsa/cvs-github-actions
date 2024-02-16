@@ -6,6 +6,15 @@ on:
       mono_repo:
         type: boolean
         default: false
+      mysql_liquibase:
+        type: boolean
+        default: false
+      liquibase_version:
+        type: string
+        default: 4.23.0
+      mysql_connector_java_version:
+        type: string
+        default: 8.0.25
     secrets:
       CVS_MGMT_AWS_ROLE:
         required: true
@@ -38,6 +47,7 @@ jobs:
         run: npm ci
 
       - name: Start MySQL
+        if: ${{ inputs.mysql_liquibase == true }}
         run: |
           sudo systemctl start mysql.service
           mysqladmin -u root -p'root' password 12345
@@ -45,17 +55,16 @@ jobs:
           sudo sed -i '/::1     localhost/d' /etc/hosts
 
       - name: Install Liquibase
-        env:
-          LB_VERSION: 4.23.0
-          MCJ_VERSION: 8.0.25
+        if: ${{ inputs.mysql_liquibase == true }}
         run: |
-          curl -L https://github.com/liquibase/liquibase/releases/download/v${LB_VERSION}/liquibase-${LB_VERSION}.zip --output liquibase-${LB_VERSION}.zip
-          unzip -o -d liquibase liquibase-${LB_VERSION}.zip
+          curl -L https://github.com/liquibase/liquibase/releases/download/v${{ inputs.liquibase_version }}/liquibase-${{ inputs.liquibase_version }}.zip --output liquibase-${{ inputs.liquibase_version }}.zip
+          unzip -o -d liquibase liquibase-${{ inputs.liquibase_version }}.zip
           echo "$GITHUB_WORKSPACE/liquibase" >> $GITHUB_PATH
           sudo mkdir -p /liquibase/lib/
-          sudo curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/${MCJ_VERSION}/mysql-connector-java-${MCJ_VERSION}.jar --output /liquibase/lib/mysql.jar
+          sudo curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/${{ inputs.mysql_connector_java_version }}/mysql-connector-java-${{ inputs.mysql_connector_java_version }}.jar --output /liquibase/lib/mysql.jar
 
       - name: Checkout CVS-NOP
+        if: ${{ inputs.mysql_liquibase == true }}
         uses: actions/checkout@v4
         with:
           repository: dvsa/cvs-nop
@@ -63,6 +72,7 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Move CVS-NOP
+        if: ${{ inputs.mysql_liquibase == true }}
         run: mv cvs-nop/ ..
 
       - name: Install tools
