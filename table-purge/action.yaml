@@ -5,29 +5,37 @@ inputs:
   table:
     description: The DynamoDB Table ID to be purged
     required: true
+outputs:
+  table-id:
+    description: Calculated ID for the table
+    value: ${{ steps.purge_table.outputs.table_id }}
 
 runs:
   using: composite
   steps:
 
     - name: Purge Table
+      id: purge_table
       shell: bash
       run: |
         # Empty the DynamoDB Tables
 
         # Get Range and Hash Key from Table
-        hash_key=$(aws dynamodb describe-table --table-name ${{ inputs.table }} --query 'Table.KeySchema[?KeyType==`HASH`].AttributeName | [0]' | tr -d '"')
-        range_key=$(aws dynamodb describe-table --table-name ${{ inputs.table }} --query 'Table.KeySchema[?KeyType==`RANGE`].AttributeName | [0]' | tr -d '"')
-        [[ "${range_key}" == null ]] && range_key=''
+        table_id=$(aws dynamodb list-tables | jq -r '.TableNames[] | select(. | contains("${{ inputs.table }}"))')
+        hash_key=$(aws dynamodb describe-table --table-name ${table_id} --query 'Table.KeySchema[?KeyType==`HASH`].AttributeName | [0]' | tr -d '"')
+        range_key=$(aws dynamodb describe-table --table-name ${table_id} --query 'Table.KeySchema[?KeyType==`RANGE`].AttributeName | [0]' | tr -d '"')
+        [[ "${range_key}" != null ]] && range_key=''
 
         echo "--attributes-to-get ${hash_key} ${range_key}"
         # Scan Table and remove each Item
-        itemKeys=$(aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${{ inputs.table }} --query 'Items[*]' \
-          | jq --compact-output '.[]')
-        for itemKey in $itemKeys; do
-          echo Deleting $itemKey from ${{ inputs.table }} 
-          aws dynamodb delete-item --table-name ${{ inputs.table }} --key $itemKey
-        done
+        aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${table_id} --query 'Items[*]' \
+          | jq --compact-output '.[]' \
+          | tr ',' '\n' \
+          | xargs -0 \
+          echo aws dynamodb delete-item --table-name ${table_id} --key {}
+
+        # Send Table ID out for seed job (if required)
+        echo "table_id=${table_id}" >> $GITHUB_OUTPUT
 
 
 
