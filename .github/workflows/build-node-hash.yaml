@@ -49,7 +49,7 @@ jobs:
       - name: Start MySQL
         if: ${{ inputs.mysql_liquibase == true }}
         run: |
-          sudo /usr/local/mysql/support-files/mysql.server start
+          ls /usr/local/mysql
           mysqladmin -u root -p'root' password 12345
 
       - name: Install Liquibase
