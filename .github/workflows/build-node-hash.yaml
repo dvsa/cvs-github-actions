@@ -49,10 +49,8 @@ jobs:
       - name: Start MySQL
         if: ${{ inputs.mysql_liquibase == true }}
         run: |
-          sudo systemctl start mysql.service
+          sudo /usr/local/mysql/support-files/mysql.server start
           mysqladmin -u root -p'root' password 12345
-          # remove ipv6 localhost to allow test-i pack to run correctly
-          sudo sed -i '/::1     localhost/d' /etc/hosts
 
       - name: Install Liquibase
         if: ${{ inputs.mysql_liquibase == true }}
