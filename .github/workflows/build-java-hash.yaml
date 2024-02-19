@@ -55,5 +55,5 @@ jobs:
         run: |
           JAVA_SHA=$(openssl dgst -sha256 -binary build/distributions/certificate-generation-service-1.0.zip | openssl enc -base64)
           aws s3 cp build/distributions/certificate-generation-service-1.0.zip s3://cvs-services/${{ env.BUCKET_NAME }}/${{ github.sha }}.zip --metadata "sha256sum=$JAVA_SHA,Tag=${{ env.BUCKET_NAME }}"
-          echo ${{ github.sha }} > hash.txt
+          echo -n ${{ github.sha }} > hash.txt
           aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}'
