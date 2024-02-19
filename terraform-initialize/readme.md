@@ -6,7 +6,7 @@ Installs and Initializes Terraform for use
 
 This action requires the following inputs:
 - environment: An Environment Id to destroy (e.g. `cb2-1099`)
-- terraform-version: (optional) The version of Terraform to use - defaults to version 1.3.9
+- terraform-version: (optional) The version of Terraform to use - defaults to version 1.7.3
 
 ## Outputs
 

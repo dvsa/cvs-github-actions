@@ -6,8 +6,8 @@ inputs:
     description: Environment Identifier (e.g. `cb2-1099`)
     required: true
   terraform-version:
-    description: The version of Terraform to use (defaults to 1.3.9)
-    default: 1.3.9
+    description: The version of Terraform to use (defaults to 1.7.3)
+    default: 1.7.3
   create-workspace:
     description: Create new Workspace if required
     default: 'true'
@@ -30,7 +30,5 @@ runs:
         # Initialize ${{ inputs.environment-name }}
         create_workspace=$( [[ "${{ inputs.create-workspace }}" == 'true' ]] && echo "-or-create " || echo "" )
         terraform init
-        terraform workspace select ${create-workspace}${{ inputs.environment-name }}  \
-        && $(echo "Workspace: ${{ inputs.environment-name }}" >> $GITHUB_STEP_SUMMARY)
-
-        
+        terraform workspace select ${create_workspace}${{ inputs.environment-name }}  \
+        && $(echo "Workspace: ${{ inputs.environment-name }}" >> $GITHUB_STEP_SUMMARY)        
