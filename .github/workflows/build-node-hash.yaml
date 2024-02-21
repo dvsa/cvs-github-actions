@@ -124,6 +124,6 @@ jobs:
         run: |
           NODE_SHA=$(openssl dgst -sha256 -binary ${{ github.sha }}.zip | openssl enc -base64)
           aws s3 cp ${{ github.sha }}.zip s3://cvs-services/${{ env.BUCKET_NAME }}-test/${{ github.sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}"
-          aws s3 cp ${{ github.sha }}.zip s3://cvs-services/${{ env.BUCKET_NAME }}-test/${{ github.ref_name }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}"
+          aws s3 cp ${{ github.sha }}.zip s3://cvs-services/${{ env.BUCKET_NAME }}-test/${{ env.SHORT_BRANCH }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ env.BUCKET_NAME }}"
           echo -n ${{ github.sha }} > hash.txt
           aws s3 cp hash.txt s3://cvs-services/${{ env.BUCKET_NAME }}-test/latestHash_${{ env.SHORT_BRANCH }}.txt --metadata 'Tag=${{ env.BUCKET_NAME }}'
