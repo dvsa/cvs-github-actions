@@ -1,0 +1,42 @@
+name: Bump a SemVer Version
+description: Updates a SemVer version number
+
+inputs:
+  bump:
+    description: The version segment to bump (major, minor or patch)
+    required: false
+    default: minor
+  version-number:
+    description: The Version number to bump
+    required: true
+  number-type: 
+    description: The Version Numbering Strategy (either `semver` or `datver`)
+    default: semver
+
+outputs:
+  version: 
+    description: The new version number
+    value: ${{ steps.bump.outputs.version }}
+    
+runs:
+  using: composite
+  steps:
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10' 
+
+    - name: Bump Version
+      id: bump
+      shell: bash
+      env:
+        PIP_DISABLE_PIP_VERSION_CHECK: '1'
+      run: |
+        # Bump ${{ inputs.bump }} number
+        pip install semver argparse
+        version=$(python ${{ github.action_path }}/main.py --bump=${{ inputs.bump }} --version=${{ inputs.version-number }} --type=${{ inputs.number-type }})
+        echo "version=${version}" >> $GITHUB_OUTPUT
+        echo "New Version: ${version}" >> $GITHUB_STEP_SUMMARY 
+
+
