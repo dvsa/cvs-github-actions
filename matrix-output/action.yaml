@@ -1,0 +1,19 @@
+name: Use Outputs from Matrices
+description: Get Outputs from Matrices
+
+inputs:
+  matrix-id:
+    description: The Matrix Id to use (must be the same for read and write)
+    required: true
+  direction:
+    description: Read or Write Output Values (i.e. `in` or `out`)
+    required: true
+
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'

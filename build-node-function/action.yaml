@@ -78,10 +78,3 @@ runs:
         ZIP_NAME: ${{ github.sha }}
       run: |
         npm run package
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ inputs.package_name }}
-        path: ${{ github.sha }}*.zip
-        retention-days: 5
