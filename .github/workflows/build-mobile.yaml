@@ -24,6 +24,10 @@ on:
         type: boolean
         required: false
         default: false
+      runner:
+        type: string
+        required: false
+        default: 'mito-8'
 
     secrets:
       IONIC_HUB_PRODUCT_KEY:
@@ -42,7 +46,7 @@ permissions:
 jobs:
   build:
     name: Build ${{ inputs.environment }} Mobile Artefacts
-    runs-on: mito-8
+    runs-on: ${{ inputs.runner }}
     environment: ${{ inputs.environment }}
     env:
       RUN_ID: ${{ github.run_id }}
