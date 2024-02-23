@@ -8,6 +8,9 @@ inputs:
   service-branch:
     description: The branch to test
     required: true
+  github-token:
+    description: Token to use to authenticate with GitHub
+    required: true
 
 runs:
   using: composite
@@ -15,6 +18,7 @@ runs:
     - name: 📥 Get Codebase
       uses: actions/checkout@v4
       with:
+        token: ${{ inputs.github-token }}
         repository: dvsa/cvs-devops
         ref: ${{ inputs.service-branch }}
 
