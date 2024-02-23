@@ -23,7 +23,7 @@ runs:
         ref: ${{ inputs.service-branch }}
 
     - name: Trigger Build
-      uses: ./github/workflows/develop-tag-deploy.yaml
+      uses: .github/workflows/develop-tag-deploy.yaml
       with:
         service-branch: ${{ inputs.service-branch }}
         service-repository: ${{ inputs.service-repository }}
