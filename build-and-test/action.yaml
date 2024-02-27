@@ -1,0 +1,29 @@
+name: Build and Test
+description: Build and Test a Service
+
+inputs:
+  service-repository:
+    description: The repository for the Service
+    required: true
+  service-branch:
+    description: The branch to test
+    required: true
+  github-token:
+    description: Token to use to authenticate with GitHub
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: 📥 Get Codebase
+      uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.github-token }}
+        repository: dvsa/cvs-devops
+        ref: ${{ inputs.service-branch }}
+
+    - name: Trigger Build
+      uses: .github/workflows/develop-tag-deploy.yaml
+      with:
+        service-branch: ${{ inputs.service-branch }}
+        service-repository: ${{ inputs.service-repository }}
