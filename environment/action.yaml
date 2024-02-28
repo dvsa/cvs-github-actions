@@ -41,13 +41,13 @@ runs:
             ;;
 
           ?(dev*|int*|*prod))
-            environment_type=${{ inputs.branch-id }}
+            environment_type=${{ inputs.environment }}
             environment_name=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
             github_branch=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
             ;;
 
           *)
-            echo "Branch Id \`${{ inputs.branch-id }}\` does not corrolate to a suitable environment" >> $GITHUB_STEP_SUMMARY
+            echo "Branch Id \`${{ inputs.environment }}\` does not corrolate to a suitable environment" >> $GITHUB_STEP_SUMMARY
             exit 99
 
         esac
