@@ -1,0 +1,39 @@
+name: Upload Hash File
+description: Upload a cvs-services Hash File
+
+inputs:
+  mono-repo:
+    description: Is this a Mono Repo Hash File
+    default: 'false'
+  commit-sha:
+    description: Commit SHA
+    required: true
+  package-name:
+    description: Package Name
+    required: true
+  environment-name:
+    description: Environment Name (e.g. `cb2-1099` or `develop`)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Upload hash zip to S3 (mono-repo)
+      shell: bash
+      if: ${{ inputs.mono-repo == 'true' }}
+      run: |
+        for SERVICE in `ls ${{ inputs.commit-sha }}*.zip | sed -E "s/${{ inputs.commit-sha }}-(.*)\.zip/\1/'`; do
+          NODE_SHA=$(openssl dgst -sha256 -binary ${{ inputs.commit-sha }}-$SERVICE.zip | openssl enc -base64)
+          aws s3 cp ${{ inputs.commit-sha }}-$SERVICE.zip s3://cvs-services/${{ inputs.package-name }}-$SERVICE/${{ inputs.commit-sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ inputs.package-name }}"
+          echo -n ${{ inputs.commit-sha }} > hash.txt
+          aws s3 cp hash.txt s3://cvs-services/${{ inputs.package-name }}-$SERVICE/latestHash_${{ inputs.environment-name }} }}.txt --metadata 'Tag=${{ inputs.package-name }}-$SERVICE'
+        done
+
+    - name: Upload hash zip to S3 (solo-repo)
+      shell: bash
+      if: ${{ inputs.mono-repo == 'false' }}
+      run: |
+        NODE_SHA=$(openssl dgst -sha256 -binary ${{ inputs.commit-sha }}.zip | openssl enc -base64)
+        aws s3 cp ${{ inputs.commit-sha }}.zip s3://cvs-services/${{ inputs.package-name }}/${{ inputs.commit-sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ inputs.package-name }}"
+        echo -n ${{ inputs.commit-sha }} > hash.txt
+        aws s3 cp hash.txt s3://cvs-services/${{ inputs.package-name }}/latestHash_${{ inputs.environment-name }} }}.txt --metadata 'Tag=${{ inputs.package-name }}'
