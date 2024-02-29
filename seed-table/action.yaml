@@ -1,0 +1,44 @@
+name: (Re)Seed DynamoDB Table
+description: Purge all items from a DynamoDB Table and then Seed from Repository
+
+inputs:
+  table:
+    description: The DynamoDB Table ID to be purged
+    required: true
+  seed-file:
+    description: Full path to Seed File
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Get Table Name
+      id: table-name
+      shell: bash
+      run: |  
+        # Get Table Name
+        table_name=$(aws dynamodb list-tables | jq -r '.TableNames[] | select(. | contains("cvs-${{ needs.environment.outputs.environment-name }}-${{ matrix.target.table }}"))')
+        echo "table-name=${table_name}" >> $GITHUB_OUTPUT
+
+    - name: Purge Table
+      shell: bash
+      run: |
+        # Empty the DynamoDB Tables
+
+        # Get Range and Hash Key from Table
+        hash_key=$(aws dynamodb describe-table --table-name ${{ steps.table-name.outputs.table-name }} --query 'Table.KeySchema[?KeyType==`HASH`].AttributeName | [0]' | tr -d '"')
+        range_key=$(aws dynamodb describe-table --table-name ${{ steps.table-name.outputs.table-name }} --query 'Table.KeySchema[?KeyType==`RANGE`].AttributeName | [0]' | tr -d '"')
+        [[ "${range_key}" != null ]] && range_key=''
+
+        # Scan Table and remove each Item
+        aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${{ steps.table-name.outputs.table-name }} --query 'Items[*]' \
+          | jq --compact-output '.[]' \
+          | tr ',' '\n' \
+          | xargs -0 \
+          echo aws dynamodb delete-item --table-name ${{ steps.table-name.outputs.table-name }} --key {}
+
+    - name: Re-Seed Table
+      uses: dvsa/cvs-github-actions/table-seeder@feature/CB2-10709
+      with:
+        table: ${{ steps.table_name.outputs.table-name }}
+        seed-file: ${{ inputs.seed-file}}
