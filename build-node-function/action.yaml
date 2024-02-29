@@ -2,9 +2,6 @@ name: Build Node Lambda Function
 description: Test and Build a Node Function
 
 inputs:
-  package_name:
-    description: The Package being built
-    required: true
   mysql_liquibase:
     description: Is there a MySQL element to be updated
     default: 'false'

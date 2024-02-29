@@ -1,80 +1,16 @@
-name: Build Node Lambda Function
-description: Test and Build a Node Function
-
-inputs:
-  package_name:
-    description: The Package being built
-    required: true
-  mysql_liquibase:
-    description: Is there a MySQL element to be updated
-    default: 'false'
-  liquibase_version:
-    description: Version of Liquibase to use
-    default: 4.23.0
-  mysql_connector_java_version:
-    description: Version of MySQL Connector to use
-    default: 8.0.25
+name: Build Java Lambda Function
+description: Test and Build a Java Function
 
 runs:
   using: composite
   steps:
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version-file: '.nvmrc'
+      - name: Build Java
+        shell: bash
+        run: |
+          ./gradlew buildZip
 
-    - name: Install dependencies
-      shell: bash
-      run: npm ci
-
-    - name: Start MySQL
-      shell: bash
-      if: ${{ inputs.mysql_liquibase == 'true' }}
-      run: |
-        sudo systemctl start mysql.service
-        mysqladmin -u root -p'root' password 12345
-        # remove ipv6 localhost to allow test-i pack to run correctly
-        sudo sed -i '/::1     localhost/d' /etc/hosts
-
-    - name: Install Liquibase
-      if: ${{ inputs.mysql_liquibase == 'true' }}
-      uses: dvsa/cvs-github-actions/liquibase-install@feature/CB2-10709
-      with:
-        mysql_connector_java_version: ${{ inputs.mysql_connector_java_version }}
-        liquibase_version: ${{ inputs.liquibase_version }}
-
-    - name: Checkout CVS-NOP
-      if: ${{ inputs.mysql_liquibase == 'true' }}
-      uses: actions/checkout@v4
-      with:
-        repository: dvsa/cvs-nop
-        path: cvs-nop
-        ref: ${{ github.ref }}
-
-    - name: Move CVS-NOP
-      shell: bash
-      if: ${{ inputs.mysql_liquibase == 'true' }}
-      run: mv cvs-nop/ ..
-
-    - name: Install tools
-      shell: bash
-      run: npm run tools-setup
-
-    - name: Build Artifact
-      shell: bash
-      run: npm run build
-
-    - name: Test
-      shell: bash
-      run: npm run test
-
-    - name: Test I
-      shell: bash
-      run: npm run test-i
-
-    - name: Package Artifact
-      shell: bash
-      env:
-        ZIP_NAME: ${{ github.sha }}
-      run: |
-        npm run package
+      - name: Test Java
+        shell: bash
+        run: |
+          ./gradlew test
+          ./gradlew jacocoTestReport
