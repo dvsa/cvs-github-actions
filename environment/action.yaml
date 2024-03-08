@@ -15,6 +15,9 @@ outputs:
   environment-type:
     description: The type of AWS Environment Identified
     value: ${{ steps.branch.outputs.environment-type }}
+  short-environment-name:
+    description: The AWS Environment Name without hypens
+    value: ${{ steps.branch.outputs.short-environment-name }}
 
 runs:
   using: composite
