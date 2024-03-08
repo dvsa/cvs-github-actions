@@ -19,6 +19,7 @@ runs:
   using: composite
   steps:
     - name: WMS liquibase secret
+      shell: bash
       run: |
         if [ "${{ inputs.environment-type }}" == "feature" ]; then
         schema="${{ inputs.schema }}$(echo ${{ inputs.environment-name }} | tr '[:lower:]' '[:upper:]' | tr -d '-')"
@@ -30,5 +31,6 @@ runs:
         sed  -i -e 's/CVSNOPBRANCH/'${schema}'/g' liquibase.properties
 
     - name: WMS liquibase updateSQL
+      shell: bash
       run: |
         liquibase updateSQL        
