@@ -2,9 +2,6 @@ name: Install Liquibase
 description: Install Liquibase
 
 inputs:
-  source_repo:
-    description: Repository holding the liquibase changelog you want to run
-    default: {{ ref.github }}
   environment-name:
     description: Environment Identifier (e.g. cb2-`1099`)
     required: true
