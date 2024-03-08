@@ -1,0 +1,37 @@
+name: Install Liquibase
+description: Install Liquibase
+
+inputs:
+  source_repo:
+    description: Repository holding the liquibase changelog you want to run
+    default: {{ ref.github }}
+  environment-name:
+    description: Environment Identifier (e.g. cb2-`1099`)
+    required: true
+  environment-type:
+    description: Environment Type (e.g. `feature`, `develop` etc)
+    required: true
+  schema:
+    description: Base Schema to drop (e.g. `CVSNOP`)
+    required: true
+  dry-run:
+    description: Don't perform destruction, just output information
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: WMS liquibase secret
+      run: |
+        if [ "${{ inputs.environment-type }}" == "feature" ]; then
+        schema="${{ inputs.schema }}$(echo ${{ inputs.environment-name }} | tr '[:lower:]' '[:upper:]' | tr -d '-')"
+        else
+        schema=${{ inputs.schema }}
+        fi
+        
+        aws secretsmanager get-secret-value --secret-id ${{ inputs.environment-type }}/liquibase/config --query SecretString --region=eu-west-1 --output text > liquibase.properties
+        sed  -i -e 's/CVSNOPBRANCH/'${schema}'/g' liquibase.properties
+
+    - name: WMS liquibase updateSQL
+      run: |
+        liquibase updateSQL        
