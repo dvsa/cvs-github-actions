@@ -27,7 +27,7 @@ runs:
         schema=${{ inputs.schema }}
         fi
         
-        aws secretsmanager get-secret-value --secret-id ${{ inputs.environment-type }}/liquibase/config --query SecretString --region=eu-west-1 --output text > liquibase.properties
+        AWS_PROFILE=mgmt aws secretsmanager get-secret-value --secret-id ${{ inputs.environment-type }}/liquibase/config --query SecretString --region=eu-west-1 --output text > liquibase.properties
         sed  -i -e 's/CVSNOPBRANCH/'${schema}'/g' liquibase.properties
 
     - name: WMS liquibase updateSQL
