@@ -35,8 +35,9 @@ runs:
       run: |
         # Bump ${{ inputs.bump }} number
         pip install semver argparse
-        version=$(python ${{ github.action_path }}/main.py --bump=${{ inputs.bump }} --version=${{ inputs.version-number }} --type=${{ inputs.number-type }})
-        echo "version=${version}" >> $GITHUB_OUTPUT
-        echo "New Version: ${version}" >> $GITHUB_STEP_SUMMARY 
+        version=$(python ${{ github.action_path }}/main.py --bump=${{ inputs.bump }} --version=$(tr -d 'v' <<< ${{ inputs.version-number }}) --type=${{ inputs.number-type }})
+        echo "version=v${version}" >> $GITHUB_OUTPUT
+        echo "Current Version: ${{ inputs.version-number }}" >> $GITHUB_STEP_SUMMARY
+        echo "New Version: v${version}" >> $GITHUB_STEP_SUMMARY 
 
 

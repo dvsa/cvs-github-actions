@@ -2,9 +2,12 @@ name: Build Node Lambda Function
 description: Test and Build a Node Function
 
 inputs:
-  package_name:
-    description: The Package being built
-    required: true
+  commit-sha:
+    description: The Commit ID to use for the build
+    default: ${{ github.sha }}
+  branch: 
+    description: The branch used to build
+    default: ${{ github.ref_name }}
   mysql_liquibase:
     description: Is there a MySQL element to be updated
     default: 'false'
@@ -49,7 +52,7 @@ runs:
       with:
         repository: dvsa/cvs-nop
         path: cvs-nop
-        ref: ${{ github.ref }}
+        ref: ${{ inputs.branch }}
 
     - name: Move CVS-NOP
       shell: bash
@@ -75,6 +78,6 @@ runs:
     - name: Package Artifact
       shell: bash
       env:
-        ZIP_NAME: ${{ github.sha }}
+        ZIP_NAME: ${{ inputs.commit-sha }}
       run: |
         npm run package

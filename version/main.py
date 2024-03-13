@@ -13,7 +13,7 @@ def bump_semver(bump, version):
 
 def bump_date_ver(version):
   ver = date.today()
-  datver = "{0}-{1:02d}-{2:02d}.".format( ver.year, ver.month, ver.day )
+  datver = "{0}.{1}.{2}.".format( ver.year, ver.month, ver.day )
   if (version.startswith(datver)):
     build = int(version.split('.')[-1]) + 1
     return "{0}{1}".format(datver, build)

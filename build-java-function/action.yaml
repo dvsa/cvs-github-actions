@@ -1,0 +1,16 @@
+name: Build Java Lambda Function
+description: Test and Build a Java Function
+
+runs:
+  using: composite
+  steps:
+      - name: Build Java
+        shell: bash
+        run: |
+          ./gradlew buildZip
+
+      - name: Test Java
+        shell: bash
+        run: |
+          ./gradlew test
+          ./gradlew jacocoTestReport
