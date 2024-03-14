@@ -19,20 +19,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: ⏸️ Get Current Version
-      id: current_version
-      shell: bash
-      run: |
-        # Get Current Version from Store
-        echo "version=$(aws ssm get-parameters --names /release/version | jq -r '.Parameters[].Value')" >> $GITHUB_OUTPUT
-
-    - name: ⏭️ Get Next Version
-      id: next_version
-      uses: dvsa/cvs-github-actions/version@feature/CB2-10709
-      with:
-        number-type: semver
-        version-number: ${{ steps.current_version.outputs.version }}
-
     - name: Get Branch Name
       shell: bash
       id: branch
@@ -66,7 +52,7 @@ runs:
             ;;
 
           *)
-            echo "Branch Id \`${{ inputs.environment }}\` does not corrolate to a suitable environment" >> $GITHUB_STEP_SUMMARY
+            echo "Branch Id \`${{ inputs.environment }}\` does not correlate to a suitable environment" >> $GITHUB_STEP_SUMMARY
             exit 99
 
         esac
@@ -75,7 +61,10 @@ runs:
         echo "environment-type=${environment_type}" >> $GITHUB_OUTPUT
         echo "environment-name=${environment_name}" >> $GITHUB_OUTPUT
         echo "github-branch=${github_branch}" >> $GITHUB_OUTPUT
+        echo "environment-shortname=${sed 's/${environment_type}\//' | tr -d -'-'}" >> $GITHUB_OUTPUT
 
         echo "environment-type=${environment_type}" >> $GITHUB_STEP_SUMMARY
         echo "environment-name=${environment_name}" >> $GITHUB_STEP_SUMMARY
+        echo "environment-shortname=${sed 's/${environment_type}\//' | tr -d -'-'}" >> $GITHUB_STEP_SUMMARY
         echo "github-branch=${github_branch}" >> $GITHUB_STEP_SUMMARY
+        
