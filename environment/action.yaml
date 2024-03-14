@@ -27,12 +27,6 @@ runs:
         shopt -s extglob
         case ${{ inputs.environment }} in
 
-          ?(release))
-            environment_type=release
-            environment_name=${{ steps.next_version.outputs.version}}
-            github_branch=release/${{ steps.next_version.outputs.version}})
-            ;;
-
           ?(release/)v+([0-9.]))
             environment_type=release
             environment_name=$(echo ${{ inputs.environment }} | sed 's/release\///' | tr '[:upper:]' '[:lower:]')
