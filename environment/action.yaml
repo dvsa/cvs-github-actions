@@ -61,10 +61,10 @@ runs:
         echo "environment-type=${environment_type}" >> $GITHUB_OUTPUT
         echo "environment-name=${environment_name}" >> $GITHUB_OUTPUT
         echo "github-branch=${github_branch}" >> $GITHUB_OUTPUT
-        echo "environment-shortname=${sed 's/${environment_type}\//' | tr -d -'-'}" >> $GITHUB_OUTPUT
+        echo "environment-shortname=$(sed 's/${environment_type}\//' | tr -d '-')" >> $GITHUB_OUTPUT
 
         echo "environment-type=${environment_type}" >> $GITHUB_STEP_SUMMARY
         echo "environment-name=${environment_name}" >> $GITHUB_STEP_SUMMARY
-        echo "environment-shortname=${sed 's/${environment_type}\//' | tr -d -'-'}" >> $GITHUB_STEP_SUMMARY
+        echo "environment-shortname=$(sed 's/${environment_type}\//' | tr -d '-')" >> $GITHUB_STEP_SUMMARY
         echo "github-branch=${github_branch}" >> $GITHUB_STEP_SUMMARY
         
