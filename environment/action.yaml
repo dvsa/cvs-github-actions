@@ -19,19 +19,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: ⏸️ Get Current Version
-      id: current_version
-      shell: bash
-      run: |
-        # Get Current Version from Store
-        echo "version=$(aws ssm get-parameters --names /release/version | jq -r '.Parameters[].Value')" >> $GITHUB_OUTPUT
-
-    - name: ⏭️ Get Next Version
-      id: next_version
-      uses: dvsa/cvs-github-actions/version@feature/CB2-10709
-      with:
-        number-type: semver
-        version-number: ${{ steps.current_version.outputs.version }}
 
     - name: Get Branch Name
       shell: bash
@@ -41,10 +28,10 @@ runs:
         shopt -s extglob
         case ${{ inputs.environment }} in
 
-          ?(release))
-            environment_type=release
-            environment_name=${{ steps.next_version.outputs.version}}
-            github_branch=release/${{ steps.next_version.outputs.version}})
+          ?(feature/)+([cb|CB|vt|VT])*)
+            environment_type=feature
+            environment_name=$(echo ${{ inputs.environment }} | sed 's/feature\///' | tr '[:upper:]' '[:lower:]')
+            github_branch=feature/$(echo ${{ inputs.environment }} | sed 's/feature\///' | tr '[:lower:]' '[:upper:]')
             ;;
 
           ?(release/)v+([0-9.]))
@@ -53,20 +40,14 @@ runs:
             github_branch=release/$(echo ${{ inputs.environment }} | sed 's/release\///' | tr '[:upper:]' '[:lower:]')
             ;;
 
-          ?(feature/)+([cb|CB|vt|VT])*)
-            environment_type=feature
-            environment_name=$(echo ${{ inputs.environment }} | sed 's/feature\///' | tr '[:upper:]' '[:lower:]')
-            github_branch=feature/$(echo ${{ inputs.environment }} | sed 's/feature\///' | tr '[:lower:]' '[:upper:]')
-            ;;
-
           ?(dev*|int*|*prod))
-            environment_type=${{ inputs.environment }}
+            environment_type=${{ inputs.branch-id }}
             environment_name=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
             github_branch=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
             ;;
 
           *)
-            echo "Branch Id \`${{ inputs.environment }}\` does not corrolate to a suitable environment" >> $GITHUB_STEP_SUMMARY
+            echo "Branch Id \`${{ inputs.branch-id }}\` does not corrolate to a suitable environment" >> $GITHUB_STEP_SUMMARY
             exit 99
 
         esac
