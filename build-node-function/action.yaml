@@ -48,7 +48,7 @@ runs:
 
     - name: Install Liquibase
       if: ${{ inputs.mysql_liquibase == 'true' }}
-      uses: dvsa/cvs-github-actions/liquibase-install@feature/CB2-10709
+      uses: dvsa/cvs-github-actions/liquibase-install@develop
       with:
         mysql_connector_java_version: ${{ inputs.mysql_connector_java_version }}
         liquibase_version: ${{ inputs.liquibase_version }}
