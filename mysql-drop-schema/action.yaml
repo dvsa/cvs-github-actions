@@ -15,7 +15,7 @@ inputs:
     description: (Optional) Assume an AWS Role directly
     required: false
   dry-run:
-    description: Don't perform destruction, just output information
+    description: Don't perform action, just output information
     default: "true"
 
 runs:
@@ -45,13 +45,7 @@ runs:
         fi
 
         AWS_PROFILE=mgmt aws secretsmanager get-secret-value --secret-id ${{ inputs.environment-type }}/mysql/config --query SecretString --region=eu-west-1 --output text > my.cnf
-
-        if [ "${{ inputs.dry-run }}" == 'false' ]; then 
-          echo Step currently disabled
-          # mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
-        else
-          echo mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
-        fi
+        ${{ inputs.dry-run == 'true' && 'echo' || '' }} mysql --defaults-file=my.cnf -e "DROP SCHEMA IF EXISTS ${schema}"
 
     - name: Unset AWS Role
       id: aws-remove

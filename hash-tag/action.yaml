@@ -1,0 +1,34 @@
+name: Tag Hash Files
+description: Tag Hash Files for a given environment and Version
+
+inputs:
+  environment-name:
+    description: Environment Identifier (e.g. `cb2-1099`)
+    required: true
+  service-bucket:
+    description: The bucket hosting the Hash Files (default `cvs-services`)
+    default: cvs-services
+  hash-files:
+    description: JSON List of Hash Zips
+    required: true
+  version-number: 
+    description: The Version to tag Hash Zips with
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Tag Hash Files
+      shell: bash
+      run: |
+          # Hash files exist, associating with ${{ inputs.version-number }}
+          for hash in $(jq -r '.[]' <<< '${{ inputs.hash-files }}'); do
+            echo -n "Associating ${hash}: "
+            current_tag=$(aws s3api get-object-tagging --bucket ${{ inputs.service-bucket }} --key $hash --query "TagSet[]" --output json)
+            if [[ $(awk '{print index($0,"${{ inputs.version-number }}")}' <<< $current_tag) == 0 ]]; then
+              aws s3api put-object-tagging --bucket ${{ inputs.service-bucket }} --key $hash --tagging "{\"TagSet\":`jq '. += [{Key: "${{ inputs.version-number }}",Value: ""}]' <<< $current_tag`}" 2>&1
+              echo "Done"
+            else
+              echo "Skipped"
+            fi
+          done

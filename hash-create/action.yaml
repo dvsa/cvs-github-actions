@@ -1,0 +1,36 @@
+name: Create Hash Files
+description: Create Hash Files for a given environment and Hash Zip List
+
+inputs:
+  commit-id:
+    description: Commit ID
+    default: ${{ github.sha }}
+  environment-name:
+    description: Environment Identifier (e.g. `cb2-1099`)
+    required: true
+  service-bucket:
+    description: The bucket hosting the Hash Files (default `cvs-services`)
+    default: cvs-services
+  hash-files:
+    description: JSON List of Hash Zip Files
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Create Hash Files
+      shell: bash
+      run: |
+        # Generate Hash File
+        hash_file=${{ inputs.environment-type == 'release' && inputs.version-number || format('latestHash_{0}', inputs.environment-name) }}.txt
+        echo "Hash File: ${hash_file}"
+        echo "Hashes: ${{ inputs.hash-files }}"
+
+        # Create Hash File
+        for hash in $(jq -r '.[]' <<< '${{ inputs.hash-files }}'); do
+          folder=$(awk '{split($0,h,"/"); print h[1]}' <<< $hash)
+          echo -n "Creating ${hash_file} for ${hash}: "
+          echo -n "${{ inputs.commit-id }}" > $hash_file 
+          aws s3 cp $hash_file s3://${{ inputs.service-bucket }}/$folder/$hash_file 2>&1
+          echo "done"
+        done  

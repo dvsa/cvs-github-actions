@@ -1,0 +1,26 @@
+name: Remove Hash Files
+description: Remove Hash Files for a given environment
+
+inputs:
+  environment-name:
+    description: Environment Identifier (e.g. `cb2-1099`)
+    required: true
+  service-bucket:
+    description: The bucket hosting the Hash Files (default `cvs-services`)
+    default: cvs-services
+  dry-run:
+    description: Don't perform action, just output information
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: 📃 Remove Hash Files
+      id: remove_hash_files
+      shell: bash
+      run: |
+        # Remove all hash files for ${{ inputs.environment-name }}
+        hashes=$(aws s3api list-objects-v2 --bucket ${{ inputs.service-bucket }} --query 'Contents[?Key.contains(@,`${{ inputs.environment-name }}.txt`)].Key' | jq -r '.[]')
+        for hash in $hashes; do
+          AWS_PROFILE=mgmt aws s3 rm s3://${{ inputs.service-bucket }}/$hash ${{ inputs.dry-run == 'true' && '--dryrun' || '' }}
+        done
