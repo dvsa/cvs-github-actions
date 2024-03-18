@@ -39,7 +39,7 @@ runs:
             ;;
 
           ?(dev*|int*|*prod))
-            environment_type=${{ inputs.branch-id }}
+            environment_type=${{ inputs.environment }}
             environment_name=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
             github_branch=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
             ;;
