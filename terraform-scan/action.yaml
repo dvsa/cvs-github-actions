@@ -1,12 +1,7 @@
-name: Terraform Apply
-description: Perform a Terraform Plan
+name: Terraform Scan
+description: Perform a Terraform Scan
 
 inputs:
-  options:
-    description: Additional Terraform Options 
-  plan-id:
-    description: Artifact Id for a Terraform Plan
-    default: plan-${{ github.run_id }}
   environment-name:
     description: Environment Identifier (e.g. `cb2-1099`)
     required: true
@@ -15,7 +10,7 @@ inputs:
     default: 1.7.3
   create-workspace:
     description: Should a new Terraform Workspace be created
-    default: 'true'
+    default: 'false'
 
 runs:
   using: composite
@@ -27,15 +22,25 @@ runs:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
         create-workspace: ${{ inputs.create-workspace }}
-
-    - name: ⬇️ Retrieve Plan
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ inputs.plan-id }}
-
-    - name: 🛠️ Terraform Apply
+    
+    - name: Terraform format
       shell: bash
       run: |
-        terraform apply ${{ inputs.options }} -lock-timeout=300s terraform.tfplan && \
-        echo 'Terraform Applied ✅' >> $GITHUB_STEP_SUMMARY || \
-        echo 'Terraform Apply Failed ❌' >> $GITHUB_STEP_SUMMARY
+        terraform fmt -check=true -diff=true
+      
+    - name: Chekov Scan
+      run: |
+        checkov -d . --skip-framework github_actions || error_code=$?
+        
+        if [[ $error_code -ne 0 ]]; then
+          echo "Checkov scan failed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "Checkov scan passed" >> $GITHUB_STEP_SUMMARY
+        fi
+      shell: bash
+
+    - name: Terraform Lint 
+      shell: bash
+      run: |
+        tflint --init
+        tflint

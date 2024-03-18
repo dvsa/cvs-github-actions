@@ -24,16 +24,8 @@ runs:
   using: composite
   steps:
 
-    - name: Check Initialization
-      id: tf
-      shell: bash
-      run: |
-        # Check if Terraform has been Initialized
-        [[ -f ".terraform.lock.hcl" ]] && echo "initialized=true" >> $GITHUB_OUTPUT || echo "initialized=false" >> $GITHUB_OUTPUT
-
     - name: Initialize Terraform
       uses: dvsa/cvs-github-actions/terraform-initialize@develop
-      if: ${{ steps.tf.outputs.initialized == 'false' }}
       with:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
