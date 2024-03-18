@@ -2,8 +2,8 @@ name: Upload Hash File
 description: Upload a cvs-services Hash File
 
 inputs:
-  commit-sha:
-    description: Commit SHA
+  commit-id:
+    description: Commit ID
     default: ${{ github.sha }}
   package-name:
     description: Package Name
@@ -24,18 +24,18 @@ runs:
     - name: Upload hash zip to S3
       shell: bash
       run: |
-        # Upload all ${{ inputs.commit-sha }}*.zip files to S3
-        for FILE in $(ls ${{ inputs.commit-sha }}*.zip); do
+        # Upload all ${{ inputs.commit-id }}*.zip files to S3
+        echo -n ${{ inputs.commit-id }} > hash.txt
+        for FILE in $(ls ${{ inputs.commit-id }}*.zip); do
           if [[ $(gawk '{print index($0,"-")}' <<< $FILE) > 0 ]]; then
-            SERVICE="-$(sed -E "s/${{ inputs.commit-sha }}-(.*)\.zip/\1/" <<< $FILE)"
+            SERVICE="-$(sed -E "s/${{ inputs.commit-id }}-(.*)\.zip/\1/" <<< $FILE)"
           fi
-          NODE_SHA=$(openssl dgst -sha256 -binary ${{ inputs.commit-sha }}$SERVICE.zip | openssl enc -base64)
-          aws s3 cp ${{ inputs.commit-sha }}$SERVICE.zip s3://${{ inputs.service-bucket }}/${{ inputs.package-name }}$SERVICE/${{ inputs.commit-sha }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ inputs.package-name }}"
-          echo -n ${{ inputs.commit-sha }} > hash.txt
+          NODE_SHA=$(openssl dgst -sha256 -binary ${{ inputs.commit-id }}$SERVICE.zip | openssl enc -base64)
+          aws s3 cp ${{ inputs.commit-id }}$SERVICE.zip s3://${{ inputs.service-bucket }}/${{ inputs.package-name }}$SERVICE/${{ inputs.commit-id }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ inputs.package-name }}"
           aws s3 cp hash.txt s3://${{ inputs.service-bucket }}/${{ inputs.package-name }}$SERVICE/latestHash_${{ inputs.environment-name }}.txt --metadata 'Tag=${{ inputs.package-name }}-$SERVICE'
 
           # Tag with Version
           if [[ "${{ inputs.version-number }}" != "" ]]; then
-            aws s3api put-object-tagging --bucket ${{ inputs.service-bucket }} --key ${{ inputs.package-name }}$SERVICE/${{ inputs.commit-sha }}.zip  --tagging '{"TagSet":[{"Key": "${{ inputs.version-number }}","Value": ""}]}'
+            aws s3api put-object-tagging --bucket ${{ inputs.service-bucket }} --key ${{ inputs.package-name }}$SERVICE/${{ inputs.commit-id }}.zip  --tagging '{"TagSet":[{"Key": "${{ inputs.version-number }}","Value": ""}]}'
           fi
         done

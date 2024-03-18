@@ -30,7 +30,7 @@ Build and Upload a Node Function
   uses: dvsa/cvs-github-actions/build-node-function@develop
 
 - name: 📤 Upload hash zip to S3
-  uses: dvsa/cvs-github-actions/upload-hash@develop
+  uses: dvsa/cvs-github-actions/hash-upload@develop
   with:
     package-name: defects
     environment-name: cb2-1099

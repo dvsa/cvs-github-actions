@@ -15,20 +15,20 @@ inputs:
 runs:
   using: composite
   steps:
-
-    - name: ⚙️ Configure Terraform
+    - name: Configure Terraform
       id: terraform_config
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: ${{ inputs.terraform-version }}
         terraform_wrapper: false
 
-    - name: ⏳ Initialize Terraform
+    - name: Initialize Terraform
       id: terraform_init
       shell: bash
       run: |
         # Initialize ${{ inputs.environment-name }}
-        create_workspace=$( [[ "${{ inputs.create-workspace }}" == 'true' ]] && echo "-or-create " || echo "" )
-        terraform init
-        terraform workspace select ${create_workspace}${{ inputs.environment-name }}  \
-        && $(echo "Workspace: ${{ inputs.environment-name }}" >> $GITHUB_STEP_SUMMARY)        
+        if [[ ! -f ".terraform/environment" ]]; then
+          terraform init
+          terraform workspace select ${{ inputs.create-workspace == 'true' && '-or-create' || '' }} ${{ inputs.environment-name }} \
+          && $(echo "Workspace: ${{ inputs.environment-name }}" >> $GITHUB_STEP_SUMMARY)
+        fi  
