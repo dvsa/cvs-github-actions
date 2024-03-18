@@ -35,6 +35,7 @@ runs:
     - name: Terraform Apply
       shell: bash
       run: |
+        # Apply Terraform from a Plan
         terraform apply ${{ inputs.options }} -lock-timeout=300s terraform.tfplan && \
         echo 'Terraform Applied ✅' >> $GITHUB_STEP_SUMMARY || \
         echo 'Terraform Apply Failed ❌' >> $GITHUB_STEP_SUMMARY
