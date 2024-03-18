@@ -3,7 +3,7 @@ description: Create Branch for a given environment
 
 inputs:
   github-branch:
-    description: GitHub Branch to delete (e.g. `feature/CB2-1099`)
+    description: GitHub Branch to create (e.g. `feature/CB2-1099`)
     required: true
   repository:
     description: GitHub Repository where the Branch will be created
@@ -17,7 +17,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Delete Branch (if it exists)
+    - name: Create Branch (if it exists)
       shell: bash
       run: |
         # Create Branch ${{ inputs.github-branch }}
