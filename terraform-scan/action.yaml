@@ -1,0 +1,46 @@
+name: Terraform Scan
+description: Perform a Terraform Scan
+
+inputs:
+  environment-name:
+    description: Environment Identifier (e.g. `cb2-1099`)
+    required: true
+  terraform-version:
+    description: The version of Terraform to use (defaults to 1.7.3)
+    default: 1.7.3
+  create-workspace:
+    description: Should a new Terraform Workspace be created
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+
+    - name: Initialize Terraform
+      uses: dvsa/cvs-github-actions/terraform-initialize@develop
+      with:
+        terraform-version: ${{ inputs.terraform-version }}
+        environment-name: ${{ inputs.environment-name }}
+        create-workspace: ${{ inputs.create-workspace }}
+    
+    - name: Terraform format
+      shell: bash
+      run: |
+        terraform fmt -check=true -diff=true
+      
+    - name: Chekov Scan
+      run: |
+        checkov -d . --skip-framework github_actions || error_code=$?
+        
+        if [[ $error_code -ne 0 ]]; then
+          echo "Checkov scan failed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "Checkov scan passed" >> $GITHUB_STEP_SUMMARY
+        fi
+      shell: bash
+
+    - name: Terraform Lint 
+      shell: bash
+      run: |
+        tflint --init
+        tflint
