@@ -41,17 +41,11 @@ runs:
       shell: bash
       run: |
         # Create Terraform Plan File
-        terraform plan ${{ inputs.options }} -out terraform.tfplan || error_code=$?
-
-        if [[ $error_code != 0 ]]; then
-          echo 'Plan failed ❌' >> $GITHUB_STEP_SUMMARY
-          exit 99
-        else
-          terraform show terraform.tfplan -no-color > plan.txt
-          echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
-          echo $(terraform show -no-color terraform.tfplan | grep -E 'Plan:|Your infrastructure') >> $GITHUB_STEP_SUMMARY          
-        fi
-
+        terraform plan ${{ inputs.options }} -out terraform.tfplan
+        terraform show terraform.tfplan -no-color > plan.txt
+        echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
+        echo $(terraform show -no-color terraform.tfplan | grep -E 'Plan:|Your infrastructure') >> $GITHUB_STEP_SUMMARY          
+=
     - name: 📝 Upload Plan
       uses: actions/upload-artifact@v4
       with:
