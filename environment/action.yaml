@@ -12,6 +12,9 @@ outputs:
   environment-name:
     description: The AWS Environment Name
     value: ${{ steps.branch.outputs.environment-name }}
+  environment-shortname:
+    description: The AWS Environment Shortened Name
+    value: ${{ steps.branch.outputs.environment-shortname }}
   environment-type:
     description: The type of AWS Environment Identified
     value: ${{ steps.branch.outputs.environment-type }}
@@ -39,7 +42,7 @@ runs:
             ;;
 
           ?(dev*|int*|*prod))
-            environment_type=${{ inputs.branch-id }}
+            environment_type=${{ inputs.environment }}
             environment_name=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
             github_branch=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
             ;;
@@ -54,10 +57,10 @@ runs:
         echo "environment-type=${environment_type}" >> $GITHUB_OUTPUT
         echo "environment-name=${environment_name}" >> $GITHUB_OUTPUT
         echo "github-branch=${github_branch}" >> $GITHUB_OUTPUT
-        echo "environment-shortname=$(tr -d '-' <<< $environment_name)" >> $GITHUB_OUTPUT
+        echo "environment-shortname=$(tr -d '-' <<< $environment_name | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
 
         echo "environment-type=${environment_type}" >> $GITHUB_STEP_SUMMARY
         echo "environment-name=${environment_name}" >> $GITHUB_STEP_SUMMARY
-        echo "environment-shortname=$(tr -d '-' <<< $environment_name)" >> $GITHUB_STEP_SUMMARY
+        echo "environment-shortname=$(tr -d '-' <<< $environment_name | tr '[:lower:]' '[:upper:]')" >> $GITHUB_STEP_SUMMARY
         echo "github-branch=${github_branch}" >> $GITHUB_STEP_SUMMARY
         
