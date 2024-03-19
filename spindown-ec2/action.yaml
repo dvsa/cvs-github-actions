@@ -22,4 +22,4 @@ runs:
         mode: stop
         github-token: ${{ inputs.cvs_ops_pat }}
         label: ${ inputs.github_runner_id }
-        ec2-instance-id: ${{ aws_ec2_instance_id }}
+        ec2-instance-id: ${{ env.aws_ec2_instance_id }}
