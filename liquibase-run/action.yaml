@@ -1,5 +1,5 @@
-name: Install Liquibase
-description: Install Liquibase
+name: Run Liquibase
+description: Run Liquibase
 
 inputs:
   environment-name:
@@ -9,10 +9,10 @@ inputs:
     description: Environment Type (e.g. `feature`, `develop` etc)
     required: true
   schema:
-    description: Base Schema to drop (e.g. `CVSNOP`)
+    description: Base Schema to run updates against (e.g. `EDH_WMS_STAGING`)
     required: true
   dry-run:
-    description: Don't perform destruction, just output information
+    description: Don't perform updates, just output information
     default: "true"
 
 runs:
