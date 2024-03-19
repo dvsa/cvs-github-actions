@@ -1,0 +1,47 @@
+name: 🔪 Spin up an EC2 Runner
+description: Spins up an EC2 Runner
+
+inputs:
+  CVS_OPS_PAT:
+    description: 'A Github PAT'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: ♦️ Get DB Secrets
+      uses: aws-actions/aws-secretsmanager-get-secrets@v1
+      with:
+        secret-ids: cvs-wms/env
+        parse-json-secrets: true
+
+    - name: ▶️ Start EC2 Runner
+      id: start-ec2-runner
+      uses: dvsa/aws-github-runner@develop
+      with:
+        mode: start
+        github-token: ${{ env.CVS_WMS_ENV_GH_TOKEN }}
+        ec2-image-id: ${{ env.CVS_WMS_ENV_AWS_EC2_AMI }}
+        ec2-instance-type: ${{ env.CVS_WMS_ENV_AWS_EC2_SIZE }}
+        subnet-id: ${{ env.CVS_WMS_ENV_AWS_SUBNET_ID }}
+        security-group-id: ${{ env.CVS_WMS_ENV_AWS_SECURITY_GROUP }}
+        iam-role-name: ${{ env.CVS_WMS_ENV_AWS_EC2_PROFILE }}
+        aws-resource-tags: >
+          [
+            {"Key": "Name", "Value": "GHA Runner"},
+            {"Key": "GitHubRepository", "Value": "${{ github.repository }}"},
+            {"Key": "StartedBy", "Value": "${{ github.actor }}"},
+            {"Key": "RunID", "Value": "${{ github.run_id }}"},
+            {"Key": "Type", "Value": "GHA Runner"}
+          ]
+        pre-runner-script: |
+          echo test
+
+    - name: 🏷️ Update Tags
+      env:
+        GH_TOKEN: ${{ inputs.CVS_OPS_PAT }}
+      shell: bash
+      run: |
+        aws ec2 create-tags --resources ${{ steps.start-ec2-runner.outputs.ec2-instance-id }} --region ${{ secrets.DVSA_AWS_REGION }} --tags Key=GHA_Runner_Tag,Value=${{ steps.start-ec2-runner.outputs.label }}
+        runner_id=$(gh api /repos/dvsa/cvs-tf/actions/runners | jq '.runners[] | select(.labels[].name == "${{ steps.start-ec2-runner.outputs.label }}") .id')
+        gh api --method POST /repos/dvsa/cvs-tf/actions/runners/$runner_id/labels -f "labels[]=EC2"

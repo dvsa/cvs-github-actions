@@ -1,0 +1,25 @@
+name: 🔪 Spin down EC2 Runner
+description: Spins down an EC2 Runner
+
+inputs:
+  GITHUB_RUNNER_ID:
+    description: Github ID of the runner to spindown
+  CVS_OPS_PAT:
+    description: 'A Github PAT'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Get EC2 instance ID
+      shell: bash
+      run: |
+        echo "AWS_EC2_INSTANCE_ID=$(aws ec2 describe-instances --query 'Reservations[*].Instances[].InstanceId' --filters "Name=tag:GHA_Runner_Tag,Values=6h4op" --output text)" >> $GITHUB_ENV
+
+    - name: 🛑 Stop EC2 runner
+      uses: dvsa/aws-github-runner@develop
+      with:
+        mode: stop
+        github-token: ${{ inputs.CVS_OPS_PAT }}
+        label: ${ inputs.GITHUB_RUNNER_ID }
+        ec2-instance-id: ${{ AWS_EC2_INSTANCE_ID }}
