@@ -16,6 +16,10 @@ runs:
       run: |
         echo "aws_ec2_instance_id=$(aws ec2 describe-instances --query 'Reservations[*].Instances[].InstanceId' --filters "Name=tag:GHA_Runner_Tag,Values=6h4op" --output text)" >> $GITHUB_ENV
 
+    - name: Target instance ID
+      shell: bash
+      run: echo ${{ env.aws_ec2_instance_id }}
+
     - name: 🛑 Stop EC2 runner
       uses: dvsa/aws-github-runner@develop
       with:
