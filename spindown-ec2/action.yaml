@@ -14,7 +14,7 @@ runs:
     - name: Get EC2 instance ID
       shell: bash
       run: |
-        echo "aws_ec2_instance_id=$(aws ec2 describe-instances --query 'Reservations[*].Instances[].InstanceId' --filters "Name=tag:GHA_Runner_Tag,Values=h6rhv" --output text)" >> $GITHUB_ENV
+        echo "aws_ec2_instance_id=$(aws ec2 describe-instances --query 'Reservations[*].Instances[].InstanceId' --filters "Name=tag:GHA_Runner_Tag,Values=h6rhv" --output text | cat)" >> $GITHUB_ENV
 
     - name: Target instance ID
       shell: bash
