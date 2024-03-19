@@ -23,17 +23,8 @@ inputs:
 runs:
   using: composite
   steps:
-
-    - name: Check Initialization
-      id: tf
-      shell: bash
-      run: |
-        # Check if Terraform has been Initialized
-        [[ -f ".terraform.lock.hcl" ]] && echo "initialized=true" >> $GITHUB_OUTPUT || echo "initialized=false" >> $GITHUB_OUTPUT
-
     - name: Initialize Terraform
       uses: dvsa/cvs-github-actions/terraform-initialize@develop
-      if: ${{ steps.tf.outputs.initialized == 'false' }}
       with:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
@@ -47,13 +38,13 @@ runs:
         echo 'Terraform Validated ✅' >> $GITHUB_STEP_SUMMARY
 
     - name: 🛠️ Terraform Plan
-      continue-on-error: true
       shell: bash
       run: |
+        # Create Terraform Plan File
         terraform plan ${{ inputs.options }} -out terraform.tfplan
         terraform show terraform.tfplan -no-color > plan.txt
         echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
-        echo $(terraform show -no-color terraform.tfplan | grep -E 'Plan:|Your infrastructure') >> $GITHUB_STEP_SUMMARY
+        echo $(terraform show -no-color terraform.tfplan | grep -E 'Plan:|Your infrastructure') >> $GITHUB_STEP_SUMMARY          
 
     - name: 📝 Upload Plan
       uses: actions/upload-artifact@v4

@@ -19,5 +19,5 @@ runs:
         curl -L https://github.com/liquibase/liquibase/releases/download/v${{ inputs.liquibase_version }}/liquibase-${{ inputs.liquibase_version }}.zip --output liquibase-${{ inputs.liquibase_version }}.zip
         unzip -o -d liquibase liquibase-${{ inputs.liquibase_version }}.zip
         echo "$GITHUB_WORKSPACE/liquibase" >> $GITHUB_PATH
-        sudo mkdir -p /liquibase/lib/
+        mkdir -p /liquibase/lib
         sudo curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/${{ inputs.mysql_connector_java_version }}/mysql-connector-java-${{ inputs.mysql_connector_java_version }}.jar --output /liquibase/lib/mysql.jar

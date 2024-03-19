@@ -9,13 +9,12 @@ inputs:
     description: The version of Terraform to use (defaults to 1.7.3)
     default: 1.7.3
   dry-run:
-    description: Don't perform destruction, just output information
+    description: Don't perform action, just output information
     default: "true"
 
 runs:
   using: composite
   steps:
-
     - name: Initialize Terraform
       uses: dvsa/cvs-github-actions/terraform-initialize@develop
       with:
@@ -23,23 +22,13 @@ runs:
         environment-name: ${{ inputs.environment-name }}
         create-workspace: 'false'
 
-    - name: 🔎 Find Hash Files
-      shell: bash
-      run: |
-        # Get list of Hash Files for ${{ inputs.environment-name }}
-        terraform show -no-color | grep -E '.*id.*${{ inputs.environment-name }}.txt' | sed -E 's/.*"(.*)"/\1/' > hash_files.txt || echo "No files found"
-        cat hash_files.txt
-
-    - name: 🪦 Remove VPC Connections
+    - name: Remove VPC Connections
       shell: bash        
       run: |
         # Remove all Lambda VPC Connections
-        prepend=$([[ "${{ inputs.dry-run }}" == 'true' ]] && echo "(dryrun) " || echo '')
         for lambda in $(terraform show -no-color | grep -E '\s+arn\s+=\s.*:lambda.*' | sed -E 's/.*"(.*:lambda.*:function:[a-z0-9-]+).*"/\1/' | sort | uniq); do
-          echo "${prepend}remove: ${lambda}"
-          if [ "${{ inputs.dry-run }}" == 'false' ]; then 
-            AWS_PROFILE=main aws lambda update-function-configuration --function-name ${lambda} --vpc-config '{"SubnetIds":[], "SecurityGroupIds":[]}' >/dev/null
-          fi
+          echo "$(${{ inputs.dry-run == 'true' && '(dryrun) ' || '' }})remove: ${lambda}"
+          ${{ inputs.dry-run == 'true' && 'echo ' || '' }}AWS_PROFILE=main aws lambda update-function-configuration --function-name ${lambda} --vpc-config '{"SubnetIds":[], "SecurityGroupIds":[]}' >/dev/null
         done
 
     - name: Terraform Plan
@@ -51,7 +40,7 @@ runs:
         terraform-version: ${{ inputs.terraform-version }}
         create-workspace: 'false'
 
-    - name: 💣 Terraform Destroy
+    - name: Terraform Apply
       if: ${{ inputs.dry-run == 'false' }}
       uses: dvsa/cvs-github-actions/terraform-apply@develop
       with:
@@ -59,7 +48,7 @@ runs:
         environment-name: ${{ inputs.environment-name }}
         create-workspace: 'false'
         
-    - name: 💣 Remove Workspace
+    - name: Remove Workspace
       if: ${{ inputs.dry-run == 'false' }}
       shell: bash
       run: |
@@ -68,12 +57,9 @@ runs:
         terraform workspace delete ${{ inputs.environment-name }} 
         echo "Terraform Workspace \`${{ inputs.environment-name }}\` Deleted!" >> $GITHUB_STEP_SUMMARY
 
-    - name: 📃 Remove Hash Files
+    - name: Remove Hash Files
       id: remove_hash_files
-      shell: bash
-      run: |
-        # Remove all hash files for ${{ inputs.environment-name }}
-        dryrun=$([[ "${{ inputs.dry-run }}" == 'true' ]] && echo "--dryrun" || echo '')
-        for hash in $(cat hash_files.txt); do 
-          AWS_PROFILE=mgmt aws s3 rm s3://${hash} $dryrun
-        done
+      uses: dvsa/cvs-github-actions/hash-delete@develop
+      with:
+        environment-name: ${{ inputs.environment-name }}
+        dry-run: ${{ inputs.dry-run }}

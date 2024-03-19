@@ -12,17 +12,16 @@ outputs:
   environment-name:
     description: The AWS Environment Name
     value: ${{ steps.branch.outputs.environment-name }}
+  environment-shortname:
+    description: The AWS Environment Shortened Name
+    value: ${{ steps.branch.outputs.environment-shortname }}
   environment-type:
     description: The type of AWS Environment Identified
     value: ${{ steps.branch.outputs.environment-type }}
-  short-environment-name:
-    description: The AWS Environment Name without hypens
-    value: ${{ steps.branch.outputs.short-environment-name }}
 
 runs:
   using: composite
   steps:
-
     - name: Get Branch Name
       shell: bash
       id: branch
@@ -30,30 +29,26 @@ runs:
         # Get Environment and Branch information from provided input
         shopt -s extglob
         case ${{ inputs.environment }} in
-
           ?(feature/)+([cb|CB|vt|VT])*)
             environment_type=feature
             environment_name=$(echo ${{ inputs.environment }} | sed 's/feature\///' | tr '[:upper:]' '[:lower:]')
             github_branch=feature/$(echo ${{ inputs.environment }} | sed 's/feature\///' | tr '[:lower:]' '[:upper:]')
-            short_environment_name=$(echo ${{ inputs.environment }} | sed 's/feature\///' | sed -e 's/-//')
             ;;
-
+            
           ?(release/)v+([0-9.]))
             environment_type=release
             environment_name=$(echo ${{ inputs.environment }} | sed 's/release\///' | tr '[:upper:]' '[:lower:]')
             github_branch=release/$(echo ${{ inputs.environment }} | sed 's/release\///' | tr '[:upper:]' '[:lower:]')
-            short_environment_name=$(echo ${{ inputs.environment }} | sed 's/release\///' | sed -e 's/-//')
             ;;
 
           ?(dev*|int*|*prod))
-            environment_type=${{ inputs.branch-id }}
+            environment_type=${{ inputs.environment }}
             environment_name=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
             github_branch=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
-            short_environment_name=$(echo ${{ inputs.environment }} | sed -e 's/-//')
             ;;
 
           *)
-            echo "Branch Id \`${{ inputs.branch-id }}\` does not correlate to a suitable environment" >> $GITHUB_STEP_SUMMARY
+            echo "Branch Id \`${{ inputs.environment }}\` does not correlate to a suitable environment" >> $GITHUB_STEP_SUMMARY
             exit 99
 
         esac
@@ -62,9 +57,10 @@ runs:
         echo "environment-type=${environment_type}" >> $GITHUB_OUTPUT
         echo "environment-name=${environment_name}" >> $GITHUB_OUTPUT
         echo "github-branch=${github_branch}" >> $GITHUB_OUTPUT
-        echo "short-environment-name=${short_environment_name}" >> $GITHUB_OUTPUT
+        echo "environment-shortname=$(tr -d '-' <<< $environment_name | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
 
         echo "environment-type=${environment_type}" >> $GITHUB_STEP_SUMMARY
         echo "environment-name=${environment_name}" >> $GITHUB_STEP_SUMMARY
+        echo "environment-shortname=$(tr -d '-' <<< $environment_name | tr '[:lower:]' '[:upper:]')" >> $GITHUB_STEP_SUMMARY
         echo "github-branch=${github_branch}" >> $GITHUB_STEP_SUMMARY
-        echo "short-environment-name=${short_environment_name}" >> $GITHUB_STEP_SUMMARY
+        

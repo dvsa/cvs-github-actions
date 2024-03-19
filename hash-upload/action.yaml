@@ -1,0 +1,41 @@
+name: Upload Hash File
+description: Upload a cvs-services Hash File
+
+inputs:
+  commit-id:
+    description: Commit ID
+    default: ${{ github.sha }}
+  package-name:
+    description: Package Name
+    required: true
+  environment-name:
+    description: Environment Name (e.g. `cb2-1099` or `release`)
+    required: true
+  service-bucket: 
+    description: The Bucket holding the Service Function and Hash
+    default: cvs-services
+  version-number:
+    description: The version number to tag resources with
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Upload hash zip to S3
+      shell: bash
+      run: |
+        # Upload all ${{ inputs.commit-id }}*.zip files to S3
+        echo -n ${{ inputs.commit-id }} > hash.txt
+        for FILE in $(ls ${{ inputs.commit-id }}*.zip); do
+          if [[ $(gawk '{print index($0,"-")}' <<< $FILE) > 0 ]]; then
+            SERVICE="-$(sed -E "s/${{ inputs.commit-id }}-(.*)\.zip/\1/" <<< $FILE)"
+          fi
+          NODE_SHA=$(openssl dgst -sha256 -binary ${{ inputs.commit-id }}$SERVICE.zip | openssl enc -base64)
+          aws s3 cp ${{ inputs.commit-id }}$SERVICE.zip s3://${{ inputs.service-bucket }}/${{ inputs.package-name }}$SERVICE/${{ inputs.commit-id }}.zip --metadata "sha256sum=$NODE_SHA,Tag=${{ inputs.package-name }}"
+          aws s3 cp hash.txt s3://${{ inputs.service-bucket }}/${{ inputs.package-name }}$SERVICE/latestHash_${{ inputs.environment-name }}.txt --metadata 'Tag=${{ inputs.package-name }}-$SERVICE'
+
+          # Tag with Version
+          if [[ "${{ inputs.version-number }}" != "" ]]; then
+            aws s3api put-object-tagging --bucket ${{ inputs.service-bucket }} --key ${{ inputs.package-name }}$SERVICE/${{ inputs.commit-id }}.zip  --tagging '{"TagSet":[{"Key": "${{ inputs.version-number }}","Value": ""}]}'
+          fi
+        done

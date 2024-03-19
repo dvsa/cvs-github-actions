@@ -2,9 +2,12 @@ name: Build Node Lambda Function
 description: Test and Build a Node Function
 
 inputs:
-  package_name:
-    description: The Package being built
-    required: true
+  commit-sha:
+    description: The Commit ID to use for the build
+    default: ${{ github.sha }}
+  branch: 
+    description: The branch used to build
+    default: ${{ github.ref_name }}
   mysql_liquibase:
     description: Is there a MySQL element to be updated
     default: 'false'
@@ -14,6 +17,13 @@ inputs:
   mysql_connector_java_version:
     description: Version of MySQL Connector to use
     default: 8.0.25
+  mysql_user: 
+    description: The MySQL User Account
+  mysql_password:
+    description: The MySQL Users password
+  continue-on-error:
+    description: Ignore failures
+    default: 'false'
 
 runs:
   using: composite
@@ -32,13 +42,13 @@ runs:
       if: ${{ inputs.mysql_liquibase == 'true' }}
       run: |
         sudo systemctl start mysql.service
-        mysqladmin -u root -p'root' password 12345
+        mysqladmin -u ${{ inputs.mysql_user }} -p'${{ inputs.mysql_user }}' password ${{ inputs.mysql_password }}
         # remove ipv6 localhost to allow test-i pack to run correctly
         sudo sed -i '/::1     localhost/d' /etc/hosts
 
     - name: Install Liquibase
       if: ${{ inputs.mysql_liquibase == 'true' }}
-      uses: dvsa/cvs-github-actions/liquibase-install@feature/CB2-10709
+      uses: dvsa/cvs-github-actions/liquibase-install@develop
       with:
         mysql_connector_java_version: ${{ inputs.mysql_connector_java_version }}
         liquibase_version: ${{ inputs.liquibase_version }}
@@ -49,7 +59,7 @@ runs:
       with:
         repository: dvsa/cvs-nop
         path: cvs-nop
-        ref: ${{ github.ref }}
+        ref: ${{ inputs.branch }}
 
     - name: Move CVS-NOP
       shell: bash
@@ -65,16 +75,15 @@ runs:
       run: npm run build
 
     - name: Test
+      continue-on-error: ${{ inputs.continue-on-error == 'true' }}
       shell: bash
       run: npm run test
 
     - name: Test I
+      continue-on-error: ${{ inputs.continue-on-error == 'true' }}
       shell: bash
       run: npm run test-i
 
     - name: Package Artifact
       shell: bash
-      env:
-        ZIP_NAME: ${{ github.sha }}
-      run: |
-        npm run package
+      run: ZIP_NAME=${{ inputs.commit-sha }} npm run package
