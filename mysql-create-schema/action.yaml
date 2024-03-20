@@ -40,21 +40,11 @@ runs:
   using: composite
   steps:
     - name: Install Liquibase
-      shell: bash
-      run: |
-        # Grab Liquibase Binaries (if not installed)
-        if [[ ! which liquibase ]]; then
-          curl -L https://github.com/liquibase/liquibase/releases/download/v${{ inputs.liquibase_version }}/liquibase-${{ inputs.liquibase_version }}.zip --output liquibase-${{ inputs.liquibase_version }}.zip
-          unzip -o -d liquibase liquibase-${{ inputs.liquibase_version }}.zip
-          echo "$GITHUB_WORKSPACE/liquibase" >> $GITHUB_PATH
-          mkdir -p /liquibase/lib
-          sudo curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/${{ inputs.mysql_connector_java_version }}/mysql-connector-java-${{ inputs.mysql_connector_java_version }}.jar --output /liquibase/lib/mysql.jar
-        fi
+      uses: dvsa/cvs-github-actions/liquibase-install@develop
 
     - name: 📥 Get Schema Codebase
       uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GH_TOKEN }}
         repository: dvsa/cvs-${{ inputs.schema-short-name }}
         ref: ${{ inputs.github-branch }}
 
