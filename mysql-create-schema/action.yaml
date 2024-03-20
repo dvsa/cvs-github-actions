@@ -1,0 +1,82 @@
+name: Create MySQL Schema
+description: Install Liquibase (if required) and use it to deploy a MySQL Database Schema
+
+inputs:
+  liquibase-version:
+    description: Version of Liquibase to use
+    default: 4.23.0
+  mysql-connector-java-version:
+    description: Version of MySQL Connector to use
+    default: 8.0.25
+  schema-full-name:
+    description: The name of the MySQL Schema to create (i.e `EDH_WMS_STAGING` or `CVSNOP`)
+    required: true
+  schema-short-name:
+    description: The short name of the MySQL Schema (i.e. `wms` or `nop`)
+    required: true
+  environment-name:
+    description: The Environment Name (e.g. `cb2-1099` or `release`)
+    required: true
+  environment-shortname:
+    description: The name of the Environment to use within Feature Schemas
+    required: true
+  github-branch: 
+    description: The Branch to use for the Schema
+    required: true
+  environment-type:
+    description: The type of Environment (e.g. `feature`, `release`, `develop`)
+    required: true
+  drop-schema:
+    description: Should the schema be dropped before created
+    default: 'false'
+  aws-region:
+    description: The AWS Region where the Parameters Live
+    default: eu-west-1
+  dry-run:
+    description: Don't perform action, just output information
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Install Liquibase
+      shell: bash
+      run: |
+        # Grab Liquibase Binaries (if not installed)
+        if [[ ! which liquibase ]]; then
+          curl -L https://github.com/liquibase/liquibase/releases/download/v${{ inputs.liquibase_version }}/liquibase-${{ inputs.liquibase_version }}.zip --output liquibase-${{ inputs.liquibase_version }}.zip
+          unzip -o -d liquibase liquibase-${{ inputs.liquibase_version }}.zip
+          echo "$GITHUB_WORKSPACE/liquibase" >> $GITHUB_PATH
+          mkdir -p /liquibase/lib
+          sudo curl -L https://repo1.maven.org/maven2/mysql/mysql-connector-java/${{ inputs.mysql_connector_java_version }}/mysql-connector-java-${{ inputs.mysql_connector_java_version }}.jar --output /liquibase/lib/mysql.jar
+        fi
+
+    - name: 📥 Get Schema Codebase
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+        repository: dvsa/cvs-${{ inputs.schema-short-name }}
+        ref: ${{ inputs.github-branch }}
+
+    - name: Get Liquibase Properties
+      shell: bash
+      run: |
+          # Create liquibase.properties file
+          AWS_PROFILE=mgmt aws secretsmanager get-secret-value --secret-id ${{ inputs.environment-type }}/liquibase/config --query SecretString --output text > liquibase.properties
+          sed -i -E 's/CVSNOP/${{ inputs.schema-full-name }}/g' liquibase.properties
+          sed -i -E 's/BRANCH/${{ inputs.environment-shortname }}/g' liquibase.properties
+
+    - name: 🛢️ Drop WMS Schema
+      uses: dvsa/cvs-github-actions/mysql-drop-schema@develop
+      if: ${{ inputs.drop-schema }}
+      with:
+        environment-name: ${{ inputs.environment-name }}
+        environment-type: ${{ inputs.environment-type }}
+        schema: ${{  }}
+        dry-run: false
+
+    - name: Create Schema
+      shell: bash
+      run: |
+        # Perform Schema update
+        ${{ inputs.dry-run || 'echo ' || '' }}lliquibase update
