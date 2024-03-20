@@ -67,6 +67,4 @@ runs:
 
     - name: Create Schema
       shell: bash
-      run: |
-        # Perform Schema update
-        ${{ inputs.dry-run || 'echo ' || '' }}liquibase update
+      run: ${{ inputs.dry-run || 'echo ' || '' }}liquibase update
