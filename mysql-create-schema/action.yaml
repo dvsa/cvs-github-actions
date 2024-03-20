@@ -58,7 +58,7 @@ runs:
 
     - name: 🛢️ Drop WMS Schema
       uses: dvsa/cvs-github-actions/mysql-drop-schema@develop
-      if: ${{ inputs.drop-schema }}
+      if: ${{ inputs.drop-schema == 'true' }}
       with:
         environment-name: ${{ inputs.environment-name }}
         environment-type: ${{ inputs.environment-type }}
@@ -69,4 +69,4 @@ runs:
       shell: bash
       run: |
         # Perform Schema update
-        ${{ inputs.dry-run || 'echo ' || '' }}lliquibase update
+        ${{ inputs.dry-run || 'echo ' || '' }}liquibase update
