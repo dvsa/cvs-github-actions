@@ -25,7 +25,7 @@ runs:
 
         # Scan Table and remove each Item
         IFS=$'\n'
-        for item in $(aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${{ inputs.table }} --query 'Items[*]' | jq -c '.[]' | uniq); do
+        for item in $(aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${{ inputs.table }} --query 'Items[*]' | jq -c '.[]'); do
           echo "Purging $item"
           ${{ inputs.dry-run == 'true' && 'echo ' || '' }}aws dynamodb delete-item --table-name ${{ inputs.table }} --key $item
         done
