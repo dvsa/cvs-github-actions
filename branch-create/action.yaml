@@ -17,7 +17,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Create Branch (if it exists)
+    - name: Create Branch (if it doesn't exist)
       shell: bash
       run: |
         # Create Branch ${{ inputs.github-branch }}
