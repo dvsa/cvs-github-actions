@@ -16,6 +16,7 @@ runs:
     - name: Install Liquibase
       shell: bash
       run: |
+        # Install Liquibase
         curl -L https://github.com/liquibase/liquibase/releases/download/v${{ inputs.liquibase_version }}/liquibase-${{ inputs.liquibase_version }}.zip --output liquibase-${{ inputs.liquibase_version }}.zip
         unzip -o -d liquibase liquibase-${{ inputs.liquibase_version }}.zip
         echo "$GITHUB_WORKSPACE/liquibase" >> $GITHUB_PATH
