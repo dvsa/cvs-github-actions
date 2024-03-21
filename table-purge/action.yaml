@@ -24,6 +24,7 @@ runs:
         items=$(aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${{ inputs.table }} --query 'Items[*]' | jq -c '.[]')
         IFS=$'\n'
         for item in $items; do
+          echo "Removing $item"
           ${{ inputs.dry-run == 'true' && 'echo ' || '' }}aws dynamodb delete-item --table-name ${{ inputs.table }} --key $item
         done
 
