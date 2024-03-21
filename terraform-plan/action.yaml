@@ -51,13 +51,13 @@ runs:
         terraform show terraform.tfplan -no-color > plan.txt
         echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
         plan_detail=$(terraform show -no-color terraform.tfplan | grep -E 'Plan:|Your infrastructure')
-        echo "${plan_detail}") >> $GITHUB_STEP_SUMMARY
+        echo "${plan_detail}" >> $GITHUB_STEP_SUMMARY
 
         if [[ $(awk '{print index($0, "Plan:")}' <<< $plan_detail) > 0 ]]; then
           # Changes have been detected
-          echo "changes-detected=true"
+          echo "changes-detected=true" >> $GITHUB_OUTPUT
         else
-          echo "changes-detected=false"
+          echo "changes-detected=false" >> $GITHUB_OUTPUT
         fi 
 
     - name: 📝 Upload Plan
