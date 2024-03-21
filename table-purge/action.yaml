@@ -5,6 +5,9 @@ inputs:
   table:
     description: The DynamoDB Table ID to be purged
     required: true
+  dry-run:
+    description: Don't perform action, just output information
+    default: "true"
 
 runs:
   using: composite
@@ -23,7 +26,8 @@ runs:
         # Scan Table and remove each Item
         IFS=$'\n'
         for item in $(aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${{ inputs.table }} --query 'Items[*]' | jq -c '.[]' | uniq); do
-          aws dynamodb delete-item --table-name ${{ inputs.table }} --key $item
+          echo "Purging $item"
+          ${{ inputs.dry-run == 'true' && 'echo ' || '' }}aws dynamodb delete-item --table-name ${{ inputs.table }} --key $item
         done
 
 
