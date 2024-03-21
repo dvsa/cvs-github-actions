@@ -27,7 +27,7 @@ runs:
       run: |
         # Remove all Lambda VPC Connections
         for lambda in $(terraform show -no-color | grep -E '\s+arn\s+=\s.*:lambda.*' | sed -E 's/.*"(.*:lambda.*:function:[a-z0-9-]+).*"/\1/' | sort | uniq); do
-          echo "$(${{ inputs.dry-run == 'true' && '(dryrun) ' || '' }})remove: ${lambda}"
+          echo "${{ inputs.dry-run == 'true' && '(dryrun) ' || '' }}remove: ${lambda}"
           ${{ inputs.dry-run == 'true' && 'echo ' || '' }}AWS_PROFILE=main aws lambda update-function-configuration --function-name ${lambda} --vpc-config '{"SubnetIds":[], "SecurityGroupIds":[]}' >/dev/null
         done
 
