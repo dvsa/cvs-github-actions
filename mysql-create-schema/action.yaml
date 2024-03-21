@@ -39,14 +39,14 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install Liquibase
-      uses: dvsa/cvs-github-actions/liquibase-install@develop
-
     - name: 📥 Get Schema Codebase
       uses: actions/checkout@v4
       with:
         repository: dvsa/cvs-${{ inputs.schema-short-name }}
         ref: ${{ inputs.github-branch }}
+
+    - name: Install Liquibase
+      uses: dvsa/cvs-github-actions/liquibase-install@develop
 
     - name: Get Liquibase Properties
       shell: bash
