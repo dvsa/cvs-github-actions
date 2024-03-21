@@ -62,7 +62,7 @@ runs:
       with:
         environment-name: ${{ inputs.environment-name }}
         environment-type: ${{ inputs.environment-type }}
-        schema: ${{  }}
+        schema: ${{ inputs.schema-full-name }}
         dry-run: false
 
     - name: Create Schema

@@ -20,6 +20,11 @@ inputs:
     description: Should a new Terraform Workspace be created
     default: 'true'
 
+outputs:
+  changes-detected:
+    description: Terraform has detected changes
+    value: ${{ steps.plan.outputs.changes-detected }}
+
 runs:
   using: composite
   steps:
@@ -38,13 +43,22 @@ runs:
         echo 'Terraform Validated ✅' >> $GITHUB_STEP_SUMMARY
 
     - name: 🛠️ Terraform Plan
+      id: plan
       shell: bash
       run: |
         # Create Terraform Plan File
         terraform plan ${{ inputs.options }} -out terraform.tfplan
         terraform show terraform.tfplan -no-color > plan.txt
         echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
-        echo $(terraform show -no-color terraform.tfplan | grep -E 'Plan:|Your infrastructure') >> $GITHUB_STEP_SUMMARY          
+        plan_detail=$(terraform show -no-color terraform.tfplan | grep -E 'Plan:|Your infrastructure')
+        echo "${plan_detail}") >> $GITHUB_STEP_SUMMARY
+
+        if [[ $(awk '{print index($0, "Plan:")}' <<< $plan_detail) > 0 ]]; then
+          # Changes have been detected
+          echo "changes-detected=true"
+        else
+          echo "changes-detected=false"
+        fi 
 
     - name: 📝 Upload Plan
       uses: actions/upload-artifact@v4
