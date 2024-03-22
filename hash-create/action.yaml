@@ -14,6 +14,9 @@ inputs:
   hash-files:
     description: JSON List of Hash Zip Files
     required: true
+  dry-run:
+    description: Don't perform action, just output information
+    default: 'false'
 
 runs:
   using: composite
@@ -22,7 +25,7 @@ runs:
       shell: bash
       run: |
         # Generate Hash File
-        hash_file=${{ inputs.environment-type == 'release' && inputs.version-number || format('latestHash_{0}', inputs.environment-name) }}.txt
+        hash_file=${{ format('latestHash_{0}', inputs.environment-name) }}.txt
         echo "Hash File: ${hash_file}"
         echo "Hashes: ${{ inputs.hash-files }}"
 
@@ -31,6 +34,6 @@ runs:
           folder=$(awk '{split($0,h,"/"); print h[1]}' <<< $hash)
           echo -n "Creating ${hash_file} for ${hash}: "
           echo -n "${{ inputs.commit-id }}" > $hash_file 
-          aws s3 cp $hash_file s3://${{ inputs.service-bucket }}/$folder/$hash_file 2>&1
+          ${{ inputs.dry-run == 'true' && 'echo ' || '' }}aws s3 cp $hash_file s3://${{ inputs.service-bucket }}/$folder/$hash_file 2>&1
           echo "done"
         done  

@@ -17,6 +17,9 @@ outputs:
   version: 
     description: The new version number
     value: ${{ steps.bump.outputs.version }}
+  esc-version:
+    description: Terraform Friendly Version Number
+    value: ${{ steps.bump.outputs.esc-version }}
     
 runs:
   using: composite
@@ -37,6 +40,7 @@ runs:
         pip install semver argparse
         version=$(python ${{ github.action_path }}/main.py --bump=${{ inputs.bump }} --version=$(tr -d 'v' <<< ${{ inputs.version-number }}) --type=${{ inputs.number-type }})
         echo "version=v${version}" >> $GITHUB_OUTPUT
+        echo "esc-version=v$(tr '.' '-' <<< $version)" >> $GITHUB_OUTPUT
         echo "Current Version: ${{ inputs.version-number }}" >> $GITHUB_STEP_SUMMARY
         echo "New Version: v${version}" >> $GITHUB_STEP_SUMMARY 
 
