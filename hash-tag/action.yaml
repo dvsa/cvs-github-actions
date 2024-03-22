@@ -14,6 +14,9 @@ inputs:
   version-number: 
     description: The Version to tag Hash Zips with
     required: true
+  dry-run:
+    description: Don't perform action, just output information
+    default: 'false'
 
 runs:
   using: composite
@@ -26,7 +29,7 @@ runs:
             echo -n "Associating ${hash}: "
             current_tag=$(aws s3api get-object-tagging --bucket ${{ inputs.service-bucket }} --key $hash --query "TagSet[]" --output json)
             if [[ $(awk '{print index($0,"${{ inputs.version-number }}")}' <<< $current_tag) == 0 ]]; then
-              aws s3api put-object-tagging --bucket ${{ inputs.service-bucket }} --key $hash --tagging "{\"TagSet\":`jq '. += [{Key: "${{ inputs.version-number }}",Value: ""}]' <<< $current_tag`}" 2>&1
+              ${{ inputs.dry-run == 'true' && 'echo ' || '' }}aws s3api put-object-tagging --bucket ${{ inputs.service-bucket }} --key $hash --tagging "{\"TagSet\":`jq '. += [{Key: "${{ inputs.version-number }}",Value: ""}]' <<< $current_tag`}" 2>&1
               echo "Done"
             else
               echo "Skipped"
