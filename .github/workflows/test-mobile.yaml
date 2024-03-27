@@ -1,6 +1,6 @@
 name: Test Mobile
 
-on: 
+on:
  workflow_call:
   inputs:
     environment:
@@ -60,7 +60,7 @@ jobs:
           branch=$(python3 -c "print('$unfeature'.lower())")
           echo "BRANCH=$(echo $branch)" >> $GITHUB_OUTPUT
         id: extract_branch
-        
+
       - name: 🔍 Configure Settings Files
         run: |
           mkdir creds
@@ -86,9 +86,13 @@ jobs:
           echo "NODE: $(which node)"
           echo "NODE VERSION: $(node -v)"
           npm i
-        
+
       - name: 🛠️ Run Automation Suite
         run: npm run wdio:vta:ap:report
+
+      - name: 📑 Clean up Simulators
+        if: always()
+        run: killall Simulator
 
       - name: 📑 Generate Reports
         run: npm run s3report
@@ -118,18 +122,18 @@ jobs:
          with:
            name: vta-report-${{ needs.test.outputs.branch }}-${{ github.run_id }}
            path: reports
-         
+
        - name: ✅ Validate Workspace
          run: ls -lah reports
-       
+
        - name: 📑 Deploy Report to Github Pages
          if: always()
          uses: peaceiris/actions-gh-pages@v3.9.3
-         with: 
+         with:
            github_token: ${{ secrets.GITHUB_TOKEN }}
            publish_dir: reports
            publish_branch: gh-pages
            destination_dir: ${{ needs.test.outputs.branch }}/${{ github.run_id }}
-       
+
        - name: Output Report Link
          run: echo "https://super-funicular-597oy3e.pages.github.io/${{ needs.test.outputs.branch }}/${{ github.run_id }}/" >> $GITHUB_STEP_SUMMARY
