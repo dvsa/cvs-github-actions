@@ -5,6 +5,9 @@ inputs:
   environment:
     description: Branch Identifier (either GitHub Branch or Environment Name)
     required: true
+  output-summary:
+    description: Output a summary of calculated values
+    default: 'true'
 outputs:
   github-branch: 
     description: The GitHub Branch Name
@@ -59,8 +62,9 @@ runs:
         echo "github-branch=${github_branch}" >> $GITHUB_OUTPUT
         echo "environment-shortname=$(tr -d '\.-' <<< $environment_name | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
 
-        echo "environment-type=${environment_type}" >> $GITHUB_STEP_SUMMARY
-        echo "environment-name=${environment_name}" >> $GITHUB_STEP_SUMMARY
-        echo "environment-shortname=$(tr -d '\.-' <<< $environment_name | tr '[:lower:]' '[:upper:]')" >> $GITHUB_STEP_SUMMARY
-        echo "github-branch=${github_branch}" >> $GITHUB_STEP_SUMMARY
-        
+        if [[ '${{ inputs.output-summary }}' == 'true' ]]; then
+          echo "environment-type=${environment_type}" >> $GITHUB_STEP_SUMMARY
+          echo "environment-name=${environment_name}" >> $GITHUB_STEP_SUMMARY
+          echo "environment-shortname=$(tr -d '\.-' <<< $environment_name | tr '[:lower:]' '[:upper:]')" >> $GITHUB_STEP_SUMMARY
+          echo "github-branch=${github_branch}" >> $GITHUB_STEP_SUMMARY
+        fi
