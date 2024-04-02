@@ -1,0 +1,53 @@
+name: Manage GitHub Branches
+description: Create or Delete GitHub Branches
+
+inputs:
+  action: 
+    description: Delete or Create Action
+    required: true
+  repositories: 
+    description: JSON List of repositories to perform action upon
+    required: true
+  branch-name:
+    description: Name of the Branch to perform actions upon
+    required: true
+  branch-source: 
+    description: Source Branch for creation
+    default: develop
+  dry-run:
+    description: Don't perform action, just output information
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Create/Delete Branch
+      shell: bash
+      run: |
+        # Action: ${{ inputs.action }} ${{ inputs.branch-name }} in all Repositories
+        echo "# Branch ${{ inputs.action }} summary ${{ inputs.dry-run == 'true' && '(Dry Run)' || '' }}" >> $GITHUB_STEP_SUMMARY
+        echo "| Repository | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+
+        # Perform Actions
+        for repository in $(jq -r '.[]' <<< '${{ inputs.repositories }}'); do
+          echo "${{ inputs.action }} ${{ inputs.branch-name }} on ${repository}"
+          gh auth setup-git
+          if [[ $(awk '{print length}' <<< $(git ls-remote --heads https://github.com/dvsa/${repository} ${{ inputs.branch-name }})) ${{ inputs.action == 'delete' && '==' || '>' }} 0 ]]; then
+            echo "| ${repository} | ☑️ ${{ inputs.action == 'delete' && 'Does not Exist' || 'Already Exists' }} |" >> $GITHUB_STEP_SUMMARY
+
+          else
+            if [[ "${{ inputs.action }}" == "create" ]]; then
+              commit_id=$(awk '{sub(/[^a-f0-9]+.*/,"",$0); print $0}' <<< $(git ls-remote --${{ github.ref_type == 'tag' && 'tags' || 'heads' }} https://github.com/dvsa/${repository} ${branch_source}))
+              ${{ inputs.dry-run == 'true' && 'echo ' || '' }}gh api -X POST /repos/dvsa/${repository}/git/refs -f ref='refs/heads/${{ inputs.branch-name }}' -f sha="${commit_id}" || echo "| ${repository} | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+              echo
+              echo "| ${repository} | ✅ Created |" >> $GITHUB_STEP_SUMMARY  
+            elif [[ "${{ inputs.action }}" == "delete" ]]; then
+              ${{ inputs.dry-run == 'true' && 'echo ' || '' }}gh api -X DELETE /repos/dvsa/${repository}/git/refs/heads/${{ inputs.branch-name }} || echo "| ${repository} | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+              echo
+              echo "| ${repository} | ✅ Deleted |" >> $GITHUB_STEP_SUMMARY   
+            else
+              echo "❌ Invalid action requested: `${{ inputs.action }}`" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+        done
