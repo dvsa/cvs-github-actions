@@ -39,7 +39,7 @@ runs:
           else
             if [[ "${{ inputs.action }}" == "create" ]]; then
               commit_id=$(awk '{sub(/[^a-f0-9]+.*/,"",$0); print $0}' <<< $(git ls-remote --${{ github.ref_type == 'tag' && 'tags' || 'heads' }} https://github.com/dvsa/${repository} ${branch_source}))
-              ${{ inputs.dry-run == 'true' && 'echo ' || '' }}gh api -X POST /repos/dvsa/${repository}/git/refs -f ref='refs/heads/${{ inputs.branch-name }}' -f sha="${commit_id}" || echo "| ${repository} | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+              ${{ inputs.dry-run == 'true' && 'echo ' || '' }}gh api -X POST /repos/dvsa/${repository}/git/refs -f ref='refs/${{ github.ref_type == 'tag' && 'tags' || 'heads' }}/${{ inputs.branch-name }}' -f sha="${commit_id}" || echo "| ${repository} | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
               echo
               echo "| ${repository} | ✅ Created |" >> $GITHUB_STEP_SUMMARY  
             elif [[ "${{ inputs.action }}" == "delete" ]]; then
