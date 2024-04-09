@@ -67,5 +67,11 @@ runs:
 
     - name: Create Schema
       shell: bash
-      run: ${{ inputs.dry-run == 'true' && 'echo ' || '' }}liquibase update
-  
+      run: |
+        if [[ "${{ inputs.dry-run }}" == "true" ]]; then
+          echo "Running liquibase update as dry-run mode"
+          liquibase updateSQL > schema_plan.sql
+        else
+          echo "Running liquibase update"
+          liquibase update
+        fi
