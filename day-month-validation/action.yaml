@@ -18,10 +18,12 @@ runs:
   using: composite
   steps:
     - name: Validate Day and Month
+      shell: bash
       id: set_date
       run: |
         CURRENT_DAY=$(date +'%-d')
         CURRENT_MONTH=$(date +'%-m')
+
         DAY="${{ inputs.day }}"
         MONTH="${{ inputs.month }}"
         if [ -z "$DAY"]; then
