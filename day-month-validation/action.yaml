@@ -1,0 +1,48 @@
+name: Day and Month Validation
+description: validate day and month entries
+
+inputs:
+  day:
+    description: "Entry for day of month (e.g 1,2,3,...,31)"
+  month:
+    description: "Entry for month of the year (e.g 1,2,3,...,12)"
+outputs:
+  DAY:
+    description: "output day of the month"
+    value: ${{ steps.set_date.outputs.day }}
+  MONTH:
+    description: "output month of the year"
+    value: ${{ steps.set_date.outputs.month }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate Day and Month
+      id: set_date
+      run: |
+        CURRENT_DAY=$(date +'%-d')
+        CURRENT_MONTH=$(date +'%-m')
+        DAY="${{ inputs.day }}"
+        MONTH="${{ inputs.month }}"
+        if [ -z "$DAY"]; then
+          DAY=$CURRENT_DAY
+          echo "Day input not provided. Using current day: $DAY"
+        fi
+        if [ -z "$MONTH"]; then
+          MONTH=$CURRENT_MONTH
+          echo "Month input not provided. Using current day: $MONTH"
+        fi
+        # Validate day
+        if ! [[ "$DAY" =~ ^[1-9]$|^[1-2][0-9]$|^3[0-1]$ ]]; then
+          echo "Invalid day input: $DAY"
+          echo "Setting to current day: $CURRENT_DAY"
+          DAY=$CURRENT_DAY
+        fi
+        # Validate month
+        if ! [[ "$MONTH" =~ ^[1-9]$|^1[0-2]$ ]]; then
+          echo "Invalid month input: $MONTH"
+          echo "Setting to current month: $CURRENT_MONTH"
+          MONTH=$CURRENT_MONTH
+        fi
+        echo "day=$DAY" >> $GITHUB_OUTPUT
+        echo "month=$MONTH" >> $GITHUB_OUTPUT
