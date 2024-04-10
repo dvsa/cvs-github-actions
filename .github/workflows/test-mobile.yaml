@@ -3,6 +3,10 @@ name: Test Mobile
 on:
  workflow_call:
   inputs:
+    directory:
+      required: false
+      type: string
+      default: ''
     environment:
       required: true
       type: string
@@ -55,17 +59,17 @@ jobs:
 
       - name: 🛸 Extract Branch
         shell: bash
+        id: extract_branch
         run: |
           unfeature=$(echo ${GITHUB_REF_NAME#feature/})
           branch=$(python3 -c "print('$unfeature'.lower())")
           echo "BRANCH=$(echo $branch)" >> $GITHUB_OUTPUT
-        id: extract_branch
 
       - name: 🔍 Configure Settings Files
         run: |
           mkdir creds
-          aws secretsmanager get-secret-value --secret-id ${{ env.VTA_AUTOMATION_ENV_CREDENTIALS }} --query SecretString --output text > creds/credentials.json
-          aws secretsmanager get-secret-value --secret-id ${{ env.VTA_AUTOMATION_ENV_OPENVISITS }} --query SecretString --output text > creds/openVisit.ts
+          aws secretsmanager get-secret-value --secret-id ${{ env.VTA_AUTOMATION_ENV_CREDENTIALS }} --query SecretString --output text > ${{ inputs.directory }}/creds/credentials.json
+          aws secretsmanager get-secret-value --secret-id ${{ env.VTA_AUTOMATION_ENV_OPENVISITS }} --query SecretString --output text > ${{ inputs.directory }}/creds/openVisit.ts
           echo ${{ env.VTA_AUTOMATION_ENV_NPMJS_REGISTRY }} >> .npmrc
           echo ${{ env.VTA_AUTOMATION_ENV_NPM_PKG }} >> .npmrc
           echo "BRANCH=${{ steps.extract_branch.outputs.BRANCH }}" > .env
@@ -76,9 +80,9 @@ jobs:
         run: |
           mkdir apps
           OBJECT="$(aws s3 ls s3://${{ env.ARTEFACTS }}/github-actions/files/${{ inputs.environment }}/ --recursive | sort | grep 'APP.txt' | tail -n 1 | awk '{print $4}')"
-          aws s3 cp s3://${{ env.ARTEFACTS }}/$OBJECT apps/develop-APP.txt
-          wget -q -O apps/CVSMobile.App.zip `cat apps/develop-APP.txt`
-          unzip -qq apps/CVSMobile.App.zip -d apps/
+          aws s3 cp s3://${{ env.ARTEFACTS }}/$OBJECT ${{ inputs.directory }}/apps/develop-APP.txt
+          wget -q -O ${{ inputs.directory }}/apps/CVSMobile.App.zip `cat apps/develop-APP.txt`
+          unzip -qq ${{ inputs.directory }}/apps/CVSMobile.App.zip -d ${{ inputs.directory }}/apps/
 
       - name: 🛠️ Install Dependencies
         run: | 
@@ -88,7 +92,7 @@ jobs:
           npm i
 
       - name: 🛠️ Run Automation Suite
-        run: npm run wdio:vta:ap:report
+        run: npm run test-ios -w ${{ inputs.directory }}
 
       - name: 📑 Clean up Simulators
         if: always()
@@ -102,12 +106,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vta-report-${{ steps.extract_branch.outputs.branch }}-${{ github.run_id }}
-          path: reports/allure-report
+          path: ${{ inputs.directory }}/reports/allure-report
           retention-days: ${{ inputs.retention_days }}
 
       - name: ⬆️ Upload S3
         run: |
-          zip -r reports.zip reports/
+          zip -r reports.zip ${{ inputs.directory }}/reports/
           aws s3 cp reports.zip s3://${{ env.VTA_AUTOMATION_ENV_AWS_REPORT_BUCKET }}/github-actions/${{ inputs.environment }}/report-${{ steps.extract_branch.outputs.branch }}-${{ github.run_id }}.zip
 
   deploy:
