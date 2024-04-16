@@ -1,0 +1,42 @@
+name: 🏷️ Release Commits
+description: Shows the commits between two releases, deployments, tags or branches
+
+inputs:
+  LATEST:
+    description: Tag or branch of the release to calculate upto (e.g. release/v3.27.0, v2024.4.2, develop etc)
+  PREVIOUS:
+    description: Tag or branch of the release to calculate from (e.g. release/v3.27.0, v2024.4.2, develop etc)
+  cvs_ops_pat:
+    description: A Github PAT
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: 📥 Get Codebase
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+        token: ${{ inputs.cvs_ops_pat }}
+
+    - name: 🪵 Git Log
+      shell: bash
+      run: |
+        echo "🏷️ Commits between ${{ inputs.PREVIOUS }} and ${{ inputs.LATEST }}" | tee -a commitlog.md $GITHUB_STEP_SUMMARY 
+        for repo in $(jq -rc '.[]' <<< $(cat .github/libraries/function-repositories.json | jq -rc)); do
+          git clone --bare --filter=blob:none https://${{ inputs.cvs_ops_pat }}@github.com/dvsa/$repo
+          echo -e "\n\n====================================== $repo ======================================\n" >> commitlog.txt
+          echo -e "\n\n## $repo \n" | tee -a commitlog.md $GITHUB_STEP_SUMMARY
+          echo "|Commit|Name|Date|Comment|" | tee -a commitlog.md $GITHUB_STEP_SUMMARY 
+          echo "|---|---|---|---|" | tee -a commitlog.md $GITHUB_STEP_SUMMARY
+          git --git-dir $repo.git log --pretty=format:\"%h%x09%an%x09%ad%x09%s\" "${{ inputs.PREVIOUS }}"..."${{ inputs.LATEST }}" >> commitlog.txt 2>&1 || true
+          git --git-dir $repo.git log --pretty=format:'|'%h'|'%an'|'%ad'|'%s'|' "${{ inputs.PREVIOUS }}"..."${{ inputs.LATEST }}" 2>&1 | tee -a commitlog.md $GITHUB_STEP_SUMMARY         
+        done
+
+    - name: ⏫ Upload Log
+      uses: actions/upload-artifact@v4
+      with:
+        name: Release Change Log ${{ inputs.PREVIOUS }} to ${{ inputs.LATEST }}
+        path: |
+          commitlog.txt
+          commitlog.md
