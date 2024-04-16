@@ -20,7 +20,7 @@ runs:
         token: ${{ inputs.cvs_ops_pat }}
 
     - name: 🪵 Git Log
-      shell: bash
+      shell: bash -l {0}
       run: |
         echo "🏷️ Commits between ${{ inputs.PREVIOUS }} and ${{ inputs.LATEST }}" | tee -a commitlog.md $GITHUB_STEP_SUMMARY 
         for repo in $(jq -rc '.[]' <<< $(cat .github/libraries/function-repositories.json | jq -rc)); do
