@@ -13,17 +13,40 @@ runs:
   using: composite
   steps:
     - name: ♦️ Get DB Secrets
-      uses: aws-actions/aws-secretsmanager-get-secrets@v1
+      uses: aws-actions/aws-secretsmanager-get-secrets@v2
       with:
-        secret-ids: cvs-wms/env
+        secret-ids: |
+          cvs-wms/env
         parse-json-secrets: true
 
+    - name: 🔭 Check active self hosted runners
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.cvs_ops_pat }}
+      id: runner-check
+      run: |
+        total_runners=$(gh api /repos/${{ github.repository }}/actions/runners | jq '[.runners[] | select(.status=="online") | select(.labels[] | select(.type == "custom" and .name == "EC2"))] | length')
+        available_ec2_runners=$(gh api /repos/${{ github.repository }}/actions/runners | jq '[.runners[] | select(.status=="online") | select(.busy==false) | select(.labels[] | select(.type == "custom" and .name == "EC2"))] | length')
+        if [[ $total_runners -ge 5 ]]; then
+          echo "Max number of EC2 runners reached" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        elif [[ $available_ec2_runners -eq 0 ]]; then
+          echo "No available EC2 runners"
+          start_runner=true
+          echo "starting EC2 runner..." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "available_runners: $available_ec2_runners. Skipping ▶️ Start EC2 Runner" >> $GITHUB_STEP_SUMMARY
+          start_runner=false
+        fi
+        echo "start_runner=$start_runner" >> $GITHUB_OUTPUT
+
     - name: ▶️ Start EC2 Runner
+      if: ${{ steps.runner-check.outputs.start_runner == 'true' }}
       id: start-ec2-runner
       uses: dvsa/aws-github-runner@develop
       with:
         mode: start
-        github-token: ${{ env.CVS_WMS_ENV_GH_TOKEN }}
+        github-token: ${{ inputs.cvs_ops_pat }}
         ec2-image-id: ${{ env.CVS_WMS_ENV_AWS_EC2_AMI }}
         ec2-instance-type: ${{ env.CVS_WMS_ENV_AWS_EC2_SIZE }}
         subnet-id: ${{ env.CVS_WMS_ENV_AWS_SUBNET_ID }}
@@ -41,6 +64,7 @@ runs:
           echo test
 
     - name: 🏷️ Update Tags
+      if: ${{ steps.start-ec2-runner.outcome == 'success' }}
       env:
         GH_TOKEN: ${{ inputs.cvs_ops_pat }}
       shell: bash
