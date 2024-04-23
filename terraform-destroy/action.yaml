@@ -8,6 +8,7 @@ inputs:
   terraform-version:
     description: The version of Terraform to use (defaults to 1.7.3)
     default: 1.7.3
+  
   dry-run:
     description: Don't perform action, just output information
     default: "true"
@@ -21,6 +22,10 @@ runs:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
         create-workspace: 'false'
+
+    - name: Refresh Terraform
+      shell: bash
+      run: terraform refresh
 
     - name: Remove VPC Connections
       shell: bash        
