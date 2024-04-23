@@ -25,15 +25,19 @@ runs:
 
     - name: Refresh Terraform
       shell: bash
-      run: AWS_PROFILE=main terraform refresh
+      env:
+        AWS_PROFILE: main
+      run: terraform refresh
 
     - name: Remove VPC Connections
-      shell: bash        
+      shell: bash   
+      env:
+        AWS_PROFILE: main     
       run: |
         # Remove all Lambda VPC Connections
         for lambda in $(terraform show -no-color | grep -E '\s+arn\s+=\s.*:lambda.*' | sed -E 's/.*"(.*:lambda.*:function:[a-z0-9-]+).*"/\1/' | sort | uniq); do
           echo "${{ inputs.dry-run == 'true' && '(dryrun) ' || '' }}remove: ${lambda}"
-          ${{ inputs.dry-run == 'true' && 'echo ' || '' }}AWS_PROFILE=main aws lambda update-function-configuration --function-name ${lambda} --vpc-config '{"SubnetIds":[], "SecurityGroupIds":[]}' >/dev/null
+          ${{ inputs.dry-run == 'true' && 'echo ' || '' }}aws lambda update-function-configuration --function-name ${lambda} --vpc-config '{"SubnetIds":[], "SecurityGroupIds":[]}' >/dev/null
         done
 
     - name: Terraform Plan
