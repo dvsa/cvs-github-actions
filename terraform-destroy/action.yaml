@@ -25,7 +25,7 @@ runs:
 
     - name: Refresh Terraform
       shell: bash
-      run: terraform refresh
+      run: AWS_PROFILE=main terraform refresh
 
     - name: Remove VPC Connections
       shell: bash        
