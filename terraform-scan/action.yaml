@@ -30,7 +30,7 @@ runs:
       
     - name: Chekov Scan
       run: |
-        checkov -d . --skip-framework github_actions || error_code=$?
+        checkov -d . --sarif --skip-framework github_actions || error_code=$?
         
         if [[ $error_code -ne 0 ]]; then
           echo "Checkov scan failed" >> $GITHUB_STEP_SUMMARY
@@ -38,6 +38,12 @@ runs:
           echo "Checkov scan passed" >> $GITHUB_STEP_SUMMARY
         fi
       shell: bash
+
+    - name: Upload SARIF results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: checkov_results.sarif
+
 
     - name: Terraform Lint 
       shell: bash
