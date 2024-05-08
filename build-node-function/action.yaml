@@ -47,7 +47,7 @@ runs:
         sudo service mysql start
         sudo mysqladmin -u ${{ inputs.mysql_user }} -p'${{ inputs.mysql_user }}' password ${{ inputs.mysql_password }}
         # remove ipv6 localhost to allow test-i pack to run correctly
-        sudo sed -i '/::1     localhost/d' /etc/hosts
+        #sudo sed -i '/::1     localhost/d' /etc/hosts
 
     - name: Install Liquibase
       if: ${{ inputs.mysql_liquibase == 'true' }}
