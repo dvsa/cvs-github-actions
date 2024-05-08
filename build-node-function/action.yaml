@@ -45,7 +45,7 @@ runs:
         sudo apt-get update && sudo apt-get install mysql-server -y
         sudo usermod -d /var/lib/mysql/ mysql
         sudo service mysql start
-        mysqladmin -u ${{ inputs.mysql_user }} -p'${{ inputs.mysql_user }}' password ${{ inputs.mysql_password }}
+        sudo mysqladmin -u ${{ inputs.mysql_user }} -p'${{ inputs.mysql_user }}' password ${{ inputs.mysql_password }}
         # remove ipv6 localhost to allow test-i pack to run correctly
         sudo sed -i '/::1     localhost/d' /etc/hosts
 
