@@ -41,7 +41,7 @@ runs:
       shell: bash
       if: ${{ inputs.mysql_liquibase == 'true' }}
       run: |
-        sudo systemctl start mysql.service
+        #sudo systemctl start mysql.service
         mysqladmin -u ${{ inputs.mysql_user }} -p'${{ inputs.mysql_user }}' password ${{ inputs.mysql_password }}
         # remove ipv6 localhost to allow test-i pack to run correctly
         sudo sed -i '/::1     localhost/d' /etc/hosts
