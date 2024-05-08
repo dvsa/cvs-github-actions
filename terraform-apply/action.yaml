@@ -10,12 +10,18 @@ inputs:
   environment-name:
     description: Environment Identifier (e.g. `cb2-1099`)
     required: true
+  environment-type:
+    description: Environment Type (e.g. `develop`, `feature`)
+    required: false
   terraform-version:
     description: The version of Terraform to use (defaults to 1.7.3)
     default: 1.7.3
   create-workspace:
     description: Should a new Terraform Workspace be created
     default: 'true'
+  var-file:
+    description: Load an environment specific TFVARS file
+    default: 'false'
 
 runs:
   using: composite
@@ -36,6 +42,6 @@ runs:
       shell: bash
       run: |
         # Apply Terraform from a Plan
-        terraform apply ${{ inputs.options }} -lock-timeout=300s terraform.tfplan && \
+        terraform apply ${{ inputs.options }} ${{ inputs.var-file == 'true' && format('-var-file="environments/{0}.tfvars"', inputs.environment-type) || '' }} -lock-timeout=300s terraform.tfplan && \
         echo 'Terraform Applied ✅' >> $GITHUB_STEP_SUMMARY || \
         echo 'Terraform Apply Failed ❌' >> $GITHUB_STEP_SUMMARY
