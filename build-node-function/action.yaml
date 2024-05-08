@@ -45,7 +45,7 @@ runs:
         sudo apt-get update && sudo apt-get install mysql-server -y
         sudo usermod -d /var/lib/mysql/ mysql
         sudo service mysql start
-        sudo mysqladmin -u ${{ inputs.mysql_user }} -p${{ inputs.mysql_user }} password ${{ inputs.mysql_password }}
+        sudo mysql -u ${{ inputs.mysql_user }} -p${{ inputs.mysql_user }} -e "ALTER USER '${{ inputs.mysql_user }}'@'localhost' IDENTIFIED WITH mysql_native_password BY '${{ inputs.mysql_password}}';"
         # remove ipv6 localhost to allow test-i pack to run correctly
         #sudo sed -i '/::1     localhost/d' /etc/hosts
 
