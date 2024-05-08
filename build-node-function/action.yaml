@@ -41,7 +41,9 @@ runs:
       shell: bash
       if: ${{ inputs.mysql_liquibase == 'true' }}
       run: |
-        sudo service start mysql.service
+        # Install and Congfigure MySQL
+        sudo apt-get update && sudo apt-get install mysql-server -y
+        sudo service mysql start
         mysqladmin -u ${{ inputs.mysql_user }} -p'${{ inputs.mysql_user }}' password ${{ inputs.mysql_password }}
         # remove ipv6 localhost to allow test-i pack to run correctly
         sudo sed -i '/::1     localhost/d' /etc/hosts
