@@ -4,7 +4,7 @@ description: Perform a Terraform Scan
 inputs:
   environment-name:
     description: Environment Identifier (e.g. `cb2-1099`)
-    required: false
+    required: true
   terraform-version:
     description: The version of Terraform to use (defaults to 1.7.3)
     default: 1.7.3
