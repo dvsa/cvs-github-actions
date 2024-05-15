@@ -31,8 +31,6 @@ runs:
       
     - name: Chekov Scan
       run: |
-        brew install checkov
-
         checkov -d . --skip-framework github_actions -o sarif > checkov_results.sarif || error_code=$?
         
         if [[ $error_code -ne 0 ]]; then
