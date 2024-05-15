@@ -33,7 +33,7 @@ runs:
       run: |
         brew install checkov
 
-        checkov -d . --skip-framework github_actions --output-file-format sarif --output-file-path checkov_results.sarif ||  error_code=$?
+        checkov -d . --skip-framework github_actions --output sarif > checkov_results.sarif ||  error_code=$?
         
         if [[ $error_code -ne 0 ]]; then
           echo "Checkov scan failed" >> $GITHUB_STEP_SUMMARY
