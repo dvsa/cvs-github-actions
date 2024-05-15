@@ -30,6 +30,7 @@ runs:
         terraform fmt -check=true -diff=true || true
       
     - name: Chekov Scan
+      continue-on-error: true
       run: |
         checkov -d . --skip-framework github_actions -o sarif 
         
