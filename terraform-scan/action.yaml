@@ -32,6 +32,7 @@ runs:
     - name: Chekov Scan
       continue-on-error: true 
       run: |
+        brew install checkov
         checkov -d . --skip-framework github_actions -o sarif --output-file-path checkov_results.sarif
       shell: bash
 
