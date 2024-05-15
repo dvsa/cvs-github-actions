@@ -33,17 +33,12 @@ runs:
       continue-on-error: true 
       run: |
         brew install checkov
-        checkov -d . --skip-framework github_actions -o github_failed_only 
+        checkov -d . --skip-framework github_actions -o github_failed_only --output-file-path checkov_failures.json >> GITHUB_STEP_SUMMARY
       shell: bash
+
+      # retention for 5 days 
 
     # - name: Upload SARIF results
     #   uses: github/codeql-action/upload-sarif@v3
     #   with:
     #     sarif_file: checkov_results.sarif
-
-
-    - name: Terraform Lint 
-      shell: bash
-      run: |
-        tflint --init
-        tflint
