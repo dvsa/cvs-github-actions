@@ -32,7 +32,7 @@ runs:
     - name: Chekov Scan
       if: always()
       run: |
-        checkov -d . --skip-framework github_actions -o sarif >> checkov_results.sarif
+        checkov -d . --skip-framework github_actions -o sarif -o checkov_results.sarif
       shell: bash
 
     - name: Upload SARIF results
