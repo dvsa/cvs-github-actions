@@ -31,7 +31,7 @@ runs:
       
     - name: Chekov Scan
       run: |
-        checkov -d . --skip-framework github_actions -o sarif > checkov_results.sarif 
+        checkov -d . --skip-framework github_actions -o sarif 
         
         if [[ $error_code -ne 0 ]]; then
           echo "Checkov scan failed" >> $GITHUB_STEP_SUMMARY
