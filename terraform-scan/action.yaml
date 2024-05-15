@@ -30,9 +30,9 @@ runs:
         terraform fmt -check=true -diff=true || true
       
     - name: Chekov Scan
-      continue-on-error: true
+      if: always()
       run: |
-        checkov -d . --skip-framework github_actions -o sarif 
+        checkov -d . --skip-framework github_actions -o checkov_results.sarif 
         
         if [[ $error_code -ne 0 ]]; then
           echo "Checkov scan failed" >> $GITHUB_STEP_SUMMARY
