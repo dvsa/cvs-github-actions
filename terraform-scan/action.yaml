@@ -30,11 +30,23 @@ runs:
         terraform fmt -check=true -diff=true || true
       
     - name: Chekov Scan
-      continue-on-error: true 
+      continue-on-error: true
+      with: 
+          soft_fail: true
+          github_token: ${{ github.token }}
+          format: markdown
+          additional_args: --out checkov-report-${{ github.run_id }}.md
       run: |
         brew install checkov
-        checkov -d . --skip-framework github_actions -o github_failed_only --output-file-path checkov_failures.json >> GITHUB_STEP_SUMMARY
+        checkov -d . --skip-framework github_actions -o github_failed_only 
       shell: bash
+
+    - name: 📝 Upload Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: checkov-report-${{ github.run_id }}
+        path: checkov-report-${{ github.run_id }}.md
+        retention-days: 5
 
       # retention for 5 days 
 
