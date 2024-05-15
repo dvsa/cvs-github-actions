@@ -33,7 +33,7 @@ runs:
       continue-on-error: true
       run: |
         brew install checkov
-        checkov -d . --skip-framework github_actions -o github_failed_only  --out checkov-report-${{ github.run_id }}.md
+        checkov -d . --skip-framework github_actions -o github_failed_only  --output-file-path checkov-report-${{ github.run_id }}.md
       shell: bash
 
     - name: 📝 Upload Report
