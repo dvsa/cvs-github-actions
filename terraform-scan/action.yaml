@@ -33,7 +33,13 @@ runs:
       run: |
         brew install checkov
 
-        checkov -d . --skip-framework github_actions --output sarif > checkov_results.sarif 
+        checkov -d . --skip-framework github_actions -o sarif > checkov_results.sarif || error_code=$?
+        
+        if [[ $error_code -ne 0 ]]; then
+          echo "Checkov scan failed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "Checkov scan passed" >> $GITHUB_STEP_SUMMARY
+        fi
       shell: bash
 
     - name: Upload SARIF results
