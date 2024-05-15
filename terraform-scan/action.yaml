@@ -40,8 +40,6 @@ runs:
         else
           echo "Checkov scan passed" >> $GITHUB_STEP_SUMMARY
         fi
-
-        --output-file checkov_results.sarif
       shell: bash
 
     - name: Upload SARIF results
