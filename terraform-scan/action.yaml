@@ -31,14 +31,9 @@ runs:
       
     - name: Chekov Scan
       continue-on-error: true
-      with: 
-          soft_fail: true
-          github_token: ${{ github.token }}
-          format: markdown
-          additional_args: --out checkov-report-${{ github.run_id }}.md
       run: |
         brew install checkov
-        checkov -d . --skip-framework github_actions -o github_failed_only 
+        checkov -d . --skip-framework github_actions -o github_failed_only  --out checkov-report-${{ github.run_id }}.md
       shell: bash
 
     - name: 📝 Upload Report
