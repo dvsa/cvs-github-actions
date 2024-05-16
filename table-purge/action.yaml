@@ -24,11 +24,7 @@ runs:
         [[ $range_key == null ]] && range_key=''
 
         # Scan Table and remove each Item
-        IFS=$'\n'
-        for item in $(aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${{ inputs.table }} --query 'Items[*]' | jq -c '.[]'); do
-          echo "Purging $item"
-          ${{ inputs.dry-run == 'true' && 'echo ' || '' }}aws dynamodb delete-item --table-name ${{ inputs.table }} --key $item
-        done
+        aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${{ inputs.table }} --query 'Items[*]' | jq -c '.[]' | xargs -0 -L1 -rd'\n' -P8 sh -c 'echo "Purging $0" && ${{ inputs.dry-run == 'true' && 'echo ' || '' }}aws dynamodb delete-item --table-name ${{ inputs.table }} --key "$0"'          
 
 
 
