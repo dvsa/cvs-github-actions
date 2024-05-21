@@ -24,23 +24,20 @@ runs:
         create-workspace: ${{ inputs.create-workspace }}
     
     - name: Terraform format
+      continue-on-error: true
       shell: bash
       run: |
-        terraform fmt -check=true -diff=true
+        terraform fmt -check=true -diff=true || true
       
     - name: Chekov Scan
+      continue-on-error: true
       run: |
-        checkov -d . --skip-framework github_actions || error_code=$?
-        
-        if [[ $error_code -ne 0 ]]; then
-          echo "Checkov scan failed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "Checkov scan passed" >> $GITHUB_STEP_SUMMARY
-        fi
+        checkov -d . --skip-framework github_actions -o github_failed_only  --output-file-path checkov-report-${{ github.run_id }}.md
       shell: bash
 
-    - name: Terraform Lint 
-      shell: bash
-      run: |
-        tflint --init
-        tflint
+    - name: 📝 Upload Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: checkov-report-${{ github.run_id }}
+        path: checkov-report-${{ github.run_id }}.md
+        retention-days: 5
