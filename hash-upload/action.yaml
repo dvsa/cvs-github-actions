@@ -27,7 +27,7 @@ runs:
         # Upload all ${{ inputs.commit-id }}*.zip files to S3
         echo -n ${{ inputs.commit-id }} > hash.txt
         for FILE in $(ls ${{ inputs.commit-id }}*.zip); do
-          if [[ $(gawk '{print index($0,"-")}' <<< $FILE) > 0 ]]; then
+          if [[ $(awk '{print index($0,"-")}' <<< $FILE) > 0 ]]; then
             SERVICE="-$(sed -E "s/${{ inputs.commit-id }}-(.*)\.zip/\1/" <<< $FILE)"
           fi
           NODE_SHA=$(openssl dgst -sha256 -binary ${{ inputs.commit-id }}$SERVICE.zip | openssl enc -base64)
