@@ -8,8 +8,14 @@ inputs:
   terraform-version:
     description: The version of Terraform to use (defaults to 1.7.3)
     default: 1.7.3
+  working-directory: 
+    description: The working directory of the code
+    required: false
   create-workspace:
     description: Should a new Terraform Workspace be created
+    default: 'false'
+  var-file:
+    description: Load an environment specific TFVARS file
     default: 'false'
 
 runs:
@@ -22,6 +28,8 @@ runs:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
         create-workspace: ${{ inputs.create-workspace }}
+        working-directory: ${{ inputs.working-directory }}
+        var-file: ${{ inputs.var-file }}
     
     - name: Terraform format
       shell: bash

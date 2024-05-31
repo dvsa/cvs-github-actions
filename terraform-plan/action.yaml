@@ -22,6 +22,9 @@ inputs:
   create-workspace:
     description: Should a new Terraform Workspace be created
     default: 'true'
+  working-directory: 
+    description: The working directory of the code
+    required: false
   var-file:
     description: Load an environment specific TFVARS file
     default: 'false'
@@ -40,12 +43,14 @@ runs:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
         create-workspace: ${{ inputs.create-workspace }}
+        working-directory: ${{ inputs.working-directory }}
+        var-file: ${{ inputs.var-file }}
 
     - name: ✅ Terraform Validate
       shell: bash
       if: ${{ inputs.validate == 'true' }}
       run: |
-        terraform validate -no-color
+        terraform -ch-dir="${{ github.workspace }}/${{ inputs.working-directory }}" validate -no-color ${{ inputs.var-file == 'true' && format('-var-file="environments/{0}.tfvars"', inputs.environment-type) || '' }}
         echo 'Terraform Validated ✅' >> $GITHUB_STEP_SUMMARY
 
     - name: 🛠️ Terraform Plan
@@ -53,7 +58,7 @@ runs:
       shell: bash
       run: |
         # Create Terraform Plan File
-        terraform plan ${{ inputs.options }} ${{ inputs.var-file == 'true' && format('-var-file="environments/{0}.tfvars"', inputs.environment-type) || '' }} -out terraform.tfplan
+        terraform -ch-dir="${{ github.workspace }}/${{ inputs.working-directory }}" plan ${{ inputs.options }} ${{ inputs.var-file == 'true' && format('-var-file="environments/{0}.tfvars"', inputs.environment-type) || '' }} -out terraform.tfplan
         terraform show terraform.tfplan -no-color > plan.txt
         echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
         plan_detail=$(terraform show -no-color terraform.tfplan | grep -E 'Plan:|Your infrastructure')

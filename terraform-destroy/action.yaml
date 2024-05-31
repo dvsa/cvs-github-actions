@@ -8,6 +8,12 @@ inputs:
   terraform-version:
     description: The version of Terraform to use (defaults to 1.7.3)
     default: 1.7.3
+  working-directory: 
+    description: The working directory of the code
+    required: false
+  var-file:
+    description: Load an environment specific TFVARS file
+    default: 'false'
   dry-run:
     description: Don't perform action, just output information
     default: "true"
@@ -20,6 +26,8 @@ runs:
       with:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
+        working-directory: ${{ inputs.working-directory }}
+        var-file: ${{ inputs.var-file }}
         create-workspace: 'false'
 
     - name: Remove VPC Connections
@@ -38,6 +46,8 @@ runs:
         validate: 'false'
         environment-name: ${{ inputs.environment-name }}
         terraform-version: ${{ inputs.terraform-version }}
+        working-directory: ${{ inputs.working-directory }}
+        var-file: ${{ inputs.var-file }}
         create-workspace: 'false'
 
     - name: Terraform Apply
@@ -46,6 +56,8 @@ runs:
       with:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
+        working-directory: ${{ inputs.working-directory }}
+        var-file: ${{ inputs.var-file }}
         create-workspace: 'false'
         
     - name: Remove Workspace
