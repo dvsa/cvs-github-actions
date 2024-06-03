@@ -14,7 +14,7 @@ inputs:
   create-workspace:
     description: Create new Workspace if required
     default: 'true'
-  var-file:
+  terraform-vars:
     description: Load an environment specific TFVARS file
     default: 'false'
 
@@ -34,7 +34,7 @@ runs:
       run: |
         # Initialize ${{ inputs.environment-name }}
         if [[ ! -f ".terraform/environment" ]]; then
-          terraform -ch-dir="${{ github.workspace }}/${{ inputs.working-directory }}" init ${{ inputs.var-file == 'true' && format('-var-file="environments/{0}.tfvars"', inputs.environment-type) || '' }}
+          terraform -ch-dir="${{ github.workspace }}/${{ inputs.working-directory }}" init ${{ inputs.terraform-vars == 'true' && format('-var-file="environments/{0}.tfvars"', inputs.environment-type) || '' }}
           terraform workspace select ${{ inputs.create-workspace == 'true' && '-or-create' || '' }} ${{ inputs.environment-name }} \
           && $(echo "Workspace: ${{ inputs.environment-name }}" >> $GITHUB_STEP_SUMMARY)
         fi  

@@ -14,7 +14,7 @@ inputs:
   create-workspace:
     description: Should a new Terraform Workspace be created
     default: 'false'
-  var-file:
+  terraform-vars:
     description: Load an environment specific TFVARS file
     default: 'false'
 
@@ -29,7 +29,7 @@ runs:
         environment-name: ${{ inputs.environment-name }}
         create-workspace: ${{ inputs.create-workspace }}
         working-directory: ${{ inputs.working-directory }}
-        var-file: ${{ inputs.var-file }}
+        terraform-vars: ${{ inputs.terraform-vars }}
     
     - name: Terraform format
       shell: bash
