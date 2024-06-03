@@ -21,7 +21,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Create/Delete Branch
+    - name: ${{ inputs.action }} Branch
       shell: bash
       run: |
         # Action: ${{ inputs.action }} ${{ inputs.branch-name }} in all Repositories
@@ -33,16 +33,16 @@ runs:
         for repository in $(jq -r '.[]' <<< '${{ inputs.repositories }}'); do
           echo "${{ inputs.action }} ${{ inputs.branch-name }} on ${repository}"
           gh auth setup-git
-          if [[ $(awk '{print length}' <<< $(git ls-remote --heads --tags https://github.com/dvsa/${repository} ${{ inputs.branch-name }})) ${{ inputs.action == 'delete' && '==' || '>' }} 0 ]]; then
-            echo "| ${repository} | ${{ inputs.branch-name }} | ☑️ ${{ inputs.action == 'delete' && 'Does not Exist' || 'Already Exists' }} |" >> $GITHUB_STEP_SUMMARY
+          if [[ $(awk '{print length}' <<< $(git ls-remote --heads --tags https://github.com/dvsa/${repository} ${{ inputs.branch-name }})) ${{ inputs.action == 'Delete' && '==' || '>' }} 0 ]]; then
+            echo "| ${repository} | ${{ inputs.branch-name }} | ☑️ ${{ inputs.action == 'Delete' && 'Does not Exist' || 'Already Exists' }} |" >> $GITHUB_STEP_SUMMARY
 
           else
-            if [[ "${{ inputs.action }}" == "create" ]]; then
+            if [[ "${{ inputs.action }}" == "Create" ]]; then
               commit_id=$(awk '{sub(/[^a-f0-9]+.*/,"",$0); print $0}' <<< $(git ls-remote --heads --tags https://github.com/dvsa/${repository} ${{ inputs.branch-source }}))
               ${{ inputs.dry-run == 'true' && 'echo ' || '' }}gh api -X POST /repos/dvsa/${repository}/git/refs -f ref='refs/heads/${{ inputs.branch-name }}' -f sha="${commit_id}" && { echo "| ${repository} | ${{ inputs.branch-name }} | ✅ Created |" >> $GITHUB_STEP_SUMMARY; } || { echo "| ${repository} | ${{ inputs.branch-name }} | ❌ Failed |" >> $GITHUB_STEP_SUMMARY; }
                 
-            elif [[ "${{ inputs.action }}" == "delete" ]]; then
-              ${{ inputs.dry-run == 'true' && 'echo ' || '' }}gh api -X DELETE /repos/dvsa/${repository}/git/refs/heads/${{ inputs.branch-name }} && { echo "| ${repository} | ${{ inputs.branch-name }} | ✅ Deleted |" >> $GITHUB_STEP_SUMMARY; } || { echo "| ${repository} | ${{ inputs.branch-name }} | ❌ Failed |" >> $GITHUB_STEP_SUMMARY; }
+            elif [[ "${{ inputs.action }}" == "Delete" ]]; then
+              ${{ inputs.dry-run == 'true' && 'echo ' || '' }}gh api -X Delete /repos/dvsa/${repository}/git/refs/heads/${{ inputs.branch-name }} && { echo "| ${repository} | ${{ inputs.branch-name }} | ✅ Deleted |" >> $GITHUB_STEP_SUMMARY; } || { echo "| ${repository} | ${{ inputs.branch-name }} | ❌ Failed |" >> $GITHUB_STEP_SUMMARY; }
 
             else
               echo "❌ Invalid action requested: `${{ inputs.action }}`" >> $GITHUB_STEP_SUMMARY
