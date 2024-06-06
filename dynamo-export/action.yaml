@@ -8,12 +8,6 @@ inputs:
   dynamo-table:
     description: The DynamoDB Table name to be Exported
     required: true
-  s3-bucket:
-    description: The S3 Bucket to export to
-    default: cvs-${{ inputs.environment }}-tf-data
-  s3-key:
-    description: The S3 Key to store exports within
-    default: dynamodb-extract
   enable-backups:
     description: Should Backups be enabled once complete
     default: "true"
@@ -24,10 +18,13 @@ runs:
 
     - name: Export Table
       shell: bash
+      env:
+        s3-bucket: cvs-${{ inputs.environment }}-tf-data
+        s3-key: dynamodb-extract
       run: |
         # Create Table Backup
         account=$(aws sts get-caller-identity --query "Account" --output text)
         aws dynamodb update-continuous-backups --table-name "cvs-${{ inputs.environment }}-${{ inputs.dynamo-table }}" --point-in-time-recovery-specification PointInTimeRecoveryEnabled=True
-        aws dynamodb export-table-to-point-in-time --table-arn "arn:aws:dynamodb:eu-west-1:${account}:table/${{ inputs.dynamo-table }}" --s3-bucket ${{ inputs.s3-bucket }} --s3-prefix ${{ inputs.s3-key }}/cvs-${{ inputs.environment }}-${{ inputs.dynamo-table }}/$(date '+%-m')/$(date '+%-d') --export-format DYNAMODB_JSON --s3-sse-algorithm AES256
+        aws dynamodb export-table-to-point-in-time --table-arn "arn:aws:dynamodb:eu-west-1:${account}:table/${{ inputs.dynamo-table }}" --s3-bucket ${{ env.s3-bucket }} --s3-prefix ${{ env.s3-key }}/cvs-${{ inputs.environment }}-${{ inputs.dynamo-table }}/$(date '+%-m')/$(date '+%-d') --export-format DYNAMODB_JSON --s3-sse-algorithm AES256
         aws dynamodb update-continuous-backups --table-name "cvs-${{ inputs.environment }}-${{ inputs.dynamo-table }}" --point-in-time-recovery-specification PointInTimeRecoveryEnabled=${{ inputs.enable-backups }}
         
