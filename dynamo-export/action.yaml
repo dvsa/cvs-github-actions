@@ -24,7 +24,7 @@ runs:
       run: |
         # Create Table Backup
         account=$(aws sts get-caller-identity --query "Account" --output text)
-        aws dynamodb update-continuous-backups --table-name "cvs-${{ inputs.environment }}-${{ inputs.dynamo-table }}" --point-in-time-recovery-specification PointInTimeRecoveryEnabled=True
-        aws dynamodb export-table-to-point-in-time --table-arn "arn:aws:dynamodb:eu-west-1:${account}:table/${{ inputs.dynamo-table }}" --s3-bucket ${{ env.s3-bucket }} --s3-prefix ${{ env.s3-key }}/cvs-${{ inputs.environment }}-${{ inputs.dynamo-table }}/$(date '+%-m')/$(date '+%-d') --export-format DYNAMODB_JSON --s3-sse-algorithm AES256
-        aws dynamodb update-continuous-backups --table-name "cvs-${{ inputs.environment }}-${{ inputs.dynamo-table }}" --point-in-time-recovery-specification PointInTimeRecoveryEnabled=${{ inputs.enable-backups }}
+        aws dynamodb update-continuous-backups --table-name "${{ inputs.dynamo-table }}" --point-in-time-recovery-specification PointInTimeRecoveryEnabled=True
+        aws dynamodb export-table-to-point-in-time --table-arn "arn:aws:dynamodb:eu-west-1:${account}:table/${{ inputs.dynamo-table }}" --s3-bucket ${{ env.s3-bucket }} --s3-prefix ${{ env.s3-key }}/${{ inputs.dynamo-table }}/$(date '+%-m')/$(date '+%-d') --export-format DYNAMODB_JSON --s3-sse-algorithm AES256
+        aws dynamodb update-continuous-backups --table-name "${{ inputs.dynamo-table }}" --point-in-time-recovery-specification PointInTimeRecoveryEnabled=${{ inputs.enable-backups }}
         
