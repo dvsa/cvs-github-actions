@@ -1,0 +1,52 @@
+name: Install Depencies
+
+description: Install Depency Based on OS
+
+inputs:
+  depencies:
+    description: List of depencies to install 
+
+runs:
+  using: composite
+  steps:
+    - name: Check and Install 
+      shell: bash
+      run: | 
+        set -e
+
+        IFS=',' read -r -a deps <<< "${{ inputs.depencies }}"
+
+        # Linux
+        install_ubuntu() {
+          sudo apt-get update
+          for dep in "${deps[@]}"; do
+            if ! dpkg -s "$dep" >/dev/null 2>&1; then
+              echo "Installing $dep"
+              sudo apt-get install -y "$dep"
+            else 
+              echo "$dep is already installed"
+            fi 
+          done
+        }
+        # MacOs
+        install_macos() {
+          brew update
+          for dep in "${deps[@]}"; do
+            if ! brew list "$dep" >/dev/null 2>&1; then 
+              echo "Installing $dep" 
+              brew install "$dep"
+            else 
+              echo "$dep is already installed"
+            fi 
+          done
+        }
+
+        # Detect OS and call appropriate function
+        if [[ "$RUNNER_OS" == "Linux"]]; then 
+          install_ubuntu
+        elif [[ "$RUNNER_OS" == "macOS"]]; then
+          install_macos
+        else
+          echo "unsupported OS: $RUNNER_OS"
+          exit 1
+        fi 
