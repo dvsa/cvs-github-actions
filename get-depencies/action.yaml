@@ -20,7 +20,7 @@ runs:
         install_ubuntu() {
           sudo apt-get update
           for dep in "${deps[@]}"; do
-            if ! dpkg -s "$dep" >/dev/null 2>&1; then
+            if ! dpkg -s "$dep" > /dev/null 2>&1; then
               echo "Installing $dep"
               sudo apt-get install -y "$dep"
             else 
@@ -32,7 +32,7 @@ runs:
         install_macos() {
           brew update
           for dep in "${deps[@]}"; do
-            if ! brew list "$dep" >/dev/null 2>&1; then 
+            if ! brew list "$dep" > /dev/null 2>&1; then 
               echo "Installing $dep" 
               brew install "$dep"
             else 
