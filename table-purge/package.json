@@ -1,0 +1,17 @@
+{
+  "name": "table-purge",
+  "version": "1.0.0",
+  "description": "Purge DynamoDB Table",
+  "repository": "https://github.com/dvsa/cvs-github-actions",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Rafal Wilinski",
+  "url": "https://dynobase.dev/code-examples/dynamodb-delete-all-items-with-partition-key/",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@aws-sdk/client-dynamodb": "^3.490.0"
+  }
+}
