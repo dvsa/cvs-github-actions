@@ -8,9 +8,6 @@ inputs:
   partition-key-name:
     description: The partition key name of the table
     required: true
-  partition-key-value:
-    description: The partition key value to identify items to delete
-    required: true
   sort-key-name:
     description: The sort key name of the table (optional)
     required: false
@@ -43,12 +40,6 @@ runs:
           echo "Running purge script..."
           node index.js
         fi
-      env:
-        TABLE_NAME: ${{ inputs.table }}
-        PARTITION_KEY_NAME: ${{ inputs.partition-key-name }}
-        PARTITION_KEY_VALUE: ${{ inputs.partition-key-value }}
-        SORT_KEY_NAME: ${{ inputs['sort-key-name'] }}
-        AWS_REGION: ${{ env.AWS_REGION }}
 
     - name: Dry run message
       if: ${{ inputs.dry-run == 'true' }}
