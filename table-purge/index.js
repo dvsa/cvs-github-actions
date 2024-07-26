@@ -1,11 +1,12 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, QueryCommand, BatchWriteCommand } = require('@aws-sdk/lib-dynamodb');
 
-// Retrieve inputs from environment variables
-const partitionKey = process.env.partitionKey;
-const tableName = process.env.table;
-const partitionKeyName = process.env.partitionKeyName;
-const sortKeyName = process.env.sortKeyName;
+// Retrieve inputs from command line arguments
+const args = process.argv.slice(2);
+const partitionKey = args[0];
+const tableName = args[1];
+const partitionKeyName = args[2];
+const sortKeyName = args[3] || null; // Handle optional sort key
 
 const client = new DynamoDBClient({ region: 'eu-west-1' });
 const dynamoDb = DynamoDBDocumentClient.from(client);
@@ -24,38 +25,30 @@ async function queryItems(dynamoDb, tableName, partitionKeyName, partitionKey) {
     return data.Items;
 }
 
-async function deleteItemsInBatches(dynamoDb, tableName, partitionKeyName, sortKeyName, items) {
-    const batches = [];
-    const batchSize = 25;
-
-    for (let i = 0; i < items.length; i += batchSize) {
-        const batch = items.slice(i, i + batchSize).map(item => {
-            const key = { [partitionKeyName]: item[partitionKeyName] };
-            if (sortKeyName) {
-                key[sortKeyName] = item[sortKeyName];
-            }
-            return {
-                DeleteRequest: {
-                    Key: key
-                }
-            };
-        });
-
-        batches.push(batch);
-    }
-
-    for (const batch of batches) {
-        const batchWriteParams = {
-            RequestItems: {
-                [tableName]: batch
+async function deleteItems(dynamoDb, tableName, partitionKeyName, sortKeyName, items) {
+    const deleteRequests = items.map(item => {
+        const key = { [partitionKeyName]: item[partitionKeyName] };
+        if (sortKeyName) {
+            key[sortKeyName] = item[sortKeyName];
+        }
+        return {
+            DeleteRequest: {
+                Key: key
             }
         };
+    });
 
-        const batchWriteCommand = new BatchWriteCommand(batchWriteParams);
-        await dynamoDb.send(batchWriteCommand);
-    }
+    const batchWriteParams = {
+        RequestItems: {
+            [tableName]: deleteRequests
+        }
+    };
+
+    const batchWriteCommand = new BatchWriteCommand(batchWriteParams);
+    await dynamoDb.send(batchWriteCommand);
 }
 
+// Main function to query and delete items
 async function queryAndDeleteItems() {
     try {
         const items = await queryItems(dynamoDb, tableName, partitionKeyName, partitionKey);
@@ -65,7 +58,7 @@ async function queryAndDeleteItems() {
             return;
         }
 
-        await deleteItemsInBatches(dynamoDb, tableName, partitionKeyName, sortKeyName, items);
+        await deleteItems(dynamoDb, tableName, partitionKeyName, sortKeyName, items);
         console.log("Successfully deleted items with partition key", partitionKey);
     } catch (err) {
         console.error("Error:", err);
