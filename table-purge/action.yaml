@@ -43,5 +43,6 @@ runs:
         fi
 
     - name: Dry run message
+      shell: bash
       if: ${{ inputs.dry-run == 'true' }}
       run: echo "Dry run complete. No items were deleted."
