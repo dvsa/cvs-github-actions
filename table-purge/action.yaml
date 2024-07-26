@@ -29,9 +29,9 @@ runs:
         fi
 
     - name: Set Up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '14' 
+      uses: actions/setup-node@v3
+      with:
+        node-version: '14' 
 
     - name: Install dependencies
       shell: bash
