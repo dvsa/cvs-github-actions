@@ -30,7 +30,7 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: npm install
+      run: brew install node 
 
     - name: Purge Table
       shell: bash
