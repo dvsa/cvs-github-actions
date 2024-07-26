@@ -1,7 +1,6 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, QueryCommand, BatchWriteCommand } = require('@aws-sdk/lib-dynamodb');
 
-// Retrieve inputs from environment variables
 const partitionKey = process.env.partitionKey;
 const tableName = process.env.table;
 const partitionKeyName = process.env.partitionKeyName;
@@ -47,7 +46,6 @@ async function deleteItems(dynamoDb, tableName, partitionKeyName, sortKeyName, i
     await dynamoDb.send(batchWriteCommand);
 }
 
-// Main function to query and delete items
 async function queryAndDeleteItems() {
     try {
         const items = await queryItems(dynamoDb, tableName, partitionKeyName, partitionKey);
@@ -64,5 +62,4 @@ async function queryAndDeleteItems() {
     }
 }
 
-// Run the main function
 queryAndDeleteItems();
