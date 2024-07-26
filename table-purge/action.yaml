@@ -29,6 +29,7 @@ runs:
         fi
 
     - name: Install dependencies
+      shell: bash
       run: npm install
 
     - name: Purge Table
