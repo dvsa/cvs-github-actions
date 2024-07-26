@@ -1,22 +1,21 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, QueryCommand, BatchWriteCommand } = require('@aws-sdk/lib-dynamodb');
 
-// Retrieve inputs from command line arguments
-const args = process.argv.slice(2);
-const partitionKey = args[0];
-const tableName = args[1];
-const partitionKeyName = args[2];
-const sortKeyName = args[3] || null; // Handle optional sort key
+// Retrieve inputs from environment variables
+const partitionKeyValue = process.env.PARTITION_KEY_VALUE;
+const tableName = process.env.TABLE_NAME;
+const partitionKeyName = process.env.PARTITION_KEY_NAME;
+const sortKeyName = process.env.SORT_KEY_NAME || null; // Handle optional sort key
 
-const client = new DynamoDBClient({ region: 'eu-west-1' });
+const client = new DynamoDBClient({ region: process.env.AWS_REGION || 'eu-west-1' });
 const dynamoDb = DynamoDBDocumentClient.from(client);
 
-async function queryItems(dynamoDb, tableName, partitionKeyName, partitionKey) {
+async function queryItems(dynamoDb, tableName, partitionKeyName, partitionKeyValue) {
     const queryParams = {
         TableName: tableName,
         KeyConditionExpression: `${partitionKeyName} = :pk`,
         ExpressionAttributeValues: {
-            ":pk": partitionKey
+            ":pk": partitionKeyValue
         }
     };
 
@@ -25,45 +24,54 @@ async function queryItems(dynamoDb, tableName, partitionKeyName, partitionKey) {
     return data.Items;
 }
 
-async function deleteItems(dynamoDb, tableName, partitionKeyName, sortKeyName, items) {
-    const deleteRequests = items.map(item => {
-        const key = { [partitionKeyName]: item[partitionKeyName] };
-        if (sortKeyName) {
-            key[sortKeyName] = item[sortKeyName];
-        }
-        return {
-            DeleteRequest: {
-                Key: key
+async function deleteItemsInBatches(dynamoDb, tableName, partitionKeyName, sortKeyName, items) {
+    const batchSize = 25; // DynamoDB limits batch write to 25 items
+    const batches = [];
+
+    for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize).map(item => {
+            const key = { [partitionKeyName]: item[partitionKeyName] };
+            if (sortKeyName && item[sortKeyName] !== undefined) {
+                key[sortKeyName] = item[sortKeyName];
+            }
+            return {
+                DeleteRequest: {
+                    Key: key
+                }
+            };
+        });
+        batches.push(batch);
+    }
+
+    for (const batch of batches) {
+        const batchWriteParams = {
+            RequestItems: {
+                [tableName]: batch
             }
         };
-    });
 
-    const batchWriteParams = {
-        RequestItems: {
-            [tableName]: deleteRequests
-        }
-    };
+        const batchWriteCommand = new BatchWriteCommand(batchWriteParams);
+        await dynamoDb.send(batchWriteCommand);
 
-    const batchWriteCommand = new BatchWriteCommand(batchWriteParams);
-    await dynamoDb.send(batchWriteCommand);
+        console.log(`Processed batch of ${batch.length} items.`);
+    }
 }
 
-// Main function to query and delete items
 async function queryAndDeleteItems() {
     try {
-        const items = await queryItems(dynamoDb, tableName, partitionKeyName, partitionKey);
+        const items = await queryItems(dynamoDb, tableName, partitionKeyName, partitionKeyValue);
 
         if (items.length === 0) {
-            console.log("No items found with the partition key", partitionKey);
+            console.log("No items found with the partition key", partitionKeyValue);
             return;
         }
 
-        await deleteItems(dynamoDb, tableName, partitionKeyName, sortKeyName, items);
-        console.log("Successfully deleted items with partition key", partitionKey);
+        console.log(`Found ${items.length} items to delete.`);
+        await deleteItemsInBatches(dynamoDb, tableName, partitionKeyName, sortKeyName, items);
+        console.log("Successfully deleted items with partition key", partitionKeyValue);
     } catch (err) {
         console.error("Error:", err);
     }
 }
 
-// Run the main function
 queryAndDeleteItems();
