@@ -1,57 +1,68 @@
-const { DynamoDBClient, QueryCommand, BatchWriteItemCommand } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, QueryCommand, BatchWriteCommand } = require('@aws-sdk/lib-dynamodb');
 
-// Get the partition key and table name from command line arguments
-const partitionKey = process.argv[2];
-const tableName = process.argv[3];
+// Retrieve inputs from environment variables
+const partitionKey = process.env.partitionKey;
+const tableName = process.env.table;
+const partitionKeyName = process.env.partitionKeyName;
+const sortKeyName = process.env.sortKeyName;
 
-if (!partitionKey || !tableName) {
-    console.error("Usage: node index.js <partitionKey> <tableName>");
-    process.exit(1);
+const client = new DynamoDBClient({ region: 'eu-west-1' });
+const dynamoDb = DynamoDBDocumentClient.from(client);
+
+async function queryItems(dynamoDb, tableName, partitionKeyName, partitionKey) {
+    const queryParams = {
+        TableName: tableName,
+        KeyConditionExpression: `${partitionKeyName} = :pk`,
+        ExpressionAttributeValues: {
+            ":pk": partitionKey
+        }
+    };
+
+    const queryCommand = new QueryCommand(queryParams);
+    const data = await dynamoDb.send(queryCommand);
+    return data.Items;
 }
 
-// Initialize the DynamoDB client
-const dynamoDb = new DynamoDBClient({ region: 'eu-west-1' });
+async function deleteItems(dynamoDb, tableName, partitionKeyName, sortKeyName, items) {
+    const deleteRequests = items.map(item => {
+        const key = { [partitionKeyName]: item[partitionKeyName] };
+        if (sortKeyName) {
+            key[sortKeyName] = item[sortKeyName];
+        }
+        return {
+            DeleteRequest: {
+                Key: key
+            }
+        };
+    });
 
-// Query DynamoDB to get items with the specified partition key
-const queryParams = {
-    TableName: tableName,
-    KeyConditionExpression: "id = :pk",
-    ExpressionAttributeValues: {
-        ":pk": { S: partitionKey }
-    }
-};
+    const batchWriteParams = {
+        RequestItems: {
+            [tableName]: deleteRequests
+        }
+    };
 
-dynamoDb.send(new QueryCommand(queryParams))
-    .then(data => {
-        const items = data.Items;
+    const batchWriteCommand = new BatchWriteCommand(batchWriteParams);
+    await dynamoDb.send(batchWriteCommand);
+}
 
-        if (!items || items.length === 0) {
-            console.log("No items found with partition key", partitionKey);
+// Main function to query and delete items
+async function queryAndDeleteItems() {
+    try {
+        const items = await queryItems(dynamoDb, tableName, partitionKeyName, partitionKey);
+
+        if (items.length === 0) {
+            console.log("No items found with the partition key", partitionKey);
             return;
         }
 
-        // Prepare the batch delete request
-        const deleteRequests = items.map(item => ({
-            DeleteRequest: {
-                Key: {
-                    id: { S: item.id.S },
-                    // Assuming sortKey exists. If not, remove this or handle accordingly.
-                    sortKey: item.sortKey ? { S: item.sortKey.S } : undefined 
-                }
-            }
-        }));
-
-        const batchWriteParams = {
-            RequestItems: {
-                [tableName]: deleteRequests
-            }
-        };
-
-        return dynamoDb.send(new BatchWriteItemCommand(batchWriteParams));
-    })
-    .then(() => {
+        await deleteItems(dynamoDb, tableName, partitionKeyName, sortKeyName, items);
         console.log("Successfully deleted items with partition key", partitionKey);
-    })
-    .catch(err => {
+    } catch (err) {
         console.error("Error:", err);
-    });
+    }
+}
+
+// Run the main function
+queryAndDeleteItems();
