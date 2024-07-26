@@ -40,12 +40,13 @@ runs:
     - name: Purge Table
       shell: bash
       run: |
-        if [ "${{ inputs.dry-run }}" == "true" ]; then
-          echo "Dry run mode enabled. No items will be deleted."
-        else
-          echo "Running purge script..."
-          node index.js
-        fi
+        echo "Running purge script..."
+        node index.js \
+          --table "${{ inputs.table }}" \
+          --partition-key-name "${{ inputs['partition-key-name'] }}" \
+          --partition-key-value "${{ inputs['partition-key-value'] }}" \
+          --sort-key-name "${{ inputs['sort-key-name'] }}" \
+          --dry-run "${{ inputs.dry-run }}"
 
     - name: Dry run message
       shell: bash
