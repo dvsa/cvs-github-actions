@@ -38,6 +38,7 @@ runs:
       run: npm install 
 
     - name: Purge Table
+      uses: ./table-purge/index.js
       shell: bash
       run: |
         echo "Running purge script..."
