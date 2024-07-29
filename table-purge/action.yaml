@@ -34,8 +34,8 @@ runs:
         node-version: '16' 
 
     - name: Install dependencies
-      shell: bash
       run: npm install 
+      working-directory: ./table-purge 
 
     - name: Purge Table
       shell: bash
