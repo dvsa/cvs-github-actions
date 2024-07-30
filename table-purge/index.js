@@ -1,42 +1,73 @@
-const {DynamoDB} = require('@aws-sdk/client-dynamodb');
 const core = require('@actions/core');
+const { DynamoDBClient, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, BatchWriteCommand } = require('@aws-sdk/lib-dynamodb');
 
-const partitionKey = core.getInput('partitionKey');
-const tableName = core.getInput('table');
+async function run() {
+    try {
+        const tableName = core.getInput('table');
+        const dryRun = core.getInput('dry-run') === 'true';
 
-// Use the query method to retrieve all items with the specified partition key
-const dynamoDb = new DynamoDB.Document();
-dynamoDb.query({
-    TableName: tableName,
-    KeyConditionExpression: "partitionKey = :pk",
-    ExpressionAttributeValues: {
-        ":pk": partitionKey
-    }
-}, (err, data) => {
-    if (err) {
-        console.error("Error querying DynamoDB:", err);
-    } else {
-        // Extract the items from the query result
-        const items = data.Items;
+        const client = new DynamoDBClient();
+        const docClient = DynamoDBDocumentClient.from(client);
 
-        // Use the batchWrite method to delete the items
-        dynamoDb.batchWrite({
-            RequestItems: {
-                [tableName]: items.map(item => ({
-                    DeleteRequest: {
-                        Key: {
-                            partitionKey: item.partitionKey,
-                            sortKey: item.sortKey
+        // Get table key schema
+        const describeTable = await client.send(new DescribeTableCommand({ TableName: tableName }));
+        const keySchema = describeTable.Table.KeySchema;
+
+        // Identify hash key and range key
+        const hashKey = keySchema.find(key => key.KeyType === 'HASH').AttributeName;
+        const rangeKey = keySchema.find(key => key.KeyType === 'RANGE') ? keySchema.find(key => key.KeyType === 'RANGE').AttributeName : null;
+
+        // Scan the table to get all items
+        let scanParams = {
+            TableName: tableName,
+            ProjectionExpression: hashKey + (rangeKey ? `, ${rangeKey}` : '')
+        };
+
+        let scanResult;
+        do {
+            scanResult = await docClient.send(new ScanCommand(scanParams));
+
+            const items = scanResult.Items;
+
+            // Delete items in batches of 25
+            const batches = [];
+            while (items.length) {
+                batches.push(items.splice(0, 25));
+            }
+
+            for (const batch of batches) {
+                const deleteRequests = batch.map(item => {
+                    const key = {};
+                    key[hashKey] = item[hashKey];
+                    if (rangeKey) key[rangeKey] = item[rangeKey];
+
+                    return {
+                        DeleteRequest: {
+                            Key: key
                         }
-                    }
-                }))
+                    };
+                });
+
+                if (dryRun) {
+                    console.log(`Dry run - would delete batch with keys: ${JSON.stringify(deleteRequests)}`);
+                } else {
+                    console.log(`Deleting batch with keys: ${JSON.stringify(deleteRequests)}`);
+                    await docClient.send(new BatchWriteCommand({
+                        RequestItems: {
+                            [tableName]: deleteRequests
+                        }
+                    }));
+                }
             }
-        }, (err) => {
-            if (err) {
-                console.error("Error deleting items from DynamoDB:", err);
-            } else {
-                console.log("Successfully deleted items with partition key", partitionKey);
-            }
-        });
+
+            scanParams.ExclusiveStartKey = scanResult.LastEvaluatedKey;
+
+        } while (typeof scanResult.LastEvaluatedKey !== 'undefined');
+
+    } catch (error) {
+        core.setFailed(`Action failed with error ${error}`);
     }
-});
+}
+
+run();
