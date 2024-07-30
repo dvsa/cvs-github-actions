@@ -12,17 +12,17 @@ inputs:
 runs:
   using: node20
   main: index.js
-  steps:
+  # steps:
 
-    - name: Purge Table
-      shell: bash
-      run: |
-        # Empty the DynamoDB Tables
+  #   - name: Purge Table
+  #     shell: bash
+  #     run: |
+  #       # Empty the DynamoDB Tables
 
-        # Get Range and Hash Key from Table
-        hash_key=$(aws dynamodb describe-table --table-name ${{ inputs.table }} --query 'Table.KeySchema[?KeyType==`HASH`].AttributeName | [0]' | jq -r)
-        range_key=$(aws dynamodb describe-table --table-name ${{ inputs.table }} --query 'Table.KeySchema[?KeyType==`RANGE`].AttributeName | [0]' | jq -r)
-        [[ $range_key == null ]] && range_key=''
+  #       # Get Range and Hash Key from Table
+  #       hash_key=$(aws dynamodb describe-table --table-name ${{ inputs.table }} --query 'Table.KeySchema[?KeyType==`HASH`].AttributeName | [0]' | jq -r)
+  #       range_key=$(aws dynamodb describe-table --table-name ${{ inputs.table }} --query 'Table.KeySchema[?KeyType==`RANGE`].AttributeName | [0]' | jq -r)
+  #       [[ $range_key == null ]] && range_key=''
 
-        # Scan Table and remove each Item
-        aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${{ inputs.table }} --query 'Items[*]' | jq -c '.[]' | xargs -0 -L1 -rd'\n' -P8 sh -c 'echo "Purging $0" && ${{ inputs.dry-run == 'true' && 'echo ' || '' }}aws dynamodb delete-item --table-name ${{ inputs.table }} --key "$0"'          
+  #       # Scan Table and remove each Item
+  #       aws dynamodb scan --attributes-to-get ${hash_key} ${range_key} --table-name ${{ inputs.table }} --query 'Items[*]' | jq -c '.[]' | xargs -0 -L1 -rd'\n' -P8 sh -c 'echo "Purging $0" && ${{ inputs.dry-run == 'true' && 'echo ' || '' }}aws dynamodb delete-item --table-name ${{ inputs.table }} --key "$0"'          
