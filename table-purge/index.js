@@ -18,10 +18,27 @@ async function run() {
         const hashKey = keySchema.find(key => key.KeyType === 'HASH').AttributeName;
         const rangeKey = keySchema.find(key => key.KeyType === 'RANGE') ? keySchema.find(key => key.KeyType === 'RANGE').AttributeName : null;
 
+        // Handle reserved keywords
+        const expressionAttributeNames = {};
+        let projectionExpression = hashKey;
+        if (hashKey.toLowerCase() === 'name') {
+            expressionAttributeNames['#hashKey'] = hashKey;
+            projectionExpression = '#hashKey';
+        }
+        if (rangeKey) {
+            if (rangeKey.toLowerCase() === 'name') {
+                expressionAttributeNames['#rangeKey'] = rangeKey;
+                projectionExpression += ', #rangeKey';
+            } else {
+                projectionExpression += `, ${rangeKey}`;
+            }
+        }
+
         // Scan the table to get all items
         let scanParams = {
             TableName: tableName,
-            ProjectionExpression: hashKey + (rangeKey ? `, ${rangeKey}` : '')
+            ProjectionExpression: projectionExpression,
+            ExpressionAttributeNames: Object.keys(expressionAttributeNames).length > 0 ? expressionAttributeNames : undefined
         };
 
         let scanResult;
