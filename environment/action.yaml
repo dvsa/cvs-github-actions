@@ -50,6 +50,12 @@ runs:
             github_branch=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
             ;;
 
+          ?(main))
+            environment_type=develop
+            environment_name=develop
+            github_branch=$(echo ${{ inputs.environment }} | tr '[:upper:]' '[:lower:]')
+            ;;
+
           *)
             echo "Branch Id \`${{ inputs.environment }}\` does not correlate to a suitable environment" >> $GITHUB_STEP_SUMMARY
             exit 99
