@@ -1,0 +1,53 @@
+name: Dynamo Restore
+description: Restore a DynamoDB Table to another Table
+
+inputs:
+  source:
+    description: The Source Environment of the Table
+    required: true
+  destination:
+    description: The Target Environment for the Table Restore
+    required: true
+  dynamo-table:
+    description: The DynamoDB Table name to be Exported
+    required: true
+  enable-backups:
+    description: Should Backups be enabled once complete
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+
+    - name: Export Table
+      shell: bash
+      env:
+        source: ${{ inputs.source }}
+        destination: ${{ inputs.destination }}
+        table: ${{ inputs.dynamo-table }}
+      run: |
+        # Create Table Backup
+        account=$(aws sts get-caller-identity --query "Account" --output text)
+
+        # Calculate proper table name for Reference Data
+        if [[ "${table}" == *"reference-data"* ]]; then
+          target_table_name=$(aws dynamodb list-tables | jq -r --arg table $(sed -E 's/${{ env.source }}/${{ env.destination }}/g' <<< ${table%-*}) '[.TableNames[] | select(. | contains($table))][0]')
+        else
+          target_table_name=$(aws dynamodb list-tables | jq -r --arg table $(sed -E 's/${{ env.source }}/${{ env.destination }}/g' <<< ${table}) '[.TableNames[] | select(. | contains($table))][0]')
+        fi
+
+        # Delete PreProd Table
+        printf "# \033[0;34mDelete table \033[0m${target_table_name}\n"
+        aws dynamodb delete-table --table-name "arn:aws:dynamodb:eu-west-1:${account}:table/${target_table_name}" \
+        && aws dynamodb wait table-not-exists --table-name "arn:aws:dynamodb:eu-west-1:${account}:table/${target_table_name}" \
+        || printf "## \033[0;32mTable does not exist\033[0m\n"
+        
+        # Create PreProd Table from Prod Backup
+        printf "# \033[0;34mRestore \033[0m${target_table_name} \033[0;34mfrom \033[0m${{ env.source }}\n"
+        aws dynamodb restore-table-to-point-in-time --source-table-arn "arn:aws:dynamodb:eu-west-1:${account}:table/${{ inputs.dynamo-table }}" --target-table-name "${target_table_name}" --use-latest-restorable-time
+        AWS_MAX_ATTEMPTS=100 aws dynamodb wait table-exists --table-name "arn:aws:dynamodb:eu-west-1:${account}:table/${target_table_name}"
+
+        if [[ "${{ inputs.enable-backups }}" == "false" ]]; then
+          printf "# \033[0;34mDisable Point In Time Recovery (PITR) on \033[0m${{ inputs.dynamo-table }}\n"
+          aws dynamodb update-continuous-backups --table-name "${{ inputs.dynamo-table }}" --point-in-time-recovery-specification PointInTimeRecoveryEnabled=${{ inputs.enable-backups }}
+        fi
