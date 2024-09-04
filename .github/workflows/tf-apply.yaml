@@ -56,7 +56,7 @@ jobs:
           ref: ${{ inputs.branch }}
 
       - name: ⬇️ Download the release artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: plan-${{ inputs.run-id }}
           path: .
