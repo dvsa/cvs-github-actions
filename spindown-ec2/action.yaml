@@ -1,0 +1,29 @@
+name: 🔪 Spin down EC2 Runner
+description: Spins down an EC2 Runner
+
+inputs:
+  github_runner_id:
+    description: Label of the Github runner to spindown (e.g. '7nwto')
+  cvs_ops_pat:
+    description: 'A Github PAT'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Get EC2 instance ID
+      shell: bash
+      run: |
+        echo "aws_ec2_instance_id=$(aws ec2 describe-instances --query 'Reservations[*].Instances[].InstanceId' --filters "Name=tag:GHA_Runner_Tag,Values=${{ inputs.github_runner_id }}" --output text | cat)" >> $GITHUB_ENV
+
+    - name: Target instance ID
+      shell: bash
+      run: echo ${{ env.aws_ec2_instance_id }}
+
+    - name: 🛑 Stop EC2 runner
+      uses: dvsa/aws-github-runner@develop
+      with:
+        mode: stop
+        github-token: ${{ inputs.cvs_ops_pat }}
+        label: ${{ inputs.github_runner_id }}
+        ec2-instance-id: ${{ env.aws_ec2_instance_id }}
