@@ -49,9 +49,10 @@ runs:
         # Wait for table to complete restoring
         complete=false
         while [[ "${complete}" == "false" ]]; do 
-          aws dynamodb wait table-exists --table-name "arn:aws:dynamodb:eu-west-1:${account}:table/${target_table_name}" && { complete=true; printf "# \033[0;34mRestore complete!\033[0m\n" } || printf "# \033[0;34mRestore \033[0m${target_table_name} \033[0;34mstill in progress...\033[0m\n"
+          aws dynamodb wait table-exists --table-name "arn:aws:dynamodb:eu-west-1:${account}:table/${target_table_name}" && complete=true || printf "# \033[0;34mRestore \033[0m${target_table_name} \033[0;34mstill in progress...\033[0m\n"
         done
-
+        printf "# \033[0;34mRestore complete!\033[0m\n"
+        
         # Disable Backups (if required)
         if [[ "${{ inputs.enable-backups }}" == "false" ]]; then
           printf "# \033[0;34mDisable Point In Time Recovery (PITR) on \033[0m${{ inputs.dynamo-table }}\n"
