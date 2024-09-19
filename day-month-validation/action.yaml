@@ -26,11 +26,11 @@ runs:
 
         DAY="${{ inputs.day }}"
         MONTH="${{ inputs.month }}"
-        if [ -z "$DAY"]; then
+        if [ -z "$DAY" ]; then
           DAY=$CURRENT_DAY
           echo "Day input not provided. Using current day: $DAY"
         fi
-        if [ -z "$MONTH"]; then
+        if [ -z "$MONTH" ]; then
           MONTH=$CURRENT_MONTH
           echo "Month input not provided. Using current day: $MONTH"
         fi
