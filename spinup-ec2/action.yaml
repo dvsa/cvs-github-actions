@@ -71,4 +71,4 @@ runs:
       run: |
         aws ec2 create-tags --resources ${{ steps.start-ec2-runner.outputs.ec2-instance-id }} --region ${{ inputs.aws-region }} --tags Key=GHA_Runner_Tag,Value=${{ steps.start-ec2-runner.outputs.label }}
         runner_id=$(gh api /repos/${{ github.repository }}/actions/runners | jq '.runners[] | select(.labels[].name == "${{ steps.start-ec2-runner.outputs.label }}") .id')
-        gh api --method POST /repos/${{ github.repository }}/actions/runners/$runner_id/labels -f "labels[]=EC2"
+        gh api --method POST /repos/${{ github.repository }}/actions/runners/$runner_id/labels -f "labels[]=EC2,cvs-github-actions"
