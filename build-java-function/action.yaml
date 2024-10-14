@@ -1,16 +1,39 @@
 name: Build Java Lambda Function
 description: Test and Build a Java Function
+inputs:
+  commit-sha:
+    description: The Commit SHA of the Branch
+  java-version:
+    description: The Java Version to use
+    default: '11'
+  continue-on-error:
+    description: Ignore failures
+    default: 'false'
 
 runs:
   using: composite
   steps:
-      - name: Build Java
-        shell: bash
-        run: |
-          ./gradlew buildZip
+      - name: Set Up Java 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin' # See 'Supported distributions' for available options
+          java-version: ${{ inputs.java-version }}
 
-      - name: Test Java
+      - name: Build & Test
         shell: bash
+        continue-on-error: ${{ inputs.continue-on-error == 'true' }}
+        env:
+          GRADLE_OPTS: '-Dfile.encoding=utf-8'
         run: |
+          # Build and Test Java App
+          ./gradlew buildZip
           ./gradlew test
           ./gradlew jacocoTestReport
+
+      - name: Copy Build Zip
+        shell: bash
+        run: |
+          # Copy output Zip file, using value in 'settings.gradle'
+          settings_gradle=$(cat settings.gradle | tr -d "'")
+          cp ./build/distributions/${settings_gradle##*=}*.zip ${{ inputs.commit-sha }}.zip
+         
