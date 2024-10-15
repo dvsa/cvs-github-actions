@@ -41,6 +41,7 @@ runs:
         done
 
     - name: Terraform Plan
+      id: plan
       uses: dvsa/cvs-github-actions/terraform-plan@develop
       with:
         options: '-destroy'
@@ -50,7 +51,7 @@ runs:
         create-workspace: 'false'
 
     - name: Terraform Apply
-      if: ${{ inputs.dry-run == 'false' }}
+      if: ${{ inputs.dry-run == 'false' && steps.plan.outputs.changes-detected == 'true' }}
       uses: dvsa/cvs-github-actions/terraform-apply@develop
       with:
         terraform-version: ${{ inputs.terraform-version }}
