@@ -68,3 +68,22 @@ runs:
           plan.txt
           terraform.tfplan
         retention-days: ${{ inputs.plan-retention }}
+
+    - name: 🔓 Unlock State File
+      if: failure()
+      shell: bash
+      run: |
+        # Get the Terraform Repository
+        bucket=$(basename `git rev-parse --show-toplevel`)
+        key=tf_state
+
+        # Unlock Terraform
+        lock_id=$(aws dynamodb get-item --table-name ${bucket} \
+          --key '{"LockID":{"S": "${bucket}/env:/${{ terraform.workspace }}/${key}"}}' \
+          --attributes-to-get Info \
+          | jq -r '.[].Info.S | fromjson | .ID')
+
+        if [ -n "$lock_id" ]; then
+          echo "Attempting to unlock Terraform state..."
+          terraform force-unlock $lock_id <<< "yes"
+        fi
