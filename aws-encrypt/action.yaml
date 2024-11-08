@@ -1,0 +1,52 @@
+name: AWS Encryption
+description: Encrypt or Decrypt a file using AWS Encryption
+
+inputs:
+  action: 
+    description: Encrypt or Decrypt (must be lower case)
+    required: true
+  encryption-key: 
+    description: AWS KMS Key ARN to use for Action
+    required: true
+  file:
+    description: File to Encrypt or Decrypt
+    required: true
+
+runs:
+  using: composite
+  steps:
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13' 
+
+    - name: Cache PIP
+      uses: actions/cache@v4
+      id: cache
+      with:
+          path: ./encrypt
+          key: encrypt-${{inputs.environment }}
+          restore-keys: encrypt-
+
+    - name: Install Encryption CLI
+      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: |
+        # Install the AWS Encrpytion CLI
+        python -m venv encrypt
+        source encrypt/bin/activate
+        python -m pip install aws-encryption-sdk-cli
+
+    - name: Encrypt/Decrypt File
+      id: encrypt
+      shell: bash
+      run: |
+        # ${{ inputs.action }} ${{ inputs.file }}
+        source encrypt/bin/activate
+        aws-encryption-cli --${{ inputs.action }} \
+          --input ${{ inputs.file }}${{ inputs.action == 'decrypt' && '.encrypted' || ''}} \
+          --wrapping-keys provider=aws-kms key=${{ inputs.encryption-key }} \
+          --encryption-context purpose=terraform_state \
+          --metadata-output ~/metadata \
+          --output ${{ inputs.file }}${{ inputs.action == 'encrypt' && '.encrypted' || ''}}

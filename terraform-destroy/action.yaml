@@ -8,7 +8,9 @@ inputs:
   terraform-version:
     description: The version of Terraform to use (defaults to 1.7.3)
     default: 1.7.3
-  
+  encryption-key:
+    description: ARN of a KMS Key to use for Encryption
+    required: false
   dry-run:
     description: Don't perform action, just output information
     default: "true"
@@ -49,6 +51,7 @@ runs:
         environment-name: ${{ inputs.environment-name }}
         terraform-version: ${{ inputs.terraform-version }}
         create-workspace: 'false'
+        encryption-key: ${{ inputs.encryption-key }}
 
     - name: Terraform Apply
       if: ${{ inputs.dry-run == 'false' && steps.plan.outputs.changes-detected == 'true' }}
@@ -57,6 +60,7 @@ runs:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
         create-workspace: 'false'
+        encryption-key: ${{ inputs.encryption-key }}
         
     - name: Remove Workspace
       if: ${{ inputs.dry-run == 'false' }}

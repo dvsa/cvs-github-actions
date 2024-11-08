@@ -22,6 +22,9 @@ inputs:
   repository:
     description: The name of the repository
     default: 'cvs-tf'
+  encryption-key:
+    description: ARN of a KMS Key to use for Encryption
+    required: false
 
 outputs:
   changes-detected:
@@ -63,13 +66,21 @@ runs:
           echo "changes-detected=false" >> $GITHUB_OUTPUT
         fi 
 
+    - name: Encrypt Plan File
+      uses: dvsa/cvs-github-actions/aws-encrypt@develop
+      if: ${{ inputs.encryption-key != '' }}
+      with:
+        action: encrypt
+        encryption-key: ${{ inputs.encryption-key }}
+        file: terraform.tfplan
+
     - name: 📝 Upload Plan
       uses: actions/upload-artifact@v4
       with:
         name: plan-${{ github.run_id }}
         path: |
           plan.txt
-          terraform.tfplan
+          terraform.tfplan.encrypted
         retention-days: ${{ inputs.plan-retention }}
 
     - name: 🔓 Unlock State File
