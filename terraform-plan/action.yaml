@@ -66,13 +66,13 @@ runs:
           echo "changes-detected=false" >> $GITHUB_OUTPUT
         fi 
 
-    - name: Encrypt Plan File
-      uses: dvsa/cvs-github-actions/aws-encrypt@develop
-      if: ${{ inputs.encryption-key != '' }}
-      with:
-        action: encrypt
-        encryption-key: ${{ inputs.encryption-key }}
-        file: terraform.tfplan
+    # - name: Encrypt Plan File
+    #   uses: dvsa/cvs-github-actions/aws-encrypt@develop
+    #   if: ${{ inputs.encryption-key != '' }}
+    #   with:
+    #     action: encrypt
+    #     encryption-key: ${{ inputs.encryption-key }}
+    #     file: terraform.tfplan
 
     - name: 📝 Upload Plan
       uses: actions/upload-artifact@v4
@@ -80,7 +80,7 @@ runs:
         name: plan-${{ github.run_id }}
         path: |
           plan.txt
-          terraform.tfplan.encrypted
+          terraform.tfplan
         retention-days: ${{ inputs.plan-retention }}
 
     - name: 🔓 Unlock State File
