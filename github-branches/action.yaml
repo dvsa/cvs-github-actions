@@ -39,7 +39,7 @@ runs:
           source_branch=${{ inputs.branch-source }}
           if [[ "${{ inputs.branch-source }}" == "develop" ]]; then
             echo https://github.com/dvsa/$repository
-            source_branch=$(git ls-remote --heads https://github.com/dvsa/$repository | sed -n '/HEAD branch/s/.*: //p')
+            source_branch=$(git remote show https://github.com/dvsa/$repository | sed -n '/HEAD branch/s/.*: //p')
           else
             echo "Nope"
           fi
