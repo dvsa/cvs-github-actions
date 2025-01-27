@@ -22,7 +22,7 @@ runs:
   using: composite
   steps:
     - name: Create/Delete Branch
-      shell: bash -l {0}
+      shell: bash
       run: |
         # Action: ${{ inputs.action }} ${{ inputs.branch-name }} in all Repositories
         echo "# Branch ${{ inputs.action }} summary ${{ inputs.dry-run == 'true' && '(Dry Run)' || '' }}" >> $GITHUB_STEP_SUMMARY
@@ -38,7 +38,7 @@ runs:
           
           # Determine source branch dynamically
           source_branch=${{ inputs.branch-source }}
-          if [[ "${{ inputs.branch-source }}" == "develop" ]] && source_branch=$(git remote show https://github.com/dvsa/$repository | sed -n '/HEAD branch/s/.*: //p')
+          [[ "${{ inputs.branch-source }}" == "develop" ]] && source_branch=$(git remote show https://github.com/dvsa/$repository | sed -n '/HEAD branch/s/.*: //p')
 
 
           if [[ $(awk '{print length}' <<< $(git ls-remote --heads --tags https://github.com/dvsa/$repository ${{ inputs.branch-name }})) ${{ inputs.action == 'delete' && '==' || '>' }} 0 ]]; then
