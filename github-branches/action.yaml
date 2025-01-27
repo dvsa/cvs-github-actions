@@ -36,7 +36,7 @@ runs:
           
           # Determine source branch dynamically
           source_branch=${{ inputs.branch-source }}
-          [[ "${{ inputs.branch-source }}" == "develop" ]] && source_branch=$(git ls-remote --heads https://github.com/dvsa/$repository | sed -n '/HEAD branch/s/.*: //p')
+          [[ "${{ inputs.branch-source }}" == "develop" ]] && $source_branch=$(git ls-remote --heads https://github.com/dvsa/$repository | sed -n '/HEAD branch/s/.*: //p')
 
           if [[ $(awk '{print length}' <<< $(git ls-remote --heads --tags https://github.com/dvsa/$repository ${{ inputs.branch-name }})) ${{ inputs.action == 'delete' && '==' || '>' }} 0 ]]; then
             echo "| $repository | ${{ inputs.branch-name }} | ☑️ ${{ inputs.action == 'delete' && 'Does not Exist' || 'Already Exists' }} |" >> $GITHUB_STEP_SUMMARY
