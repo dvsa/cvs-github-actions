@@ -28,6 +28,7 @@ runs:
         echo "# Branch ${{ inputs.action }} summary ${{ inputs.dry-run == 'true' && '(Dry Run)' || '' }}" >> $GITHUB_STEP_SUMMARY
         echo "| Repository | Branch | Status |" >> $GITHUB_STEP_SUMMARY
         echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+        git init
         gh auth setup-git
 
         # Perform Actions
