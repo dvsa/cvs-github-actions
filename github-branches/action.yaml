@@ -29,7 +29,7 @@ runs:
         echo "| Repository | Branch | Status |" >> $GITHUB_STEP_SUMMARY
         echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
 
-        git init -b temp
+        git init -b temp # Perform a git initialization, so that the git commands work
         gh auth setup-git
 
         # Perform Actions
