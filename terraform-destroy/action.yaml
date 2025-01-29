@@ -11,6 +11,8 @@ inputs:
   encryption-key:
     description: ARN of a KMS Key to use for Encryption
     required: false
+  infracost-key:
+    description: API Key for InfraCost
   dry-run:
     description: Don't perform action, just output information
     default: "true"
@@ -52,6 +54,7 @@ runs:
         terraform-version: ${{ inputs.terraform-version }}
         create-workspace: 'false'
         encryption-key: ${{ inputs.encryption-key }}
+        infracost-key: ${{ inputs.infracost-key }}
 
     - name: Terraform Apply
       if: ${{ inputs.dry-run == 'false' && steps.plan.outputs.changes-detected == 'true' }}
