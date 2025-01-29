@@ -25,6 +25,8 @@ inputs:
   encryption-key:
     description: ARN of a KMS Key to use for Encryption
     required: false
+  infracost-key:
+    description: API Key for InfraCost
 
 outputs:
   changes-detected:
@@ -87,7 +89,7 @@ runs:
     - name: 💰 Setup Infracost
       uses: infracost/actions/setup@v3
       with:
-        api-key: ${{ secrets.INFRACOST_API_KEY }}
+        api-key: ${{ inputs.infracost-key }}
 
     - name: 💸 Generate Infracost Information
       shell: bash
