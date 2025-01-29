@@ -83,6 +83,20 @@ runs:
           terraform.tfplan${{ inputs.encryption-key != '' && '.encrypted' || '' }}
         retention-days: ${{ inputs.plan-retention }}
 
+    # Run Infracost to get idea of cost changes
+    - name: 💰 Setup Infracost
+      uses: infracost/actions/setup@v3
+      with:
+        api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+    - name: 💸 Generate Infracost Information
+      shell: bash
+      run: |
+        # Generate Infracost Information
+        terraform show -json terraform.tfplan > plan.json
+        infracost breakdown --path plan.json --format json --out-file breakdown.json
+        infracost output --path breakdown.json --format github-comment >> $GITHUB_STEP_SUMMARY
+
     - name: 🔓 Unlock State File
       if: failure()
       shell: bash
