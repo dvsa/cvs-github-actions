@@ -31,7 +31,7 @@ runs:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
         create-workspace: ${{ inputs.create-workspace }}
-        state-account: ${{ fromJson(vars.AWS_ACCOUNTS)[inputs.environment].name }}
+        state-account: ${{ inputs.state-account }}
 
     - name: Refresh Terraform
       id: refresh
