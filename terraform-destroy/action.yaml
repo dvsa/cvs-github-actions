@@ -73,7 +73,7 @@ runs:
         encryption-key: ${{ inputs.encryption-key }}
         infracost-key: ${{ inputs.infracost-key }}
         folder-name: ${{ inputs.folder-name }}
-        state-account: ${{ fromJson(vars.AWS_ACCOUNTS)[inputs.environment].name }}
+        state-account: ${{ inputs.state-account }}
 
     - name: Terraform Apply
       id: apply
@@ -85,7 +85,7 @@ runs:
         create-workspace: 'false'
         encryption-key: ${{ inputs.encryption-key }}
         folder-name: ${{ inputs.folder-name }}
-        state-account: ${{ fromJson(vars.AWS_ACCOUNTS)[inputs.environment].name }}
+        state-account: ${{ inputs.state-account }}
         
     - name: Remove Workspace
       if: ${{ inputs.dry-run == 'false' && steps.refresh.outcome == 'success' && steps.plan.outputs.outcome == 'success' && steps.apply.outcome == 'success' }}
