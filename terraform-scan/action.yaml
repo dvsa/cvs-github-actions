@@ -11,6 +11,9 @@ inputs:
   create-workspace:
     description: Should a new Terraform Workspace be created
     default: 'false'
+  state-account:
+    description: Account Name for Core TF Standard
+    required: false
   folder-name:
     description: Optional folder name, if not in repository
     default: '.'
@@ -26,6 +29,7 @@ runs:
         terraform-version: ${{ inputs.terraform-version }}
         environment-name: ${{ inputs.environment-name }}
         create-workspace: ${{ inputs.create-workspace }}
+        state-account: ${{ inputs.state-account }}
     
     - name: Terraform format
       continue-on-error: true
