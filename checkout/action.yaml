@@ -1,0 +1,47 @@
+name: Checkout Code
+description: Checkout Code from GitHub with Default Branch handler
+
+inputs:
+  token: 
+    description: GitHub Token for authentication
+    required: true
+  repository:
+    description: GitHub Repository to check out
+    required: false
+  branch:
+    description: Branch (ref) to check out
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Calculate Default Branch
+      shell: bash
+      id: branch
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        # Calculate if ${{ inputs.branch }} means default branch
+
+        # Set repository to current if not specified
+        repository=${{ format('{0}/{1}', 'dvsa', inputs.repository != '' && inputs.repository || github.repository }}
+
+        # Set branch to `develop` if not specified
+        branch=${{ inputs.branch != '' && inputs.branch || 'develop' }}
+
+        # Reset branch to default if `develop` specified
+        if [[ "${branch}" == "develop" ]]; then
+          branch=$(gh repo view --json defaultBranchRef ${repository} | jq -r '.defaultBranchRef.name')
+          printf "\033[0;34mUsing default branch for \033[0m${repository}: \033[0;36m${branch}\033[0m\n"
+        fi
+
+        # Feed outcome for use
+        echo "repository=${repository}" >> $GITHUB_OUTPUT
+        echo "branch=${branch}" >> $GITHUB_OUTPUT
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.token }}
+        repository: ${{ steps.branch.outputs.repository }}
+        ref: ${{ steps.branch.outputs.branch }}
