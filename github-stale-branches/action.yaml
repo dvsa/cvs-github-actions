@@ -1,0 +1,67 @@
+name: Get Stale Branch Lists
+description: Identifies stale branches in Github
+
+inputs:
+  repository:
+    description: The repository to scan
+    required: false
+env:
+  PYTHONUNBUFFERED: 1
+runs:
+  using: composite
+  steps:
+
+    - name: Link requirements
+      shell: bash
+      run: |
+        # Create local copy of requirements
+        ln -s ${{ github.action_path }}/requirements.txt ./requirements.txt
+  
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v6
+      id: stale-branches
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+        #cache-dependency-path: ${{ github.action_path }}/main.py
+        pip-install: -r requirements.txt
+        
+    - name: Get Jira Tickets
+      id: jira
+      if: inputs.repository == ''
+      shell: bash
+      run: |
+        # Cache Jira Tickets by not sending a repository parameter
+        python ${{ github.action_path }}/main.py
+
+    - name: Cache Jira Tickets
+      if: inputs.repository == ''
+      uses: actions/upload-artifact@v6
+      with:
+        name: jira-cache
+        path: ./cache/*.json
+        retention-days: 1
+
+    - name: Read Jira Ticket Cache
+      if: inputs.repository != ''
+      uses: actions/download-artifact@v7
+      with:
+        name: jira-cache
+        path: ./cache
+
+    - name: Scan Repository
+      id: scan
+      if: inputs.repository != ''
+      shell: bash
+      run: |
+        # Scan ${{ inputs.repository }}
+        python ${{ github.action_path }}/main.py ${{ inputs.repository }}
+
+    - name: Upload Results
+      uses: actions/upload-artifact@v6
+      if: inputs.repository != ''
+      with:
+        name: ${{ inputs.repository }}
+        path: |
+          ${{ inputs.repository }}.json
+        retention-days: 5
