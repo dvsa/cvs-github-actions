@@ -17,6 +17,9 @@ inputs:
   create-workspace:
     description: Create new Workspace if required
     default: 'true'
+  region:
+    description: AWS Region
+    default: 'eu-west-1'
 
 runs:
   using: composite
@@ -34,9 +37,20 @@ runs:
       run: |
         # Initialize ${{ inputs.environment-name }}
         ${{ inputs.working-directory != '' && format('cd {0}', inputs.working-directory) || '' }}
+
+        # Clear any lock files for ${{ inputs.environment-name }}
+        bucket=${{ fromJson(inputs.backend) && format('cvs-tf-state-{0}', inputs.region) || 'cvs-tf-environment' }}
+        folder=${{ fromJson(inputs.backend) && format('{0}/{1}', env.TF_AWS_ACCOUNT_NAME, inputs.environment-name) || format('env:/{0}', inputs.environment-name) }}
+
+        for lock in $(aws s3api list-objects-v2 --bucket ${bucket} --prefix ${folder} --query "Contents[?ends_with(Key, 'tflock')].Key" --output text); do
+          printf "🗑️ \033[0;34mDeleting Lock File \033[0m${lock}\n"
+          aws s3api delete-object --bucket ${bucket} --key ${lock}
+        done
+
+        # Initialise Terraform
         if [[ ! -f ".terraform/environment" ]]; then
-          terraform init -upgrade${{ inputs.backend == 'true' && format(' -backend-config="workspace_key_prefix={0}"', env.TF_AWS_ACCOUNT_NAME) || '' }}
-          terraform workspace select${{ inputs.create-workspace == 'true' && ' -or-create' || '' }} ${{ inputs.environment-name }} \
+          terraform init -upgrade${{ fromJson(inputs.backend) && format(' -backend-config="workspace_key_prefix={0}"', env.TF_AWS_ACCOUNT_NAME) || '' }}
+          terraform workspace select${{ fromJson(inputs.create-workspace) && ' -or-create' || '' }} ${{ inputs.environment-name }} \
           && $(echo "Workspace: ${{ inputs.environment-name }}" >> $GITHUB_STEP_SUMMARY)
         fi  
  
