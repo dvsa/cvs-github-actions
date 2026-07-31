@@ -31,6 +31,11 @@ runs:
         terraform_version: ${{ inputs.terraform-version }}
         terraform_wrapper: false
 
+    - name: Setup GIT
+      run: |
+        git init -b temp # Perform a git initialization, so that the git commands work
+        gh auth setup-git
+        
     - name: Initialize Terraform
       id: terraform_init
       shell: bash
