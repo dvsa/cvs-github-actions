@@ -32,6 +32,7 @@ runs:
         terraform_wrapper: false
 
     - name: Setup GIT
+      shell: bash
       run: |
         git init -b temp # Perform a git initialization, so that the git commands work
         gh auth setup-git
