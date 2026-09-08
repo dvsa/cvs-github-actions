@@ -18,11 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📨 Get Codebase
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.branch == 'develop' && '' || inputs.branch }}
 
-      - uses: hashicorp/setup-terraform@v2
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: '1.7.3'
           terraform_wrapper: false

@@ -40,7 +40,7 @@ runs:
   using: composite
   steps:
     - name: 📥 Get Schema Codebase
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: dvsa/cvs-${{ inputs.schema-short-name }}
         ref: ${{ inputs.github-branch == 'develop' && '' || inputs.github-branch }}

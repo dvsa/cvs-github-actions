@@ -18,19 +18,19 @@ jobs:
           echo ${{ github.head_ref }}
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.base_ref  == 'develop' && '' || github.base_ref }}
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5.1.0
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
           aws-region: eu-west-1
           role-session-name: MGMTGHA
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'

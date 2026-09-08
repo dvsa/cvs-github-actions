@@ -16,7 +16,7 @@ runs:
   using: composite
   steps:
     - name: 📥 Get Codebase
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         token: ${{ inputs.github-token }}
         repository: dvsa/cvs-devops

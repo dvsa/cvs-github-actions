@@ -26,7 +26,7 @@ runs:
   steps:
     - name: Configure Terraform
       id: terraform_config
-      uses: hashicorp/setup-terraform@v3
+      uses: hashicorp/setup-terraform@v4
       with:
         terraform_version: ${{ inputs.terraform-version }}
         terraform_wrapper: false

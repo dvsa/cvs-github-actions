@@ -48,7 +48,7 @@ runs:
         working-directory: ${{ inputs.working-directory }}
 
     - name: Retrieve Plan
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       with:
         name: ${{ inputs.artifact-name }}-${{ inputs.run-id }}
         path: ${{ inputs.working-directory }}

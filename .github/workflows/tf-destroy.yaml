@@ -44,16 +44,16 @@ jobs:
     environment: feature
     steps:
       - name: 📨 Get Codebase
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.check-branch.outputs.branch == 'develop' && '' || needs.check-branch.outputs.branch }}
 
-      - uses: hashicorp/setup-terraform@v2
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.7.3"
           terraform_wrapper: false
 
-      - uses: aws-actions/configure-aws-credentials@v5.1.0
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.MGMT_ROLE }}
           aws-region: eu-west-1

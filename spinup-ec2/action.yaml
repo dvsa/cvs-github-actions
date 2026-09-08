@@ -13,7 +13,7 @@ runs:
   using: composite
   steps:
     - name: ♦️ Get DB Secrets
-      uses: aws-actions/aws-secretsmanager-get-secrets@v2.0.10
+      uses: aws-actions/aws-secretsmanager-get-secrets@v3
       with:
         secret-ids: |
           cvs-wms/env

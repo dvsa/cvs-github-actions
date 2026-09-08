@@ -14,7 +14,7 @@ runs:
   using: composite
   steps:
     - name: 📥 Get Codebase
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ github.ref_name == 'develop' && '' || github.ref_name }}
         token: ${{ inputs.cvs_ops_pat }}
@@ -34,7 +34,7 @@ runs:
         done
 
     - name: ⏫ Upload Log
-      uses: actions/upload-artifact@v4.6.2
+      uses: actions/upload-artifact@v7
       with:
         name: Release Change Log ${{ inputs.PREVIOUS }} to ${{ inputs.LATEST }}
         path: |

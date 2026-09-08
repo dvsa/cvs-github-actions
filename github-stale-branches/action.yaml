@@ -36,7 +36,7 @@ runs:
 
     - name: Cache Jira Tickets
       if: inputs.repository == ''
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: jira-cache
         path: ./cache/*.json
@@ -44,7 +44,7 @@ runs:
 
     - name: Read Jira Ticket Cache
       if: inputs.repository != ''
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: jira-cache
         path: ./cache
@@ -58,7 +58,7 @@ runs:
         python ${{ github.action_path }}/main.py ${{ inputs.repository }}
 
     - name: Upload Results
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       if: inputs.repository != ''
       with:
         name: ${{ inputs.repository }}

@@ -18,7 +18,7 @@ runs:
   using: composite
   steps:
     - name: Get Artifact
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       with:
         name: ${{ github.event.repository.name }}-artifacts-${{ github.event.pull_request.number || github.run_id }}
         path: artifacts

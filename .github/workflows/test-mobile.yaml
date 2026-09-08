@@ -31,24 +31,24 @@ jobs:
     outputs:
       branch: ${{ steps.extract_branch.outputs.BRANCH }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'corretto'
           java-version: '11'
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
-      - uses: aws-actions/configure-aws-credentials@v5.1.0
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.MGMT_ROLE_NAME }}
           aws-region: eu-west-1
           role-session-name: ServiceAutoGHAMGMT
 
-      - uses: aws-actions/aws-secretsmanager-get-secrets@v2.0.10
+      - uses: aws-actions/aws-secretsmanager-get-secrets@v3
         with:
           secret-ids: 'vta-automation/env'
           parse-json-secrets: true
@@ -99,7 +99,7 @@ jobs:
 
       - name: 🤐 Zip Reports
         if: always()
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7
         with:
           name: vta-report-${{ steps.extract_branch.outputs.branch }}-${{ github.run_id }}
           path: reports/allure-report
@@ -117,7 +117,7 @@ jobs:
      needs: [ test ]
      steps:
        - name: ⬇️ Download Artifacts
-         uses: actions/download-artifact@v5
+         uses: actions/download-artifact@v8
          id: download
          with:
            name: vta-report-${{ needs.test.outputs.branch }}-${{ github.run_id }}
@@ -128,7 +128,7 @@ jobs:
 
        - name: 📑 Deploy Report to Github Pages
          if: always()
-         uses: peaceiris/actions-gh-pages@v3.9.3
+         uses: peaceiris/actions-gh-pages@v4
          with:
            github_token: ${{ secrets.GITHUB_TOKEN }}
            publish_dir: reports

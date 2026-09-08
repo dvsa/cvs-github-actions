@@ -29,17 +29,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Get AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5.1.0
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.CVS_MGMT_AWS_ROLE }}
           aws-region: ${{ secrets.DVSA_AWS_REGION }}
           role-session-name: '${{ github.event.repository.name }}-hash-upload'
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -65,7 +65,7 @@ jobs:
 
       - name: Checkout CVS-NOP
         if: ${{ inputs.mysql_liquibase == true }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: dvsa/cvs-nop
           path: cvs-nop

@@ -51,23 +51,23 @@ jobs:
       ENV: ${{ inputs.environment }}
     steps:
       - name: 📨 Get Codebase
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.branch == 'develop' && '' || inputs.branch }}
 
       - name: ⬇️ Download the release artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: plan-${{ inputs.run-id }}
           path: .
 
-      - uses: aws-actions/configure-aws-credentials@v5.1.0
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_MGMT_ROLE }}
           aws-region: eu-west-1
           role-session-name: Terraform-GHA
 
-      - uses: hashicorp/setup-terraform@v2
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ inputs.tf-version }}
           terraform_wrapper: false

@@ -44,17 +44,17 @@ jobs:
     runs-on: ${{ inputs.runner }}
     steps:
       - name: 📨 Get Codebase
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.branch == 'develop' && '' || inputs.branch }}
 
-      - uses: aws-actions/configure-aws-credentials@v5.1.0
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_MGMT_ROLE }}
           aws-region: eu-west-1
           role-session-name: Terraform-GHA
 
-      - uses: hashicorp/setup-terraform@v2
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ inputs.tf-version }}
           terraform_wrapper: false
@@ -78,7 +78,7 @@ jobs:
           echo 'Plan Completed ✅' >> $GITHUB_STEP_SUMMARY
   
       - name: 📝 Upload Plan
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7
         with:
           name: plan-${{ github.run_id }}
           path: |

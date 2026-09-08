@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git Checkout ${{ inputs.source-branch }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.source-branch == 'develop' && '' || inputs.source-branch }}
 
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git Checkout Develop
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
   
       - name: Check Branch Exists
         id: exists

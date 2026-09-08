@@ -23,7 +23,7 @@ runs:
 
     - name: Assume AWS Role
       id: aws-assume
-      uses: aws-actions/configure-aws-credentials@v5.1.0
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         role-to-assume: ${{ inputs.actions-role }}
         aws-region: ${{ inputs.aws-region }}
@@ -61,7 +61,7 @@ runs:
     
     - name: Unset AWS Role
       id: aws-remove
-      uses: aws-actions/configure-aws-credentials@v5.1.0
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         aws-region: ${{ inputs.aws-region }}
         unset-current-credentials: true
