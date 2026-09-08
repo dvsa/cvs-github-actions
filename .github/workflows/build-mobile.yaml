@@ -61,7 +61,7 @@ jobs:
           ref: ${{ inputs.branch == 'develop' && '' || inputs.branch }}
 
       - name: ⚙️ Configure Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
 
