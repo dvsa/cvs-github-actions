@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: this      
           
@@ -65,7 +65,7 @@ jobs:
           -g typescript-angular \
           -o ./generated
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: ${{format('{0}/{1}', inputs.owner, inputs.pr_repository)}}
           path: pr_repo
