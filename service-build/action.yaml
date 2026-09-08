@@ -28,7 +28,7 @@ runs:
       run: echo "NVMRC=$(cat .nvmrc)" >> $GITHUB_ENV
 
     - name: ⚙️ Setup Node.js ${{ env.NVMRC }}
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ env.NVMRC }}
         cache: 'npm'
