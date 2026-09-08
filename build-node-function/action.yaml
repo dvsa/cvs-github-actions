@@ -58,7 +58,7 @@ runs:
 
     - name: Checkout CVS-NOP
       if: ${{ inputs.mysql_liquibase == 'true' }}
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         repository: dvsa/cvs-nop
         path: cvs-nop
