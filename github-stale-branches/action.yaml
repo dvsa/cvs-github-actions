@@ -2,9 +2,14 @@ name: Get Stale Branch Lists
 description: Identifies stale branches in Github
 
 inputs:
-  repository:
-    description: The repository to scan
-    required: false
+  repositories:
+    description: The repositories to scan
+    required: true
+  workspaces:
+    description: Terraform Workspaces currently active
+    required: true
+  branch_age:
+    description: Min age (days) to accept as "Old" 
 env:
   PYTHONUNBUFFERED: 1
 runs:
@@ -33,44 +38,135 @@ runs:
         source venv/bin/activate
         pip install -r requirements.txt
         
-    - name: Get Jira Tickets
+    - name: Scan Repositories
       id: jira
-      if: inputs.repository == ''
       shell: bash
       run: |
         # Cache Jira Tickets by not sending a repository parameter
         source venv/bin/activate
-        python ${{ github.action_path }}/main.py
+        for repo in $(jq -r '.[]' <<< '${{ inputs.repositories }}'); do
+          python ${{ github.action_path }}/main.py $repo
+        done
 
-    - name: Cache Jira Tickets
-      if: inputs.repository == ''
-      uses: actions/upload-artifact@v7
-      with:
-        name: jira-cache
-        path: ./cache/*.json
-        retention-days: 1
-
-    - name: Read Jira Ticket Cache
-      if: inputs.repository != ''
-      uses: actions/download-artifact@v8
-      with:
-        name: jira-cache
-        path: ./cache
-
-    - name: Scan Repository
-      id: scan
-      if: inputs.repository != ''
+    - name: 🗜️ Merge Branch Lists
       shell: bash
       run: |
-        # Scan ${{ inputs.repository }}
-        source venv/bin/activate
-        python ${{ github.action_path }}/main.py ${{ inputs.repository }}
+        # Collect branch details from all repository files
+        # Retain True as dominant value
+        # Retain youngest age
+        jq -s '
+          def merge_value($k; $a; $b):
+            if ($a | type) == "object" and ($b | type) == "object" then
+              reduce ($a | keys_unsorted[]) as $subk
+                ($b;
+                if has($subk) then
+                  .[$subk] = merge_value($subk; $a[$subk]; $b[$subk])
+                else
+                  .
+                end
+                )
+            elif ($a | type) == "boolean" and ($b | type) == "boolean" then
+              ($a or $b)
+            elif $k == "age"
+                and ($a | type) == "number"
+                and ($b | type) == "number" then
+              ([$a, $b] | min)
+            else
+              $b
+            end;
 
-    - name: Upload Results
-      uses: actions/upload-artifact@v7
-      if: inputs.repository != ''
-      with:
-        name: ${{ inputs.repository }}
-        path: |
-          ${{ inputs.repository }}.json
-        retention-days: 5
+          reduce .[] as $item
+            ({};
+            reduce ($item | keys_unsorted[]) as $k
+              (.;
+                if has($k) then
+                  .[$k] = merge_value($k; .[$k]; $item[$k])
+                else
+                  .[$k] = $item[$k]
+                end
+              )
+            )
+        ' cvs-*.json > branches.json
+    
+    - name: 🖥️ Branch Table
+      if: ${{ inputs.manual == null }}
+      run: |
+        # Output Markdown Table
+        jq -r 'def fmt($cell):
+          if $cell == true then "✅"
+          elif $cell == false then "❌"
+          elif $cell == null then "None"
+          else ($cell | tostring)
+          end;
+
+          (to_entries | sort_by(.key)) as $entries
+          | ($entries[0].value | keys_unsorted) as $cols
+          | (
+            "| branch | \($cols | join(" | ")) |",
+            "|---| " + ($cols | map("---") | join(" | ")) + " |",
+            (
+              $entries[]
+              | .value as $v
+              | "| " + (
+                  [.key]
+                  + ($cols | map(fmt($v[.])))
+                  | join(" | ")
+                ) + " |"
+            )
+          )
+        ' branches.json > branch_list.md
+        cat branch_list.md >> $GITHUB_STEP_SUMMARY
+
+    - name: 📋 Generate SubLists
+      if: ${{ inputs.manual == null }}
+      run: |
+        # Generate SubLists
+        mkdir branch_lists
+        # Completed Pull Requests with non-standard name and completed pull request over a certain age
+        if [[ ${{ inputs.non_standard || github.event_name != 'workflow_dispatch' }} ]]; then
+          jq '                                      
+            to_entries                                                                                                        
+            | sort_by(.key)
+            | map(select(.value.pull_request == true)) 
+            | map(select(.value.non_standard == true))
+            | map(select(.value.age > ${{ inputs.branch_age }}))
+            | map(select(.value.non_cvs == ${{ inputs.non_cvs }}))
+            | map(.key)                                                                                       
+          ' branches.json > branch_lists/non_standard.json 
+        fi
+
+        # Old Branches with a completed pull request over a certain age
+        if [[ ${{ inputs.pull_request || github.event_name != 'workflow_dispatch' }} ]]; then
+          jq '                                      
+            to_entries                                                                                                        
+            | sort_by(.key)
+            | map(select(.value.pull_request == true)) 
+            | map(select(.value.age > ${{ inputs.branch_age }}))
+            | map(.key)                                                                                       
+          ' branches.json > branch_lists/pull_request.json
+        fi
+
+        # Stale Branches which consist of "Withdrawn" or "No Longer Required" tickets
+        # This will not include non-standard branch names
+        if [[ ${{ inputs.stale || github.event_name != 'workflow_dispatch' }} ]]; then
+          jq '                                      
+            to_entries                                                                                                        
+            | sort_by(.key)
+            | map(select(.value.stale == true))
+            | map(.key)                                                                                       
+          ' branches.json > branch_lists/stale.json
+        fi
+
+        # Branches marked as `Done` with a completed pull request over a certain age
+        # This will not include non-standard branch names
+        if [[ ${{ inputs.done || github.event_name != 'workflow_dispatch' }} ]]; then
+          jq '                                      
+            to_entries                                                                                                        
+            | sort_by(.key)
+            | map(select(.value.done == true))
+            | map(select(.value.pull_request == true)) 
+            | map(select(.value.age > ${{ inputs.branch_age }}))
+            | map(.key)                                                                                       
+          ' branches.json > branch_lists/done.json
+        fi
+
