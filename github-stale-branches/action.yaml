@@ -22,9 +22,16 @@ runs:
       id: stale-branches
       with:
         python-version: '3.13'
-        cache: 'pip'
+        #cache: 'pip'
         #cache-dependency-path: ${{ github.action_path }}/main.py
-        pip-install: -r requirements.txt
+        #pip-install: -r requirements.txt
+
+    - name: Configure Python Env
+      shell: bash
+      run: |
+        python venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
         
     - name: Get Jira Tickets
       id: jira
