@@ -7,7 +7,6 @@ inputs:
     required: false
 env:
   PYTHONUNBUFFERED: 1
-  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 runs:
   using: composite
   steps:
