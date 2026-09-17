@@ -64,6 +64,7 @@ runs:
       shell: bash
       run: |
         # Scan ${{ inputs.repository }}
+        source venv/bin/activate
         python ${{ github.action_path }}/main.py ${{ inputs.repository }}
 
     - name: Upload Results
