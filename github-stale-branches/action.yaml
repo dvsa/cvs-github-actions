@@ -125,15 +125,6 @@ runs:
       run: |
         # Generate SubLists
         mkdir branch_lists
-        # Completed Pull Requests with non-standard name and completed pull request over a certain age
-        jq '                                      
-          to_entries                                                                                                        
-          | sort_by(.key)
-          | map(select(.value.pull_request == true)) 
-          | map(select(.value.non_standard == true))
-          | map(select(.value.age > ${{ inputs.branch_age }}))
-          | map(.key)                                                                                       
-        ' branches.json > branch_lists/non_standard.json 
 
         # Old Branches with a completed pull request over a certain age
         jq '                                      
