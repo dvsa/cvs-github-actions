@@ -90,6 +90,7 @@ runs:
     
     - name: 🖥️ Branch Table
       if: ${{ inputs.manual == null }}
+      shell: bash
       run: |
         # Output Markdown Table
         jq -r 'def fmt($cell):
@@ -119,6 +120,7 @@ runs:
 
     - name: 📋 Generate SubLists
       if: ${{ inputs.manual == null }}
+      shell: bash
       run: |
         # Generate SubLists
         mkdir branch_lists
