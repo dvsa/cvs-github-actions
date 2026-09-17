@@ -9,7 +9,8 @@ inputs:
     description: Terraform Workspaces currently active
     required: true
   branch_age:
-    description: Min age (days) to accept as "Old" 
+    description: Min age (days) to accept as "Old"
+    default: 365
 env:
   PYTHONUNBUFFERED: 1
 runs:
@@ -125,50 +126,41 @@ runs:
         # Generate SubLists
         mkdir branch_lists
         # Completed Pull Requests with non-standard name and completed pull request over a certain age
-        if [[ ${{ inputs.non_standard || github.event_name != 'workflow_dispatch' }} ]]; then
-          jq '                                      
-            to_entries                                                                                                        
-            | sort_by(.key)
-            | map(select(.value.pull_request == true)) 
-            | map(select(.value.non_standard == true))
-            | map(select(.value.age > ${{ inputs.branch_age }}))
-            | map(select(.value.non_cvs == ${{ inputs.non_cvs }}))
-            | map(.key)                                                                                       
-          ' branches.json > branch_lists/non_standard.json 
-        fi
+        jq '                                      
+          to_entries                                                                                                        
+          | sort_by(.key)
+          | map(select(.value.pull_request == true)) 
+          | map(select(.value.non_standard == true))
+          | map(select(.value.age > ${{ inputs.branch_age }}))
+          | map(.key)                                                                                       
+        ' branches.json > branch_lists/non_standard.json 
 
         # Old Branches with a completed pull request over a certain age
-        if [[ ${{ inputs.pull_request || github.event_name != 'workflow_dispatch' }} ]]; then
-          jq '                                      
-            to_entries                                                                                                        
-            | sort_by(.key)
-            | map(select(.value.pull_request == true)) 
-            | map(select(.value.age > ${{ inputs.branch_age }}))
-            | map(.key)                                                                                       
-          ' branches.json > branch_lists/pull_request.json
-        fi
+        jq '                                      
+          to_entries                                                                                                        
+          | sort_by(.key)
+          | map(select(.value.pull_request == true)) 
+          | map(select(.value.age > ${{ inputs.branch_age }}))
+          | map(.key)                                                                                       
+        ' branches.json > branch_lists/pull_request.json
 
         # Stale Branches which consist of "Withdrawn" or "No Longer Required" tickets
         # This will not include non-standard branch names
-        if [[ ${{ inputs.stale || github.event_name != 'workflow_dispatch' }} ]]; then
-          jq '                                      
-            to_entries                                                                                                        
-            | sort_by(.key)
-            | map(select(.value.stale == true))
-            | map(.key)                                                                                       
-          ' branches.json > branch_lists/stale.json
-        fi
+        jq '                                      
+          to_entries                                                                                                        
+          | sort_by(.key)
+          | map(select(.value.stale == true))
+          | map(.key)                                                                                       
+        ' branches.json > branch_lists/stale.json
 
         # Branches marked as `Done` with a completed pull request over a certain age
         # This will not include non-standard branch names
-        if [[ ${{ inputs.done || github.event_name != 'workflow_dispatch' }} ]]; then
-          jq '                                      
-            to_entries                                                                                                        
-            | sort_by(.key)
-            | map(select(.value.done == true))
-            | map(select(.value.pull_request == true)) 
-            | map(select(.value.age > ${{ inputs.branch_age }}))
-            | map(.key)                                                                                       
-          ' branches.json > branch_lists/done.json
-        fi
+        jq '                                      
+          to_entries                                                                                                        
+          | sort_by(.key)
+          | map(select(.value.done == true))
+          | map(select(.value.pull_request == true)) 
+          | map(select(.value.age > ${{ inputs.branch_age }}))
+          | map(.key)                                                                                       
+        ' branches.json > branch_lists/done.json
 
