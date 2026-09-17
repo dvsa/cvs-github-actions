@@ -39,6 +39,7 @@ runs:
       shell: bash
       run: |
         # Cache Jira Tickets by not sending a repository parameter
+        source venv/bin/activate
         python ${{ github.action_path }}/main.py
 
     - name: Cache Jira Tickets
