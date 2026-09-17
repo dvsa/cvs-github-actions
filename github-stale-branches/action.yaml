@@ -29,6 +29,7 @@ runs:
     - name: Configure Python Env
       shell: bash
       run: |
+        mkdir venv
         python venv venv
         source venv/bin/activate
         pip install -r requirements.txt
