@@ -1,6 +1,6 @@
-"""Output a JSON file with specific branch criteria from a givem Repository"""
+"""Output a JSON file with specific branch criteria from a given Repository"""
 from variables import (
-    GHA_TOKEN,
+    GH_TOKEN,
     REPOSITORY,
     sys,
     os
@@ -11,7 +11,7 @@ from typing import Hashable, Any
 import json
 
 def main():
-    gh = github(GHA_TOKEN)
+    gh = github(GH_TOKEN)
     branches = Branches(gh)
     
     # Output JSON Files

@@ -5,7 +5,7 @@ import os, sys
 load_dotenv()
 
 # Get Secret Variables
-GHA_TOKEN: str = str(os.getenv("GHA_TOKEN"))
+GH_TOKEN: str = str(os.getenv("GH_TOKEN"))
 JIRA_SERVER: str = str(os.getenv("JIRA_SERVER"))
 JIRA_EMAIL: str = str(os.getenv("JIRA_EMAIL"))
 JIRA_KEY: str = str(os.getenv("JIRA_KEY"))
