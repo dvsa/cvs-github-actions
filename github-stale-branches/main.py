@@ -1,4 +1,4 @@
-"""Output a JSON file with specific branch criteria from a givem Repository"""
+"""Output a JSON file with specific branch criteria from a given Repository"""
 from variables import (
     GH_TOKEN,
     REPOSITORY,
