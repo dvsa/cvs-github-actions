@@ -35,7 +35,7 @@ jobs:
 
       - name: Determine environment/secret path
         id: envname
-        run: echo "secret_id=${{ inputs.environment }}/integration/env" >> "$GITHUB_OUTPUT"
+        run: echo "secret_id=${{ inputs.environment }}/e2e/env" >> "$GITHUB_OUTPUT"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
