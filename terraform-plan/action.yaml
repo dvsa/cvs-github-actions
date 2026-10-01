@@ -111,7 +111,7 @@ runs:
 
     # Run Infracost to get idea of cost changes
     - name: 💰 Setup Infracost
-      uses: infracost/actions/setup@v3
+      uses: infracost/actions/setup@v4
       id: infracost
       continue-on-error: true
       with:
