@@ -1,0 +1,132 @@
+name: E2E/Integration Tests
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: "self-hosted | ubuntu-latest | macos-latest"
+        type: string
+        default: "ubuntu-latest"
+        required: false
+      environment:
+        type: string
+        description: 'Environment to run integration tests against e.g. develop/feature/integration'
+        required: true
+      s3-bucket:
+        type: string
+        description: 'S3 bucket to upload test reports to. Upload is skipped when empty.'
+        default: 'cvs-e2e-artefacts'
+        required: false
+
+    secrets:
+      DVSA_AWS_REGION:
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  integration-tests:
+    name: Run Playwright integration tests
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 5
+    env:
+      CI: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Determine environment/secret path
+        id: envname
+        run: echo "secret_id=${{ inputs.environment }}/e2e/env" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.CVS_MGMT_AWS_ROLE }}
+          aws-region: ${{ secrets.DVSA_AWS_REGION }}
+          role-session-name: 'gha-integration-tests-session'
+
+      - name: Pull env secrets from AWS Secrets Manager
+        run: |
+          set -euo pipefail
+          
+          SECRET_TEXT=$(aws secretsmanager get-secret-value \
+            --secret-id "${{ steps.envname.outputs.secret_id }}" \
+            --query SecretString --output text)
+
+          ENV_FILE="tests/integration/.env"
+          mkdir -p "$(dirname "$ENV_FILE")"
+          : > "$ENV_FILE"
+
+          while IFS='=' read -r key value; do
+            key="$(echo "$key" | xargs)"
+            [ -z "$key" ] && continue
+            case "$key" in \#*) continue ;; esac
+
+            value="${value%$'\r'}"
+            echo "::add-mask::$value"
+            echo "$key=$value" >> "$ENV_FILE"
+          done <<< "$SECRET_TEXT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate required E2E secrets
+        run: |
+          missing=0
+          for var in API_BASE_URL TOKEN_BASE_URL TOKEN_API_KEY USERNAME PASSWORD; do
+            if ! grep -q "^${var}=" tests/integration/.env; then
+              echo "::error title=Missing secret::$var is not set"
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: tests/integration/playwright-report/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload test result files
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-test-results
+          path: tests/integration/test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload test reports to S3
+        if: always() && inputs.s3-bucket != ''
+        env:
+          S3_PREFIX: s3://${{ inputs.s3-bucket }}/${{ github.event.repository.name }}/${{ inputs.environment }}/${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+           set -euo pipefail
+
+           for dir in playwright-report test-results; do
+            if [ -d "tests/integration/$dir" ]; then
+              aws s3 sync "tests/integration/$dir" "$S3_PREFIX/$dir" --only-show-errors
+            else
+              echo "::warning title=S3 upload::tests/integration/$dir not found, skipping"
+            fi
+           done
+
+           echo "Reports uploaded to $S3_PREFIX" >> "$GITHUB_STEP_SUMMARY"
