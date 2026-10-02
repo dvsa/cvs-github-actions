@@ -96,7 +96,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report
-          path: tests/integration/playwright-report/
+          path: tests/e2e/playwright-report/
           if-no-files-found: warn
           retention-days: 14
 
@@ -104,7 +104,24 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: integration-test-results
-          path: tests/integration/test-results/
+          name: e2e-test-results
+          path: tests/e2e/test-results/
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Upload test reports to S3 (TBC)
+        if: always() && inputs.s3-bucket != ''
+        env:
+          S3_PREFIX: s3://cvs-e2e-artefacts/${{ github.event.repository.name }}/${{ inputs.environment }}/${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+           set -euo pipefail
+
+           for dir in playwright-report test-results; do
+            if [ -d "tests/e2e/$dir" ]; then
+              aws s3 sync "tests/e2e/$dir" "$S3_PREFIX/$dir" --only-show-errors
+            else
+              echo "::warning title=S3 upload::tests/e2e/$dir not found, skipping"
+            fi
+           done
+
+           echo "Reports uploaded to $S3_PREFIX" >> "$GITHUB_STEP_SUMMARY"
