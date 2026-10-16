@@ -71,6 +71,28 @@ jobs:
             echo "$key=$value" >> "$ENV_FILE"
           done <<< "$SECRET_TEXT"
 
+      - name: Set feature API URL
+        if: ${{ inputs.environment == 'feature' }}
+        env:
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$BRANCH_NAME" =~ ^feature/[A-Za-z0-9]+(-[A-Za-z0-9]+)*$ ]]; then
+            echo "::error::Feature tests require a feature/<environment-name> branch."
+            exit 1
+          fi
+
+          feature_name="$(printf '%s' "${BRANCH_NAME#feature/}" | tr '[:upper:]' '[:lower:]')"
+          api_base_url="https://${feature_name}-api.develop.cvs.dvsacloud.uk/${feature_name}"
+          env_file="tests/integration/.env"
+
+          awk -v url="$api_base_url" '
+            /^API_BASE_URL=/ { $0 = "API_BASE_URL=\"" url "\"" }
+            { print }
+          ' "$env_file" > "$env_file.tmp"
+          mv "$env_file.tmp" "$env_file"
+
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
