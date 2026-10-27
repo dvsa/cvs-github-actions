@@ -89,6 +89,6 @@ runs:
         curl -sS -f --retry 2 -X POST \
           -H "Content-Type: application/json" \
           -d "${payload}" \
-          "${WEBHOOK_URL}"
+          "${TEAMS_WEBHOOK}"
 
         echo "✅ Teams failure notification sent"
