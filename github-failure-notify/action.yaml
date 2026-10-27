@@ -2,9 +2,9 @@ name: 🚨 Teams failure notification
 description: Posts a "GitHub job failed" Adaptive Card to a Teams channel via a Workflows webhook
 
 inputs:
-  webhook-url:
+  teams-webhook:
     description: Teams Workflows webhook URL (pass from a secret)
-    required: true
+    required: false
   title:
     description: Heading shown at the top of the card
     required: false
@@ -40,7 +40,7 @@ runs:
     - name: 🚨 Post failure card to Teams
       shell: bash
       env:
-        WEBHOOK_URL: ${{ inputs.webhook-url }}
+        TEAMS_WEBHOOK: ${{ inputs.teams-webhook }}
         TITLE: ${{ inputs.title }}
         REPO: ${{ inputs.repo }}
         BRANCH: ${{ inputs.branch }}
@@ -52,7 +52,7 @@ runs:
         set -euo pipefail
 
         if [[ -z "${WEBHOOK_URL}" ]]; then
-          echo "::error::webhook-url input is empty. Check the TEAMS_WEBHOOK_URL secret exists and is passed in."
+          echo "::error::teams-webhook input is empty. Check the secret exists, is accessible to this job, and is passed in."
           exit 1
         fi
 
