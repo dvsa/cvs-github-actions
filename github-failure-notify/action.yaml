@@ -51,7 +51,7 @@ runs:
       run: |
         set -euo pipefail
 
-        if [[ -z "${WEBHOOK_URL}" ]]; then
+        if [[ -z "${TEAMS_WEBHOOK}" ]]; then
           echo "::error::teams-webhook input is empty. Check the secret exists, is accessible to this job, and is passed in."
           exit 1
         fi
