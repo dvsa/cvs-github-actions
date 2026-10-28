@@ -66,6 +66,12 @@ runs:
         working-directory: ${{ inputs.working-directory }}
         backend: ${{ inputs.backend }}
 
+    - name: ⚙️ Generate GitHub Token
+      uses: dvsa/cvs-github-actions/token-generation@feature/CB2-20464
+      with:
+        app-id: ${{ secrets.TOKEN_APP_ID }}
+        app-key: ${{ secrets.TOKEN_APP_KEY }}
+
     - name: ✅ Terraform Validate
       id: validate
       shell: bash

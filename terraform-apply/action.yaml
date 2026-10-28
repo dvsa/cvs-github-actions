@@ -47,6 +47,12 @@ runs:
         backend: ${{ inputs.backend }}
         working-directory: ${{ inputs.working-directory }}
 
+    - name: ⚙️ Generate GitHub Token
+      uses: dvsa/cvs-github-actions/token-generation@feature/CB2-20464
+      with:
+        app-id: ${{ secrets.TOKEN_APP_ID }}
+        app-key: ${{ secrets.TOKEN_APP_KEY }}
+
     - name: Retrieve Plan
       uses: actions/download-artifact@v8
       with:
