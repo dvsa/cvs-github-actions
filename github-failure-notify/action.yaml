@@ -1,46 +1,94 @@
-name: "GitHub Failure Notifier"
-description: "Notifies Teams and/or email when a GitHub job fails."
+name: 🚨 Teams failure notification
+description: Posts a "GitHub job failed" Adaptive Card to a Teams channel via a Workflows webhook
+
 inputs:
   teams-webhook:
-    description: "Microsoft Teams webhook URL"
+    description: Teams Workflows webhook URL (pass from a secret)
     required: false
+  title:
+    description: Heading shown at the top of the card
+    required: false
+    default: "🚨 GITHUB JOB FAILED 🚨"
+  repo:
+    description: Repository name
+    required: false
+    default: ${{ github.repository }}
+  branch:
+    description: Branch name
+    required: false
+    default: ${{ github.head_ref || github.ref_name }}
+  workflow:
+    description: Name of the failed workflow
+    required: false
+    default: ${{ github.workflow }}
+  actor:
+    description: Person who triggered the workflow
+    required: false
+    default: ${{ github.actor }}
+  workflow-url:
+    description: Link the button opens (defaults to the current workflow run)
+    required: false
+    default: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  button-title:
+    description: Text on the button
+    required: false
+    default: "🔗 View Failed Workflow"
 
 runs:
-  using: "composite"
-  steps:      
-    - name: Send Teams Notification
+  using: composite
+  steps:
+    - name: 🚨 Post failure card to Teams
       shell: bash
-      if: ${{ inputs.teams-webhook }}
       env:
         TEAMS_WEBHOOK: ${{ inputs.teams-webhook }}
+        TITLE: ${{ inputs.title }}
+        REPO: ${{ inputs.repo }}
+        BRANCH: ${{ inputs.branch }}
+        WORKFLOW: ${{ inputs.workflow }}
+        ACTOR: ${{ inputs.actor }}
+        WORKFLOW_URL: ${{ inputs.workflow-url }}
+        BUTTON_TITLE: ${{ inputs.button-title }}
       run: |
-        WORKFLOW_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        curl -X POST -H "Content-Type: application/json" -d '{
-          "repo": "'"${{ github.repository }}"'",
-          "branch": "'"${{ github.ref_name }}"'",
-          "workflow": "'"${{ github.workflow }}"'",
-          "actor": "'"${{ github.actor }}"'",
-          "workflow_url": "'"$WORKFLOW_URL"'",
-          "attachments": [
-            {
-              "contentType": "application/vnd.microsoft.card.adaptive",
-              "content": {
+        set -euo pipefail
+
+        if [[ -z "${TEAMS_WEBHOOK}" ]]; then
+          echo "::error::teams-webhook input is empty. Check the secret exists, is accessible to this job, and is passed in."
+          exit 1
+        fi
+
+        payload=$(jq -n \
+          --arg title "${TITLE}" \
+          --arg repo "${REPO}" \
+          --arg branch "${BRANCH}" \
+          --arg workflow "${WORKFLOW}" \
+          --arg actor "${ACTOR}" \
+          --arg url "${WORKFLOW_URL}" \
+          --arg buttonTitle "${BUTTON_TITLE}" \
+          '{
+            type: "message",
+            attachments: [{
+              contentType: "application/vnd.microsoft.card.adaptive",
+              content: {
                 "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                "type": "AdaptiveCard",
-                "version": "1.4",
-                "body": [
-                  {
-                    "type": "ActionSet",
-                    "actions": [
-                      {
-                        "type": "Action.OpenUrl",
-                        "title": "🔗 View Failed Workflow",
-                        "url": "'"$WORKFLOW_URL"'"
-                      }
-                    ]
-                  }
+                type: "AdaptiveCard",
+                version: "1.4",
+                body: [
+                  {type: "TextBlock", size: "Medium", weight: "Bolder", text: $title, color: "Attention", wrap: true},
+                  {type: "TextBlock", text: ("**Repo:** " + $repo), wrap: true},
+                  {type: "TextBlock", text: ("**Branch:** " + $branch), wrap: true},
+                  {type: "TextBlock", text: ("**Failed Workflow:** " + $workflow), wrap: true},
+                  {type: "TextBlock", text: ("**Triggered by:** " + $actor), wrap: true},
+                  {type: "ActionSet", actions: [
+                    {type: "Action.OpenUrl", title: $buttonTitle, url: $url}
+                  ]}
                 ]
               }
-            }
-          ]
-        }' "$TEAMS_WEBHOOK"
+            }]
+          }')
+
+        curl -sS -f --retry 2 -X POST \
+          -H "Content-Type: application/json" \
+          -d "${payload}" \
+          "${TEAMS_WEBHOOK}"
+
+        echo "✅ Teams failure notification sent"
