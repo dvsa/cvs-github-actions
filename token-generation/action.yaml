@@ -1,0 +1,24 @@
+name: "GitHub Token Generation"
+description: "Generate a short lived GitHub token"
+inputs:
+  app-id:
+    description: The GitHub Application ID
+    required: true
+  app-key:
+    description: The GitHub Application Key
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate token
+      id: app-token
+      uses: actions/create-github-app-token@v2.1.4
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.app-key }}
+        owner: ${{ github.repository_owner }}
+
+    - name: Configure Git credentials
+      shell: sh
+      run: git config --global url."https://oauth2:${{ steps.app-token.outputs.token }}@github.com/".insteadOf "https://github.com/"
