@@ -17,10 +17,23 @@ on:
         description: 'S3 bucket to upload test reports to. Upload is skipped when empty.'
         default: 'cvs-e2e-artefacts'
         required: false
+      repository:
+        type: string
+        description: 'Repository (owner/name) containing the integration tests. Defaults to the calling repository.'
+        default: ''
+        required: false
+      ref:
+        type: string
+        description: 'Branch, tag or SHA of the repository to test. Defaults to the triggering ref (or default branch when repository is set).'
+        default: ''
+        required: false
 
     secrets:
       DVSA_AWS_REGION:
         required: true
+      GH_TOKEN:
+        description: 'Token with read access to the repository input. Required for private/internal repositories other than the caller.'
+        required: false
 
 permissions:
   contents: read
@@ -37,10 +50,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+          token: ${{ secrets.GH_TOKEN || github.token }}
 
       - name: Determine environment/secret path
         id: envname
-        run: echo "secret_id=${{ inputs.environment }}/e2e/env" >> "$GITHUB_OUTPUT"
+        env:
+          TEST_REPOSITORY: ${{ inputs.repository || github.repository }}
+        run: |
+          echo "secret_id=${{ inputs.environment }}/e2e/env" >> "$GITHUB_OUTPUT"
+          echo "repo_name=${TEST_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+          # Suffix artifact names when testing another repo so matrix callers don't collide
+          if [ -n "${{ inputs.repository }}" ]; then
+            echo "artifact_suffix=-${TEST_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -122,7 +147,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report${{ steps.envname.outputs.artifact_suffix }}
           path: tests/integration/playwright-report/
           if-no-files-found: warn
           retention-days: 14
@@ -131,7 +156,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: e2e-test-results
+          name: e2e-test-results${{ steps.envname.outputs.artifact_suffix }}
           path: tests/integration/test-results/
           if-no-files-found: warn
           retention-days: 14
@@ -139,7 +164,7 @@ jobs:
       - name: Upload test reports to S3
         if: always() && inputs.s3-bucket != ''
         env:
-          S3_PREFIX: s3://${{ inputs.s3-bucket }}/${{ github.event.repository.name }}/${{ inputs.environment }}/${{ github.run_id }}-${{ github.run_attempt }}
+          S3_PREFIX: s3://${{ inputs.s3-bucket }}/${{ steps.envname.outputs.repo_name }}/${{ inputs.environment }}/${{ github.run_id }}-${{ github.run_attempt }}
         run: |
            set -euo pipefail
 
