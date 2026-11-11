@@ -99,7 +99,7 @@ jobs:
       - name: Set feature API URL
         if: ${{ inputs.environment == 'feature' }}
         env:
-          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+          BRANCH_NAME: ${{ (startsWith(github.base_ref, 'feature/') && github.base_ref) || github.head_ref || github.ref_name }}
         run: |
           set -euo pipefail
 
